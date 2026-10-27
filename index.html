@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start here | CIS*3090 midterm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="side" aria-label="Pages">
+<a class="brand" href="index.html">CIS*3090 midterm</a>
+<a href="index.html" aria-current="page">Start here</a>
+<div class="grp">Notes</div>
+<a href="concepts.html">Big ideas</a>
+<a href="sendrecv.html">Send and receive</a>
+<a href="collectives.html">Collective communication</a>
+<a href="trapezoid.html">The trapezoidal rule</a>
+<div class="grp">Code walkthroughs</div>
+<a href="hello.html">mpi_hello.c</a>
+<a href="hello2.html">mpi_hello2.c</a>
+<a href="trap_sendrecv.html">mpi_SendRec.c</a>
+<a href="trap_bcast.html">mpi_Bcast.c</a>
+<div class="grp">Practice</div>
+<a href="trace.html">Trapezoid trace</a>
+<a href="practice.html">Code-reading questions</a>
+<div class="grp">Reference</div>
+<a href="reference.html">Cheat sheet</a>
+</nav>
+<main id="main">
+<h1>Start here</h1>
+<ul>
+<li>
+<p>What this site is:</p>
+<ul>
+<li>Study notes for the CIS*3090 midterm, built around reading and predicting MPI code</li>
+<li><strong>MPI</strong> (Message Passing Interface): a C library for running one program as several cooperating processes</li>
+<li>Every program output shown here was produced by compiling and running the code with MPICH</li>
+<li>Extra demo programs that are not from the course sit in <code>examples/extras/</code></li>
+</ul>
+</li>
+<li>
+<p>What is covered so far:</p>
+<ul>
+<li><strong>Lecture 09</strong>: distributed memory systems, MPI basics, send and receive</li>
+<li><strong>Lecture 10</strong>: collective communication (Reduce, Allreduce, Bcast, Scatter, Gather)</li>
+<li><strong>Lecture 11</strong>: the trapezoidal rule, first with Send/Recv, then with Bcast and Reduce</li>
+<li><strong>Textbook</strong>: Chapter 3, sections 3.1 to 3.4</li>
+<li><strong>Code</strong>: <code>mpi_hello.c</code>, <code>mpi_hello2.c</code>, <code>mpi_SendRec.c</code>, <code>mpi_Bcast.c</code> and the makefile</li>
+<li>Earlier lectures (pthreads, performance, heat distribution) are not on this site yet</li>
+</ul>
+</li>
+<li>
+<p>A good study order:</p>
+<ul>
+<li>Read Big ideas, then Send and receive, then Collective communication</li>
+<li>Open each code walkthrough and try to predict the output before reading it</li>
+<li>Play with the trapezoid trace until the rank slices feel obvious</li>
+<li>Finish with the code-reading questions, covering the answers until you have committed to one</li>
+</ul>
+</li>
+<li>
+<p>How rank colours work:</p>
+<ul>
+<li>Every MPI process has a number called its <strong>rank</strong></li>
+<li>This site gives each rank a colour: <span class="chip r0">rank 0</span> <span class="chip r1">rank 1</span> <span class="chip r2">rank 2</span> <span class="chip r3">rank 3</span> and <span class="chip rx">other ranks</span> for any rank not named</li>
+<li>Code walkthroughs use the colour to say which ranks run which lines</li>
+</ul>
+</li>
+<li>
+<p>Two things in the zip that can trip you up:</p>
+<ul>
+<li><code>mpi_SendRec.c</code> is the textbook's <code>mpi_trap2.c</code>, and <code>mpi_Bcast.c</code> is <code>mpi_trap3.c</code></li>
+<li>The comments inside those files still use the old names</li>
+<li>The makefile builds <code>mpi_hello</code>, <code>mpi_SendRec</code> and <code>mpi_Bcast</code>, but not <code>mpi_hello2</code></li>
+<li>The trapezoid programs read input from the keyboard, so pipe it in: <code>echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast</code></li>
+</ul>
+</li>
+<li>
+<p>Compile and run:</p>
+<ul>
+<li><code>mpicc -std=c99 -Wall -o mpi_hello mpi_hello.c</code></li>
+<li><code>mpiexec -n 4 ./mpi_hello</code></li>
+<li><code>-n 4</code> starts four processes</li>
+</ul>
+</li>
+</ul>
+<div class="pager"><a class="next" href="concepts.html">Next: Big ideas</a></div>
+</main>
+
+<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The trapezoidal rule | CIS*3090 midterm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="side" aria-label="Pages">
+<a class="brand" href="index.html">CIS*3090 midterm</a>
+<a href="index.html">Start here</a>
+<div class="grp">Notes</div>
+<a href="concepts.html">Big ideas</a>
+<a href="sendrecv.html">Send and receive</a>
+<a href="collectives.html">Collective communication</a>
+<a href="trapezoid.html" aria-current="page">The trapezoidal rule</a>
+<div class="grp">Code walkthroughs</div>
+<a href="hello.html">mpi_hello.c</a>
+<a href="hello2.html">mpi_hello2.c</a>
+<a href="trap_sendrecv.html">mpi_SendRec.c</a>
+<a href="trap_bcast.html">mpi_Bcast.c</a>
+<div class="grp">Practice</div>
+<a href="trace.html">Trapezoid trace</a>
+<a href="practice.html">Code-reading questions</a>
+<div class="grp">Reference</div>
+<a href="reference.html">Cheat sheet</a>
+</nav>
+<main id="main">
+<h1>The trapezoidal rule</h1>
+<ul>
+<li>
+<p>The goal:</p>
+<ul>
+<li>Estimate the area under a curve f(x) between x = a and x = b</li>
+<li>Split the interval into n equal strips and replace each strip's curve with a straight line, which makes a trapezoid</li>
+<li>The course function is <code>f(x) = x*x</code>, and the true area from 0 to 3 is exactly 9</li>
+</ul>
+</li>
+<li>
+<p>The maths:</p>
+<ul>
+<li><strong>h</strong> is the width of every trapezoid: <code>h = (b - a) / n</code></li>
+<li>Area of one trapezoid: <code>(h / 2) * (f(x_i) + f(x_i+1))</code></li>
+<li>Whole estimate: <code>h * [ f(a)/2 + f(x_1) + ... + f(x_n-1) + f(b)/2 ]</code></li>
+<li>The middle points are counted twice (once for each neighbouring trapezoid), and the two end points once, which is why those two are halved</li>
+<li>On a convex curve each trapezoid overestimates, on a concave curve it underestimates</li>
+<li>As the trapezoids get narrower, the errors average out</li>
+</ul>
+</li>
+<li>
+<p>The serial code (this is <code>Trap</code> in every course version):</p>
+<figure class="code"><div class="codecap">mpi_SendRec.c, lines 141 to 157</div><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kt">double</span><span class="w"> </span><span class="nf">Trap</span><span class="p">(</span>
+<span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">left_endpt</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">right_endpt</span><span class="w"> </span><span class="cm">/* in */</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">int</span><span class="w">    </span><span class="n">trap_count</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">base_len</span><span class="w">    </span><span class="cm">/* in */</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">estimate</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">;</span>
+<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+
+<span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">left_endpt</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">right_endpt</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span><span class="p">;</span>
+<span class="w">   </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">trap_count</span><span class="mi">-1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">left_endpt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span>
+<span class="w">      </span><span class="n">estimate</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">estimate</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span>
+
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="n">estimate</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="cm">/*  Trap  */</span>
+</code></pre></div></td></tr></table></div>
+</figure>
+<ul>
+<li>Line 149: start with the two halved end points</li>
+<li>Lines 150 to 153: add <code>f(x)</code> for each middle point</li>
+<li>Line 154: multiply by <code>h</code> once at the end</li>
+</ul>
+</li>
+<li>
+<p>Designing the parallel version (lecture 11 follows these four steps):</p>
+<ul>
+<li><strong>Partition</strong>: give each process one slice of the interval</li>
+<li><strong>Communicate</strong>: everyone needs <code>a</code>, <code>b</code>, <code>n</code>, and the partial results must be added together</li>
+<li><strong>Aggregate</strong>: <span class="chip r0">rank 0</span> also does the input, the summing and the output</li>
+<li><strong>Map</strong>: <span class="chip r0">rank 0</span> sums, <span class="chip rx">other ranks</span> compute a slice and send the result to rank 0</li>
+</ul>
+</li>
+<li>
+<p>Each rank's slice:</p>
+<ul>
+<li><code>h = (b-a)/n</code> is the same on every rank</li>
+<li><code>local_n = n/comm_sz</code> is the number of trapezoids per rank</li>
+<li><code>local_a = a + my_rank*local_n*h</code> is where this rank's slice starts</li>
+<li><code>local_b = local_a + local_n*h</code> is where it ends</li>
+<li>Each rank calls <code>Trap(local_a, local_b, local_n, h)</code> on its own slice</li>
+<li>Example: a = 0, b = 3, n = 1024 on 4 ranks gives local_n = 256, so <span class="chip r2">rank 2</span> covers 1.5 to 2.25</li>
+<li>The Trapezoid trace page lets you try other numbers</li>
+</ul>
+</li>
+<li>
+<p>The assumption that is easy to forget:</p>
+<ul>
+<li>The code assumes <code>n</code> divides evenly by <code>comm_sz</code></li>
+<li>Integer division truncates, so leftover trapezoids are never computed</li>
+<li>With n = 1024 on 3 ranks, <code>local_n</code> is 341 and only 1023 trapezoids are covered</li>
+<li>The program then prints 8.9737 instead of about 9.0000 (checked by running it)</li>
+<li>The slides say they assume even division to keep examples short</li>
+<li>Textbook exercise 3.2 asks you to fix it</li>
+</ul>
+</li>
+<li>
+<p>The three versions in the course:</p>
+<ul>
+<li><strong>Program 3.2</strong>, the textbook's first version: a = 0, b = 3, n = 1024 hard-coded, results summed with a loop of Send and Recv</li>
+<li><strong>mpi_trap2</strong>, shipped here as <code>mpi_SendRec.c</code>: keyboard input sent to each rank with <code>MPI_Send</code>, results summed with a loop of <code>MPI_Recv</code></li>
+<li><strong>mpi_trap3</strong>, shipped here as <code>mpi_Bcast.c</code>: <code>MPI_Bcast</code> for the input and <code>MPI_Reduce</code> for the sum</li>
+<li><code>mpi_trap4</code> uses MPI derived datatypes, which lecture 11 says have not been covered</li>
+</ul>
+</li>
+<li>
+<p>What changes between versions 2 and 3:</p>
+<ul>
+<li>Input: three <code>MPI_Send</code> calls per other rank become three <code>MPI_Bcast</code> calls</li>
+<li>Sum: an if/else with a loop becomes one <code>MPI_Reduce</code></li>
+<li>The maths and the <code>Trap</code> function do not change</li>
+<li>Result for a = 0, b = 3, n = 1024 on 4 ranks is <code>9.000004291534424e+00</code> in both</li>
+<li>It is a little above 9 because x squared is convex, so every trapezoid overestimates</li>
+</ul>
+</li>
+</ul>
+<div class="pager"><a class="prev" href="collectives.html">Previous: Collective communication</a><a class="next" href="hello.html">Next: mpi_hello.c</a></div>
+</main>
+
+<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+title: Trapezoid trace
+<ul>
+<li>What this does:
+<ul>
+<li>It runs the same arithmetic as <code>mpi_SendRec.c</code> and <code>mpi_Bcast.c</code> for f(x) = x*x, one rank at a time</li>
+<li>Change the numbers and watch which slice of the interval each rank gets</li>
+<li>Try n = 1024 with 3 ranks to see the bug from the notes: hatched space is never computed</li>
+</ul></li>
+</ul>
+
+<form class="controls" onsubmit="return false" aria-label="Trace inputs">
+<label>a (left end)<input id="in-a" type="number" step="any" value="0"></label>
+<label>b (right end)<input id="in-b" type="number" step="any" value="3"></label>
+<label>n (trapezoids)<input id="in-n" type="number" step="1" min="1" value="1024"></label>
+<label>comm_sz (ranks)<input id="in-p" type="number" step="1" min="1" max="64" value="4"></label>
+</form>
+
+<div class="lanes">
+<div class="lane-axis"><span id="ax-a">a</span><span id="ax-b">b</span></div>
+<div class="lane-bar" id="bar" role="img" aria-label="Interval split among ranks"></div>
+<div class="lane-note" id="lane-note"></div>
+</div>
+
+<ul>
+<li>Each rank's slice, using the program's own formulas:
+<ul>
+<li><code>h = (b-a)/n</code> and <code>local_n = n/comm_sz</code> (integer division)</li>
+<li><code>local_a = a + my_rank*local_n*h</code> and <code>local_b = local_a + local_n*h</code></li>
+</ul></li>
+</ul>
+
+<div class="tablewrap">
+<table>
+<caption class="sr" style="position:absolute;left:-999px">Per-rank values</caption>
+<thead><tr><th>rank</th><th>local_n</th><th>local_a</th><th>local_b</th><th>local_int</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+
+<ul>
+<li>Result:</li>
+</ul>
+<dl class="stats">
+<dt>h</dt><dd id="o-h"></dd>
+<dt>total_int</dt><dd id="o-total"></dd>
+<dt>exact</dt><dd id="o-exact"></dd>
+<dt>error</dt><dd id="o-err"></dd>
+<dt>trapezoids used</dt><dd id="o-used"></dd>
+</dl>
+
+<ul>
+<li>Messages the two versions use:
+<ul>
+<li><code>mpi_SendRec.c</code>: 3 sends per other rank for the input, plus 1 result message per other rank, which is <strong>4(p - 1)</strong> in total</li>
+<li><code>mpi_Bcast.c</code>: <strong>4 collective calls</strong> that every rank makes (3 <code>MPI_Bcast</code>, 1 <code>MPI_Reduce</code>)</li>
+<li>For this input: <span id="o-msgs"></span></li>
+</ul></li>
+<li>Notes:
+<ul>
+<li>The total adds the partial results in rank order, like the Send/Recv loop</li>
+<li><code>MPI_Reduce</code> may add in a different order, so the last digits can differ</li>
+<li>Check: a = 0, b = 3, n = 1024 on 4 ranks gives 9.000004291534424e+00, which matches a real run</li>
+</ul></li>
+</ul>

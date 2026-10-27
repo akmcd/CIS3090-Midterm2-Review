@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Big ideas | CIS*3090 midterm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="side" aria-label="Pages">
+<a class="brand" href="index.html">CIS*3090 midterm</a>
+<a href="index.html">Start here</a>
+<div class="grp">Notes</div>
+<a href="concepts.html" aria-current="page">Big ideas</a>
+<a href="sendrecv.html">Send and receive</a>
+<a href="collectives.html">Collective communication</a>
+<a href="trapezoid.html">The trapezoidal rule</a>
+<div class="grp">Code walkthroughs</div>
+<a href="hello.html">mpi_hello.c</a>
+<a href="hello2.html">mpi_hello2.c</a>
+<a href="trap_sendrecv.html">mpi_SendRec.c</a>
+<a href="trap_bcast.html">mpi_Bcast.c</a>
+<div class="grp">Practice</div>
+<a href="trace.html">Trapezoid trace</a>
+<a href="practice.html">Code-reading questions</a>
+<div class="grp">Reference</div>
+<a href="reference.html">Cheat sheet</a>
+</nav>
+<main id="main">
+<h1>Big ideas</h1>
+<ul>
+<li>
+<p>Shared memory versus distributed memory:</p>
+<ul>
+<li><strong>shared memory</strong>: all threads see the same variables (pthreads works this way)</li>
+<li><strong>distributed memory</strong>: each process has its own private memory, and processes talk over a network</li>
+<li>MPI is built for distributed memory</li>
+<li>The same MPI program also runs on one machine with several cores</li>
+<li>MPI hides whether two processes share a machine or not</li>
+</ul>
+</li>
+<li>
+<p>Why communication cost shapes everything:</p>
+<ul>
+<li>Sending data over a network takes time, while threads share data almost instantly</li>
+<li>So MPI pays off when each process computes for a long time between messages</li>
+<li>It fits <strong>data-parallel</strong> problems, where every process does the same work on a different piece of data</li>
+<li>Lecture 09's example is a render farm: each machine renders its own animation frame</li>
+</ul>
+</li>
+<li>
+<p>MPI compared with pthreads (lecture 09):</p>
+<ul>
+<li>pthreads: shared memory, works with threads, built for concurrency, so you do all the parallel computation work by hand</li>
+<li>MPI: distributed memory, works with processes, designed with parallel computation in mind</li>
+</ul>
+</li>
+<li>
+<p>SPMD:</p>
+<ul>
+<li><strong>SPMD</strong> (single program, multiple data): every process runs the same executable</li>
+<li>Different processes do different things by branching on their rank</li>
+<li>The classic shape is <code>if (my_rank != 0) { send } else { receive }</code></li>
+<li>The textbook (3.1.5) points to the if-else in the hello program as what makes it SPMD</li>
+</ul>
+</li>
+<li>
+<p>The calls every MPI program uses:</p>
+<ul>
+<li><code>MPI_Init(NULL, NULL)</code>: starts MPI, must come before any other MPI call</li>
+<li><code>NULL, NULL</code> is fine when the program does not use <code>argc</code> and <code>argv</code></li>
+<li><code>MPI_Comm_size(MPI_COMM_WORLD, &amp;comm_sz)</code>: stores how many processes there are</li>
+<li><code>MPI_Comm_rank(MPI_COMM_WORLD, &amp;my_rank)</code>: stores which process this is, from 0 to <code>comm_sz - 1</code></li>
+<li><code>MPI_Finalize()</code>: shuts MPI down, no MPI calls are allowed after it</li>
+</ul>
+</li>
+<li>
+<p>Two words to know:</p>
+<ul>
+<li><strong>communicator</strong>: a group of processes that can send messages to each other</li>
+<li><code>MPI_COMM_WORLD</code> is the communicator holding every process that <code>mpiexec</code> started</li>
+<li><strong>rank</strong>: a process's number inside a communicator, like a process id that does not depend on the system</li>
+<li>Lecture 09 compares a communicator to a radio channel that processes listen on</li>
+<li>Several communicators let different groups talk without picking up each other's messages</li>
+</ul>
+</li>
+<li>
+<p>Compile and run:</p>
+<ul>
+<li><code>mpicc</code> is a wrapper around the C compiler that adds the MPI library</li>
+<li><code>mpiexec -n 4 ./prog</code> starts 4 processes of <code>prog</code></li>
+<li>Write programs that work for any number of processes, because you do not know the number in advance</li>
+</ul>
+</li>
+<li>
+<p>Naming rule from the textbook (3.1.2):</p>
+<ul>
+<li>Everything MPI defines starts with <code>MPI_</code></li>
+<li>Function names and types have a capital letter right after the underscore</li>
+<li>Constants and macros are all capitals, like <code>MPI_COMM_WORLD</code></li>
+</ul>
+</li>
+<li>
+<p>Input and output:</p>
+<ul>
+<li>Most implementations let only rank 0 read from stdin</li>
+<li>So rank 0 calls <code>scanf</code>, then sends the values to everyone else</li>
+<li>Every process can write to stdout, but the order is nondeterministic and lines can interleave</li>
+<li><strong>nondeterministic</strong>: the result can differ from one run to the next</li>
+<li>To get ordered output, have the other ranks send their text to rank 0, which prints in rank order</li>
+<li><code>mpi_hello.c</code> does exactly this</li>
+<li>Debug prints should include the rank</li>
+</ul>
+</li>
+<li>
+<p>Error codes:</p>
+<ul>
+<li>Most MPI functions return an <code>int</code>, and <code>MPI_SUCCESS</code> means it worked</li>
+<li>The course examples ignore the return values to keep code short</li>
+</ul>
+</li>
+</ul>
+<div class="pager"><a class="prev" href="index.html">Previous: Start here</a><a class="next" href="sendrecv.html">Next: Send and receive</a></div>
+</main>
+
+<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+</body>
+</html>

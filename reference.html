@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cheat sheet | CIS*3090 midterm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="side" aria-label="Pages">
+<a class="brand" href="index.html">CIS*3090 midterm</a>
+<a href="index.html">Start here</a>
+<div class="grp">Notes</div>
+<a href="concepts.html">Big ideas</a>
+<a href="sendrecv.html">Send and receive</a>
+<a href="collectives.html">Collective communication</a>
+<a href="trapezoid.html">The trapezoidal rule</a>
+<div class="grp">Code walkthroughs</div>
+<a href="hello.html">mpi_hello.c</a>
+<a href="hello2.html">mpi_hello2.c</a>
+<a href="trap_sendrecv.html">mpi_SendRec.c</a>
+<a href="trap_bcast.html">mpi_Bcast.c</a>
+<div class="grp">Practice</div>
+<a href="trace.html">Trapezoid trace</a>
+<a href="practice.html">Code-reading questions</a>
+<div class="grp">Reference</div>
+<a href="reference.html" aria-current="page">Cheat sheet</a>
+</nav>
+<main id="main">
+<h1>Cheat sheet</h1>
+<ul>
+<li>
+<p>Setup and shutdown:</p>
+<div class="highlight"><pre><span></span><code>MPI_Init(NULL, NULL);                          /* before any other MPI call */
+MPI_Comm_size(MPI_COMM_WORLD, &amp;comm_sz);       /* how many processes */
+MPI_Comm_rank(MPI_COMM_WORLD, &amp;my_rank);       /* which one am I */
+MPI_Finalize();                                /* no MPI calls after this */
+</code></pre></div>
+
+</li>
+<li>
+<p>Point-to-point:</p>
+<div class="highlight"><pre><span></span><code>MPI_Send(buf, count, datatype, dest,   tag, comm);
+MPI_Recv(buf, count, datatype, source, tag, comm, &amp;status);   /* or MPI_STATUS_IGNORE */
+MPI_Get_count(&amp;status, datatype, &amp;count);
+</code></pre></div>
+
+<ul>
+<li>Recv <code>count</code> is the buffer capacity, it must be at least the size of the message</li>
+<li>Wildcards <code>MPI_ANY_SOURCE</code> and <code>MPI_ANY_TAG</code> are receiver only</li>
+<li><code>status.MPI_SOURCE</code>, <code>status.MPI_TAG</code> tell you what a wildcard receive matched</li>
+</ul>
+</li>
+<li>
+<p>Collective:</p>
+<div class="highlight"><pre><span></span><code>MPI_Bcast(data, count, datatype, source, comm);
+MPI_Reduce(in, out, count, datatype, op, dest, comm);
+MPI_Allreduce(in, out, count, datatype, op, comm);
+MPI_Scatter(send, send_count, send_type, recv, recv_count, recv_type, source, comm);
+MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm);
+</code></pre></div>
+
+<ul>
+<li><code>send_count</code> in Scatter and Gather is per process, not the total</li>
+<li>Every process in the communicator must make the call, in the same order</li>
+<li>Reduce output is only written on <code>dest</code>, and input and output must not be the same variable</li>
+</ul>
+</li>
+<li>
+<p>Datatypes used in the examples:</p>
+<ul>
+<li><code>MPI_CHAR</code> for <code>char</code>, <code>MPI_INT</code> for <code>int</code>, <code>MPI_DOUBLE</code> for <code>double</code></li>
+<li>The MPI type must match the C type of the variable</li>
+</ul>
+</li>
+<li>
+<p>Reduction operators (textbook Table 3.2):</p>
+</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MPI_SUM</code>, <code>MPI_PROD</code></td>
+<td>sum, product</td>
+</tr>
+<tr>
+<td><code>MPI_MAX</code>, <code>MPI_MIN</code></td>
+<td>maximum, minimum</td>
+</tr>
+<tr>
+<td><code>MPI_MAXLOC</code>, <code>MPI_MINLOC</code></td>
+<td>extreme value and where it is</td>
+</tr>
+<tr>
+<td><code>MPI_LAND</code>, <code>MPI_LOR</code>, <code>MPI_LXOR</code></td>
+<td>logical and, or, exclusive or</td>
+</tr>
+<tr>
+<td><code>MPI_BAND</code>, <code>MPI_BOR</code>, <code>MPI_BXOR</code></td>
+<td>bitwise and, or, exclusive or</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Point-to-point against collective:</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Point-to-point</th>
+<th>Collective</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Who takes part</td>
+<td>one sender, one receiver</td>
+<td>all processes in the communicator</td>
+</tr>
+<tr>
+<td>Matched by</td>
+<td>communicator, tag, source and dest</td>
+<td>communicator and order of calls</td>
+</tr>
+<tr>
+<td>Tags</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Wildcards</td>
+<td>receiver only</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>
+<p>Four ways code hangs or goes wrong:</p>
+<ul>
+<li>Receive with no matching send</li>
+<li>Tag, rank or communicator mismatch</li>
+<li>Two blocking sends facing each other</li>
+<li>A collective that not every process calls, or that is called in a different order</li>
+</ul>
+</li>
+<li>
+<p>Trapezoid formulas:</p>
+<ul>
+<li><code>h = (b - a) / n</code></li>
+<li><code>local_n = n / comm_sz</code> (assumes n divides evenly)</li>
+<li><code>local_a = a + my_rank * local_n * h</code></li>
+<li><code>local_b = local_a + local_n * h</code></li>
+<li>Estimate: <code>h * (f(a)/2 + f(x_1) + ... + f(x_n-1) + f(b)/2)</code></li>
+</ul>
+</li>
+<li>
+<p>Commands:</p>
+<div class="highlight"><pre><span></span><code>mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
+mpiexec -n 4 ./mpi_hello
+echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
+</code></pre></div>
+
+</li>
+</ul>
+<div class="pager"><a class="prev" href="practice.html">Previous: Code-reading questions</a></div>
+</main>
+
+<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+</body>
+</html>

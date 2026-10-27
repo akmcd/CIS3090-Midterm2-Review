@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send and receive | CIS*3090 midterm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="side" aria-label="Pages">
+<a class="brand" href="index.html">CIS*3090 midterm</a>
+<a href="index.html">Start here</a>
+<div class="grp">Notes</div>
+<a href="concepts.html">Big ideas</a>
+<a href="sendrecv.html" aria-current="page">Send and receive</a>
+<a href="collectives.html">Collective communication</a>
+<a href="trapezoid.html">The trapezoidal rule</a>
+<div class="grp">Code walkthroughs</div>
+<a href="hello.html">mpi_hello.c</a>
+<a href="hello2.html">mpi_hello2.c</a>
+<a href="trap_sendrecv.html">mpi_SendRec.c</a>
+<a href="trap_bcast.html">mpi_Bcast.c</a>
+<div class="grp">Practice</div>
+<a href="trace.html">Trapezoid trace</a>
+<a href="practice.html">Code-reading questions</a>
+<div class="grp">Reference</div>
+<a href="reference.html">Cheat sheet</a>
+</nav>
+<main id="main">
+<h1>Send and receive</h1>
+<ul>
+<li>
+<p><strong>Point-to-point communication</strong>: one process sends, exactly one process receives</p>
+<ul>
+<li>The two functions are <code>MPI_Send</code> and <code>MPI_Recv</code></li>
+</ul>
+</li>
+<li>
+<p>MPI_Send:</p>
+<ul>
+<li>
+<p>Signature:</p>
+<div class="highlight"><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="nf">MPI_Send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+</code></pre></div>
+
+</li>
+<li>
+<p><code>buf</code>, <code>count</code>, <code>datatype</code> describe the data: where it is, how many elements, what type</p>
+</li>
+<li><code>count</code> is a number of elements, not bytes</li>
+<li><code>dest</code>, <code>tag</code>, <code>comm</code> describe where it goes</li>
+<li><code>tag</code> is a non-negative int that lets a receiver tell kinds of messages apart</li>
+<li>The textbook's example: tag 0 for messages to print, tag 1 for messages used in a computation</li>
+<li><code>MPI_Send(greeting, strlen(greeting)+1, MPI_CHAR, 0, 0, MPI_COMM_WORLD)</code> sends a string to rank 0</li>
+<li>The <code>+1</code> sends the terminating <code>'\0'</code> too</li>
+</ul>
+</li>
+<li>
+<p>MPI_Recv:</p>
+<ul>
+<li>
+<p>Signature:</p>
+<div class="highlight"><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="nf">MPI_Recv</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status</span><span class="p">);</span>
+</code></pre></div>
+
+</li>
+<li>
+<p>The first six arguments mirror <code>MPI_Send</code></p>
+</li>
+<li>Here <code>count</code> is how many elements the buffer can hold, not how many arrived</li>
+<li><code>status</code> receives details about the message, or pass <code>MPI_STATUS_IGNORE</code></li>
+<li>The receiver must already know the type, and an upper limit on the size</li>
+</ul>
+</li>
+<li>
+<p>Message matching:</p>
+<ul>
+<li>A send from process q to process r is received by r's <code>MPI_Recv</code> when all of these hold</li>
+<li>Both use the same communicator</li>
+<li>The tags are equal</li>
+<li>r's <code>source</code> is q, and q's <code>dest</code> is r</li>
+<li>The buffers are compatible: same datatype, and the receive count is at least the send count (the textbook's rule of thumb)</li>
+</ul>
+</li>
+<li>
+<p>Wildcards (receiver only):</p>
+<ul>
+<li><code>MPI_ANY_SOURCE</code>: accept a message from any sender</li>
+<li><code>MPI_ANY_TAG</code>: accept any tag</li>
+<li>Use <code>MPI_ANY_SOURCE</code> when you do not know which process will finish first</li>
+<li>A sender can never use a wildcard, it must name a rank and a non-negative tag</li>
+<li>The textbook calls this a "push" mechanism, not a "pull"</li>
+<li>There is no wildcard for the communicator</li>
+</ul>
+</li>
+<li>
+<p>Finding out what a wildcard receive got:</p>
+<ul>
+<li><code>status.MPI_SOURCE</code>: the sender's rank</li>
+<li><code>status.MPI_TAG</code>: the tag</li>
+<li><code>MPI_Get_count(&amp;status, MPI_CHAR, &amp;count)</code>: how many elements arrived</li>
+<li>The count is not a struct member because it depends on the datatype, and computing it costs a little</li>
+</ul>
+</li>
+<li>
+<p>Does a send wait?:</p>
+<ul>
+<li><code>MPI_Recv</code> always blocks until a matching message has arrived</li>
+<li><strong>blocking</strong>: the call does not return until it can</li>
+<li><code>MPI_Send</code> depends on the implementation: it may copy the message into a system buffer and return at once, or wait until the receiver is ready</li>
+<li>Implementations usually pick a cutoff size, small messages are buffered and large ones block</li>
+<li>When <code>MPI_Send</code> returns, you only know your send buffer is safe to reuse, not that the message arrived</li>
+<li>Lecture 09 slide 29 calls <code>MPI_Send</code> synchronous, but slide 34 and the textbook say it may buffer or block, so the buffer-or-block answer is the safe one</li>
+<li><code>MPI_Isend</code> and <code>MPI_Irecv</code> are non-blocking versions, and the course does not use them</li>
+</ul>
+</li>
+<li>
+<p>Message order:</p>
+<ul>
+<li>MPI messages are <strong>non-overtaking</strong>: two messages from the same sender to the same receiver arrive in the order they were sent</li>
+<li>Messages from different senders have no guaranteed order</li>
+<li>This is why <code>Get_input</code> can send <code>a</code>, <code>b</code>, <code>n</code> with the same tag and still have them arrive in order</li>
+</ul>
+</li>
+<li>
+<p>Classic pitfalls (all likely exam material):</p>
+<ul>
+<li>A receive with no matching send hangs forever</li>
+<li>A tag or rank mismatch makes the receive hang, or match the wrong send</li>
+<li>A blocking send with no matching receive can hang</li>
+<li>A buffered send with no matching receive loses the message</li>
+<li>The number of sends must equal the number of receives</li>
+<li><code>tag_mismatch.c</code> in <code>examples/extras/</code> shows the hang, and it really does hang when run</li>
+</ul>
+</li>
+<li>
+<p>Checking and fixing an unsafe program:</p>
+<ul>
+<li><strong>unsafe</strong>: it only works if the system happens to buffer the messages</li>
+<li>Test by replacing every <code>MPI_Send</code> with <code>MPI_Ssend</code>, which always waits until the receive has started</li>
+<li>If the program still finishes, it is safe</li>
+<li>Fix one way: even ranks send first and odd ranks receive first</li>
+<li>Fix another way: use <code>MPI_Sendrecv</code>, which schedules the send and receive so they cannot deadlock</li>
+<li><code>head_to_head.c</code> in <code>examples/extras/</code> has two ranks that each <code>MPI_Ssend</code> before receiving, and it hangs</li>
+</ul>
+</li>
+</ul>
+<div class="pager"><a class="prev" href="concepts.html">Previous: Big ideas</a><a class="next" href="collectives.html">Next: Collective communication</a></div>
+</main>
+
+<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+</body>
+</html>
