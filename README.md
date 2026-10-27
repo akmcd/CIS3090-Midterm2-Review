@@ -3,12 +3,25 @@
 Notes, code walkthroughs, an interactive trapezoid trace and code-reading questions for the MPI part of CIS*3090.
 Covers lectures 09 to 11 and textbook Chapter 3, sections 3.1 to 3.4.
 
-## Put it online with GitHub Pages
+**Study pages: https://akmcd.github.io/CIS3090-Midterm2-Review/**
 
-1. Create a new repository on GitHub and upload everything in this folder (keep the `.nojekyll` file)
-2. In the repository, open Settings, then Pages
-3. Under Build and deployment choose "Deploy from a branch", pick the `main` branch and the `/ (root)` folder, then save
-4. After a minute the site is at `https://<your-username>.github.io/<repository-name>/`
+Direct links:
+
+- [Start here](https://akmcd.github.io/CIS3090-Midterm2-Review/)
+- [Big ideas](https://akmcd.github.io/CIS3090-Midterm2-Review/concepts.html)
+- [Send and receive](https://akmcd.github.io/CIS3090-Midterm2-Review/sendrecv.html)
+- [Collective communication](https://akmcd.github.io/CIS3090-Midterm2-Review/collectives.html)
+- [The trapezoidal rule](https://akmcd.github.io/CIS3090-Midterm2-Review/trapezoid.html)
+- [Trapezoid trace](https://akmcd.github.io/CIS3090-Midterm2-Review/trace.html)
+- [Code-reading questions](https://akmcd.github.io/CIS3090-Midterm2-Review/practice.html)
+- [Cheat sheet](https://akmcd.github.io/CIS3090-Midterm2-Review/reference.html)
+
+## How the site is published (GitHub Pages)
+
+1. In the repository, open Settings, then Pages
+2. Under Build and deployment choose "Deploy from a branch", pick the `main` branch and the `/ (root)` folder, then save
+3. After a minute the site is live at the link above
+4. Keep the `.nojekyll` file in the repository root
 
 The pages are plain HTML files that are already built, so nothing else is needed.
 
