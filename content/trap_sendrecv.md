@@ -5,25 +5,20 @@ title: mpi_SendRec.c
     - Input is read by [[r0]] and sent to everyone, and the partial results are summed by [[r0]] with a loop of receives
     - Textbook reference: 3.2 and 3.3.2, lecture 09 slides 38 to 42 and lecture 11
 
-- The main function:
+- Try this first:
+    - Select Rank 0, then Rank 1, and compare how many lines each one runs
+    - Step through and count the arrows: there are `4(p - 1)` of them, and every one touches rank 0
+    - The gray bar in the timeline is the stretch where all ranks compute their own slice
 
-    {{code mpi_SendRec.c 44-95 hl=59,61,62,67,68,69,72,73,77,78,80,85}}
+{{walk trap_sendrecv}}
 
-- Line by line:
-    - Lines 45 to 48: `local_a`, `local_b` and `local_int` get a different value on each rank
+- What the variables mean:
+    - `local_a`, `local_b` and `local_int` get a different value on each rank
     - `local_n` is the same number everywhere, but the textbook still calls it a **local** variable, meaning one process uses it
     - `a`, `b`, `n` are the textbook's **global** variables, meaning every process needs the same values
-    - Line 59: **every** rank calls `Get_input`, and inside it each rank takes a different branch
-    - Lines 61 and 62: `h` and `local_n`, identical on all ranks
-    - Lines 67 to 69: each rank computes its own slice and its own partial integral
-    - Lines 72 to 74: [[rx]] send `local_int` to rank 0 (one `MPI_DOUBLE`, tag 0)
-    - Lines 76 to 81: [[r0]] starts `total_int` with its own part, then receives from rank 1, 2, ... and adds each in turn
-    - Lines 85 to 89: only [[r0]] prints the result
+    - **every** rank calls `Get_input`, and inside it each rank takes a different branch
 
-- The input function (lines 107 to 127):
-
-    {{code mpi_SendRec.c 107-127 hl=111,112,113,115,116,117,120,122,124}}
-
+- How the input messages line up:
     - [[r0]] prompts, reads `a`, `b`, `n` with one `scanf`, then loops over every other rank sending three messages to each
     - [[rx]] do three receives from rank 0 in the same order: `a`, then `b`, then `n`
     - All six calls use tag 0 and the same communicator, and that is safe because messages from the same sender do not overtake each other
@@ -33,12 +28,14 @@ title: mpi_SendRec.c
 
 - Running it (the program asks for keyboard input, so pipe it in):
 
-        $ echo "0 3 1024" | mpiexec -n 4 ./mpi_SendRec
-        Enter a, b, and n
-        With n = 1024 trapezoids, our estimate
-        of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00
+    ::: run Real run, 4 processes
+    $ echo "0 3 1024" | mpiexec -n 4 ./mpi_SendRec
+    Enter a, b, and n
+    With n = 1024 trapezoids, our estimate
+    of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00
+    :::
 
-    - This is a real run, and the true answer is 9
+    - The true answer is 9
     - The estimate is slightly high because x squared is convex
 
 - Counting messages for p processes:

@@ -3,74 +3,51 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cheat sheet | CIS*3090 midterm</title>
+<title>Cheat sheet | CIS*3090 midterm 2</title>
+<meta name="description" content="Signatures, operators and formulas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-reference">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html">Big ideas</a>
-<a href="sendrecv.html">Send and receive</a>
-<a href="collectives.html">Collective communication</a>
-<a href="trapezoid.html">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html">mpi_hello2.c</a>
-<a href="trap_sendrecv.html">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html" aria-current="page">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="reference.html" aria-current="true">Reference</a></nav></div><nav class="sub" aria-label="Reference pages"><a href="reference.html" aria-current="page">Cheat sheet</a></nav></header>
 <main id="main">
 <h1>Cheat sheet</h1>
 <ul>
 <li>
 <p>Setup and shutdown:</p>
-<div class="highlight"><pre><span></span><code>MPI_Init(NULL, NULL);                          /* before any other MPI call */
-MPI_Comm_size(MPI_COMM_WORLD, &amp;comm_sz);       /* how many processes */
-MPI_Comm_rank(MPI_COMM_WORLD, &amp;my_rank);       /* which one am I */
-MPI_Finalize();                                /* no MPI calls after this */
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w">                          </span><span class="cm">/* before any other MPI call */</span>
+<span class="n mpi">MPI_Comm_size</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">comm_sz</span><span class="p">);</span><span class="w">       </span><span class="cm">/* how many processes */</span>
+<span class="n mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_rank</span><span class="p">);</span><span class="w">       </span><span class="cm">/* which one am I */</span>
+<span class="n mpi">MPI_Finalize</span><span class="p">();</span><span class="w">                                </span><span class="cm">/* no MPI calls after this */</span></code></pre></figure>
 </li>
-<li>
+<li class="sec">
 <p>Point-to-point:</p>
-<div class="highlight"><pre><span></span><code>MPI_Send(buf, count, datatype, dest,   tag, comm);
-MPI_Recv(buf, count, datatype, source, tag, comm, &amp;status);   /* or MPI_STATUS_IGNORE */
-MPI_Get_count(&amp;status, datatype, &amp;count);
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w">   </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span><span class="w">   </span><span class="cm">/* or MPI_STATUS_IGNORE */</span>
+<span class="n mpi">MPI_Get_count</span><span class="p">(</span><span class="o">&amp;</span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">);</span></code></pre></figure>
 <ul>
 <li>Recv <code>count</code> is the buffer capacity, it must be at least the size of the message</li>
 <li>Wildcards <code>MPI_ANY_SOURCE</code> and <code>MPI_ANY_TAG</code> are receiver only</li>
 <li><code>status.MPI_SOURCE</code>, <code>status.MPI_TAG</code> tell you what a wildcard receive matched</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Collective:</p>
-<div class="highlight"><pre><span></span><code>MPI_Bcast(data, count, datatype, source, comm);
-MPI_Reduce(in, out, count, datatype, op, dest, comm);
-MPI_Allreduce(in, out, count, datatype, op, comm);
-MPI_Scatter(send, send_count, send_type, recv, recv_count, recv_type, source, comm);
-MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm);
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Bcast</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Allreduce</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Scatter</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Gather</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 <ul>
 <li><code>send_count</code> in Scatter and Gather is per process, not the total</li>
 <li>Every process in the communicator must make the call, in the same order</li>
 <li>Reduce output is only written on <code>dest</code>, and input and output must not be the same variable</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Datatypes used in the examples:</p>
 <ul>
 <li><code>MPI_CHAR</code> for <code>char</code>, <code>MPI_INT</code> for <code>int</code>, <code>MPI_DOUBLE</code> for <code>double</code></li>
@@ -146,7 +123,7 @@ MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm)
 </tbody>
 </table></div>
 <ul>
-<li>
+<li class="sec">
 <p>Four ways code hangs or goes wrong:</p>
 <ul>
 <li>Receive with no matching send</li>
@@ -155,7 +132,7 @@ MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm)
 <li>A collective that not every process calls, or that is called in a different order</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Trapezoid formulas:</p>
 <ul>
 <li><code>h = (b - a) / n</code></li>
@@ -167,16 +144,14 @@ MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm)
 </li>
 <li>
 <p>Commands:</p>
-<div class="highlight"><pre><span></span><code>mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
+<figure class="snippet"><pre><code>mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
 mpiexec -n 4 ./mpi_hello
-echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
-</code></pre></div>
-
+echo &quot;0 3 1024&quot; | mpiexec -n 4 ./mpi_Bcast</code></pre></figure>
 </li>
 </ul>
-<div class="pager"><a class="prev" href="practice.html">Previous: Code-reading questions</a></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="trace.html"><span>Previous</span>Trapezoid trace</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

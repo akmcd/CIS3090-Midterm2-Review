@@ -39,6 +39,12 @@ title: Send and receive
     - r's `source` is q, and q's `dest` is r
     - The buffers are compatible: same datatype, and the receive count is at least the send count (the textbook's rule of thumb)
 
+- Try the matching rules:
+    - Change one thing at a time and see which check fails
+    - The presets reproduce programs in `examples/extras/`
+
+{{lab match}}
+
 - Wildcards (receiver only):
     - `MPI_ANY_SOURCE`: accept a message from any sender
     - `MPI_ANY_TAG`: accept any tag

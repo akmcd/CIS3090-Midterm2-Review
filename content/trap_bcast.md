@@ -5,14 +5,12 @@ title: mpi_Bcast.c
     - `MPI_Bcast` shares the input and `MPI_Reduce` adds up the partial results
     - Textbook reference: 3.4.2 and 3.4.5, lecture 10 and lecture 11
 
-- The main function:
+- Try this first:
+    - Select Rank 0, then Rank 3, and compare the lit lines with mpi_SendRec.c
+    - Almost every line is lit for every rank, because collective calls are made by everyone
+    - Step through and look at the shape of the arrows: a tree, not a fan out of rank 0
 
-    {{code mpi_Bcast.c 43-84 hl=57,59,60,65,66,67,70,71,74}}
-
-- What is new compared with mpi_SendRec.c:
-    - Line 57: still every rank calls `Get_input`
-    - Lines 70 and 71: one `MPI_Reduce` replaces the whole send-or-receive if/else
-    - Line 74: only [[r0]] prints, because only rank 0 receives the total
+{{walk trap_bcast}}
 
 - Reading the MPI_Reduce call:
     - `&local_int`: this rank's partial result, the input
@@ -24,10 +22,6 @@ title: mpi_Bcast.c
     - `MPI_COMM_WORLD`: every process takes part
     - On [[rx]] `total_int` is never set, so reading it there would give garbage
 
-- The input function:
-
-    {{code mpi_Bcast.c 96-106 hl=99,100,101,103,104,105}}
-
 - Reading the MPI_Bcast calls:
     - Only [[r0]] runs the `if` block, so only rank 0 prompts and calls `scanf`
     - Then every rank calls `MPI_Bcast` three times, once each for `a`, `b`, `n`
@@ -38,20 +32,24 @@ title: mpi_Bcast.c
 
 - Running it:
 
-        $ echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
-        Enter a, b, and n
-        With n = 1024 trapezoids, our estimate
-        of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00
+    ::: run Real run, 4 processes
+    $ echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
+    Enter a, b, and n
+    With n = 1024 trapezoids, our estimate
+    of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00
+    :::
 
     - Same output as `mpi_SendRec`
     - In general the last digits can differ, because the tree in `MPI_Reduce` adds the pieces in a different order than a simple loop
 
 - With 3 processes (`n` not divisible):
 
-        $ echo "0 3 1024" | mpiexec -n 3 ./mpi_Bcast
-        Enter a, b, and n
-        With n = 1024 trapezoids, our estimate
-        of the integral from 0.000000 to 3.000000 = 8.973662840668112e+00
+    ::: run Real run, 3 processes
+    $ echo "0 3 1024" | mpiexec -n 3 ./mpi_Bcast
+    Enter a, b, and n
+    With n = 1024 trapezoids, our estimate
+    of the integral from 0.000000 to 3.000000 = 8.973662840668112e+00
+    :::
 
     - Each rank gets 341 trapezoids, so 1023 get covered and the last strip is never computed
     - No error is reported, the answer is just wrong

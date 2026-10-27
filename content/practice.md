@@ -4,6 +4,9 @@ title: Code-reading questions
     - Read the question, decide on an answer in your head or on paper, then open the answer
     - Every answer marked as run was checked by compiling and running the program with MPICH
     - Programs for questions 6, 7, 8, 10, 14 and 16 are in `examples/extras/`
+    - After each answer, mark whether you got it, and review the missed ones at the end
+
+{{progress}}
 
 ::: q
 `mpi_hello.c` is run with `mpiexec -n 1 ./mpi_hello`. What does it print, and how many times does the loop body on line 52 run?

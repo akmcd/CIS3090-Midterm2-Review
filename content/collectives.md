@@ -30,6 +30,12 @@ title: Collective communication
     - MPI implementers tune the tree to the hardware, so you do not have to
     - Lecture 10's picture is an example, a real implementation may shape the tree differently
 
+- Try the collectives:
+    - Pick a collective and a number of processes and see what each rank holds before and after the call
+    - Move the root rank to see that it does not have to be 0
+
+{{lab collective}}
+
 - MPI_Reduce:
     - Signature:
 

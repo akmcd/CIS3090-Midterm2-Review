@@ -1,0 +1,42 @@
+{
+  "file": "mpi_SendRec.c",
+  "example": "sendrecv",
+  "segments": [{"start": 44, "end": 95}, {"start": 107, "end": 127}],
+  "p": 4,
+  "who": [
+    [73, 74, "workers"],
+    [76, 76, "zero"],
+    [77, 81, "zero_loop"],
+    [86, 88, "zero"],
+    [112, 113, "zero"],
+    [114, 114, "zero"],
+    [115, 117, "zero_loop"],
+    [118, 118, "zero"],
+    [120, 125, "workers"]
+  ],
+  "refs": {
+    "scanf": [113],
+    "insend": [115, 116, 117],
+    "inrecv": [120, 121, 122, 123, 124, 125],
+    "compute": [67, 68, 69],
+    "rsend": [73, 74],
+    "rrecv": [78, 79],
+    "print": [86, 87, 88]
+  },
+  "notes": {
+    "62": "Integer division. If n is not a multiple of comm_sz, the leftover trapezoids are never computed.",
+    "67": "Each rank starts where the previous rank's slice ends: a + my_rank * local_n * h.",
+    "69": "Every rank, including rank 0, integrates its own slice.",
+    "73": "Each worker sends one double (its partial integral) to rank 0.",
+    "76": "Rank 0 starts the total with its own slice.",
+    "78": "Rank 0 receives from source 1, then 2, and so on, and adds each into total_int.",
+    "113": "Only rank 0 reads stdin.",
+    "115": "Three separate sends per worker: a, then b, then n.",
+    "120": "The receives must be in the same order as the sends: a, b, n."
+  },
+  "summaries": {
+    "all": "Every rank runs main() and calls Get_input and Trap. Only the branches differ.",
+    "zero": "Rank 0 reads a, b, n and sends all three to each of the {m} other rank(s). It integrates its own slice, then receives and adds {m} partial result(s), and prints.",
+    "worker": "Rank {r} receives a, b, n from rank 0, integrates its slice, sends one double back to rank 0, and prints nothing."
+  }
+}

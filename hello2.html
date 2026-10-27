@@ -3,37 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mpi_hello2.c | CIS*3090 midterm</title>
+<title>mpi_hello2.c | CIS*3090 midterm 2</title>
+<meta name="description" content="Wildcard receives and the status object">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-hello2">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html">Big ideas</a>
-<a href="sendrecv.html">Send and receive</a>
-<a href="collectives.html">Collective communication</a>
-<a href="trapezoid.html">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html" aria-current="page">mpi_hello2.c</a>
-<a href="trap_sendrecv.html">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Code pages"><a href="hello.html">mpi_hello.c</a><a href="hello2.html" aria-current="page">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></nav></header>
 <main id="main">
 <h1>mpi_hello2.c</h1>
 <ul>
-<li>
+<li class="sec">
 <p>What changed from mpi_hello.c:</p>
 <ul>
 <li>Each sender picks a random tag</li>
@@ -41,93 +24,112 @@
 <li>Textbook reference: 3.1.9 and 3.1.10 (message matching and the status argument)</li>
 </ul>
 </li>
-<li>
-<p>The code (lines 45 to 70):</p>
-<figure class="code"><div class="codecap">mpi_hello2.c, lines 45 to 70</div><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span>
-<span class="w">      </span><span class="cm">/* Create message */</span>
-<span class="w">      </span><span class="n">sprintf</span><span class="p">(</span><span class="n">greeting</span><span class="p">,</span><span class="w"> </span><span class="s">"Greetings from process %d of %d!"</span><span class="p">,</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">);</span>
-<span class="w">               </span>
-<span class="hll"><span class="w">      </span><span class="n">srand</span><span class="p">(</span><span class="n">my_rank</span><span class="p">);</span>
-</span><span class="hll"><span class="w">      </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rand</span><span class="p">()</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
-</span>
-<span class="w">      </span><span class="cm">/* Send message to process 0 */</span>
-<span class="hll"><span class="w">      </span><span class="n">MPI_Send</span><span class="p">(</span><span class="n">greeting</span><span class="p">,</span><span class="w"> </span><span class="n">strlen</span><span class="p">(</span><span class="n">greeting</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span><span class="w"> </span>
-</span><span class="w">   </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">  </span>
-<span class="w">      </span><span class="cm">/* Print my message */</span>
-<span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"Greetings from process %d of %d!</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">);</span>
-<span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span><span class="w"> </span><span class="n">q</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="cm">/* Receive message from some process */</span>
-<span class="hll"><span class="w">         </span><span class="n">MPI_Status</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
-</span><span class="hll"><span class="w">         </span><span class="n">MPI_Recv</span><span class="p">(</span><span class="n">greeting</span><span class="p">,</span><span class="w"> </span><span class="n">MAX_STRING</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_ANY_SOURCE</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_ANY_TAG</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
-</span><span class="hll"><span class="w">         </span><span class="kt">int</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n">MPI_SOURCE</span><span class="p">;</span><span class="w">  </span><span class="c1">// retrieve sender’s rank </span>
-</span><span class="hll"><span class="w">         </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n">MPI_TAG</span><span class="p">;</span><span class="w">      </span><span class="c1">// retrieve sent tag</span>
-</span><span class="w">         </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">;</span>
-<span class="hll"><span class="w">         </span><span class="n">MPI_Get_count</span><span class="p">(</span><span class="o">&amp;</span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">);</span><span class="w"> </span>
-</span><span class="hll"><span class="w">         </span><span class="n">printf</span><span class="p">(</span><span class="s">"Received a message from process %d with tag %d: %d elements</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
-</span>
-<span class="w">         </span><span class="cm">/* Print message from some process */</span>
-<span class="w">         </span><span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">greeting</span><span class="p">);</span>
-<span class="w">      </span><span class="p">}</span><span class="w"> </span>
-<span class="w">   </span><span class="p">}</span>
-</code></pre></div></td></tr></table></div>
-</figure>
-</li>
-<li>
-<p>Line by line:</p>
+<li class="sec">
+<p>Try this first:</p>
 <ul>
-<li>Line 49: <code>srand(my_rank)</code> seeds the random generator with the rank, so each rank gets its own number</li>
-<li>Line 50: <code>tag = rand() % 50</code> is a tag from 0 to 49</li>
-<li>Line 53: <span class="chip rx">other ranks</span> send the greeting using that tag, the only change on the sender side</li>
-<li>Line 59: <span class="chip r0">rank 0</span> declares an <code>MPI_Status</code> to hold information about each message</li>
-<li>Line 60: the receive says <code>MPI_ANY_SOURCE</code> and <code>MPI_ANY_TAG</code>, so it takes whichever message arrives first</li>
-<li>Lines 61 and 62: <code>status.MPI_SOURCE</code> and <code>status.MPI_TAG</code> are the sender's rank and the tag it used</li>
-<li>Line 64: <code>MPI_Get_count</code> fills <code>count</code> with the number of <code>MPI_CHAR</code> elements received</li>
-<li>Lines 65 and 68: first the info line, then the greeting text itself</li>
+<li>Step through with 4 processes, then press Shuffle arrival order and step again</li>
+<li>Notice that the code is the same but the order of the messages is not</li>
 </ul>
 </li>
-<li>
+</ul>
+<section class="walk" id="walk-hello2" data-example="hello2" aria-label="mpi_hello2.c, rank by rank">
+<script type="application/json">{"example": "hello2", "refs": {"own": [56], "send": [53], "recv": [60], "status": [61, 62, 64]}, "summaries": {"all": "Same shape as mpi_hello.c. The difference is how rank 0 receives.", "zero": "Rank 0 prints its own greeting, then makes {m} wildcard receive(s). Whichever worker's message arrives first is handled first.", "worker": "Rank {r} sends one greeting to rank 0 using a tag taken from rand() % 50."}, "p": 4}</script>
+<div class="walkbar">
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-hello2">Processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-hello2"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<p class="summary" aria-live="polite"></p>
+</div>
+<div class="walkbody">
+<div class="listing" role="region" aria-label="mpi_hello2.c" tabindex="0">
+<div class="ln g-all" data-line="23" data-who="all"><span class="no">23</span><code class="tx"><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span></code></div>
+<div class="ln g-all" data-line="24" data-who="all"><span class="no">24</span><code class="tx"><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span></code></div>
+<div class="ln g-all" data-line="25" data-who="all"><span class="no">25</span><code class="tx"><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string.h&gt;</span><span class="w">  </span><span class="cm">/* For strlen             */</span></code></div>
+<div class="ln g-all" data-line="26" data-who="all"><span class="no">26</span><code class="tx"><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mpi.h&gt;</span><span class="w">     </span><span class="cm">/* For MPI functions, etc */</span><span class="cp"> </span></code></div>
+<div class="ln g-all" data-line="27" data-who="all"><span class="no">27</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="28" data-who="all"><span class="no">28</span><code class="tx"><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">MAX_STRING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="29" data-who="all"><span class="no">29</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="30" data-who="all"><span class="no">30</span><code class="tx"><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="31" data-who="all"><span class="no">31</span><code class="tx"><span class="w">   </span><span class="kt">char</span><span class="w">       </span><span class="n">greeting</span><span class="p">[</span><span class="n">MAX_STRING</span><span class="p">];</span><span class="w">  </span><span class="cm">/* String storing message */</span></code></div>
+<div class="ln g-all" data-line="32" data-who="all"><span class="no">32</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w">        </span><span class="n">comm_sz</span><span class="p">;</span><span class="w">               </span><span class="cm">/* Number of processes    */</span></code></div>
+<div class="ln g-all" data-line="33" data-who="all"><span class="no">33</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w">        </span><span class="n">my_rank</span><span class="p">;</span><span class="w">               </span><span class="cm">/* My process rank        */</span></code></div>
+<div class="ln g-all" data-line="34" data-who="all"><span class="no">34</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="35" data-who="all"><span class="no">35</span><code class="tx"><span class="w">   </span><span class="cm">/* Start up MPI */</span></code></div>
+<div class="ln g-all" data-line="36" data-who="all"><span class="no">36</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"> </span></code></div>
+<div class="ln g-all" data-line="37" data-who="all"><span class="no">37</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="38" data-who="all"><span class="no">38</span><code class="tx"><span class="w">   </span><span class="cm">/* Get the number of processes */</span></code></div>
+<div class="ln g-all" data-line="39" data-who="all"><span class="no">39</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Comm_size</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">comm_sz</span><span class="p">);</span><span class="w"> </span></code></div>
+<div class="ln g-all" data-line="40" data-who="all"><span class="no">40</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="41" data-who="all"><span class="no">41</span><code class="tx"><span class="w">   </span><span class="cm">/* Get my rank among all the processes */</span></code></div>
+<div class="ln g-all" data-line="42" data-who="all"><span class="no">42</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_rank</span><span class="p">);</span><span class="w"> </span></code></div>
+<div class="ln g-all" data-line="43" data-who="all"><span class="no">43</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="44" data-who="all"><span class="no">44</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="45" data-who="all"><span class="no">45</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span></code></div>
+<div class="ln g-work" data-line="46" data-who="workers"><span class="no">46</span><code class="tx"><span class="w">      </span><span class="cm">/* Create message */</span></code></div>
+<div class="ln g-work" data-line="47" data-who="workers"><span class="no">47</span><code class="tx"><span class="w">      </span><span class="n">sprintf</span><span class="p">(</span><span class="n">greeting</span><span class="p">,</span><span class="w"> </span><span class="s">"Greetings from process %d of %d!"</span><span class="p">,</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">);</span></code></div>
+<div class="ln g-work" data-line="48" data-who="workers"><span class="no">48</span><code class="tx"><span class="w">               </span></code></div>
+<div class="ln g-work" data-line="49" data-who="workers"><span class="no">49</span><code class="tx"><span class="w">      </span><span class="n">srand</span><span class="p">(</span><span class="n">my_rank</span><span class="p">);</span></code></div>
+<div class="anno g-work" data-who="workers"><span>Seeds rand() with the rank, so each worker gets its own tag.</span></div>
+<div class="ln g-work" data-line="50" data-who="workers"><span class="no">50</span><code class="tx"><span class="w">      </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rand</span><span class="p">()</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span></code></div>
+<div class="anno g-work" data-who="workers"><span>A tag from 0 to 49. Different ranks will usually get different tags.</span></div>
+<div class="ln g-work" data-line="51" data-who="workers"><span class="no">51</span><code class="tx">&#8203;</code></div>
+<div class="ln g-work" data-line="52" data-who="workers"><span class="no">52</span><code class="tx"><span class="w">      </span><span class="cm">/* Send message to process 0 */</span></code></div>
+<div class="ln g-work" data-line="53" data-who="workers"><span class="no">53</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="n">greeting</span><span class="p">,</span><span class="w"> </span><span class="n">strlen</span><span class="p">(</span><span class="n">greeting</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span><span class="w"> </span></code></div>
+<div class="anno g-work" data-who="workers"><span>The tag is no longer 0. The receiver can read it from status.</span></div>
+<div class="ln g-all" data-line="54" data-who="all"><span class="no">54</span><code class="tx"><span class="w">   </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">  </span></code></div>
+<div class="ln g-zero" data-line="55" data-who="zero"><span class="no">55</span><code class="tx"><span class="w">      </span><span class="cm">/* Print my message */</span></code></div>
+<div class="ln g-zero" data-line="56" data-who="zero"><span class="no">56</span><code class="tx"><span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"Greetings from process %d of %d!</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">);</span></code></div>
+<div class="ln g-zero" data-line="57" data-who="zero"><span class="no">57</span><code class="tx"><span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span><span class="w"> </span><span class="n">q</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-zero" data-line="58" data-who="zero_loop"><span class="no">58</span><code class="tx"><span class="w">         </span><span class="cm">/* Receive message from some process */</span></code></div>
+<div class="ln g-zero" data-line="59" data-who="zero_loop"><span class="no">59</span><code class="tx"><span class="w">         </span><span class="n mpi">MPI_Status</span><span class="w"> </span><span class="n">status</span><span class="p">;</span></code></div>
+<div class="ln g-zero" data-line="60" data-who="zero_loop"><span class="no">60</span><code class="tx"><span class="w">         </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">greeting</span><span class="p">,</span><span class="w"> </span><span class="n">MAX_STRING</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_SOURCE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_TAG</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span></code></div>
+<div class="anno g-zero" data-who="zero_loop"><span>Accepts a message from any sender with any tag. status will say which message it was.</span></div>
+<div class="ln g-zero" data-line="61" data-who="zero_loop"><span class="no">61</span><code class="tx"><span class="w">         </span><span class="kt">int</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n mpi">MPI_SOURCE</span><span class="p">;</span><span class="w">  </span><span class="c1">// retrieve sender’s rank </span></code></div>
+<div class="anno g-zero" data-who="zero_loop"><span>status.MPI_SOURCE: who sent it.</span></div>
+<div class="ln g-zero" data-line="62" data-who="zero_loop"><span class="no">62</span><code class="tx"><span class="w">         </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n mpi">MPI_TAG</span><span class="p">;</span><span class="w">      </span><span class="c1">// retrieve sent tag</span></code></div>
+<div class="anno g-zero" data-who="zero_loop"><span>status.MPI_TAG: the tag it was sent with.</span></div>
+<div class="ln g-zero" data-line="63" data-who="zero_loop"><span class="no">63</span><code class="tx"><span class="w">         </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">;</span></code></div>
+<div class="ln g-zero" data-line="64" data-who="zero_loop"><span class="no">64</span><code class="tx"><span class="w">         </span><span class="n mpi">MPI_Get_count</span><span class="p">(</span><span class="o">&amp;</span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">);</span><span class="w"> </span></code></div>
+<div class="anno g-zero" data-who="zero_loop"><span>MPI_Get_count: how many MPI_CHARs actually arrived (not the buffer size of 100).</span></div>
+<div class="ln g-zero" data-line="65" data-who="zero_loop"><span class="no">65</span><code class="tx"><span class="w">         </span><span class="n">printf</span><span class="p">(</span><span class="s">"Received a message from process %d with tag %d: %d elements</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">);</span></code></div>
+<div class="ln g-zero" data-line="66" data-who="zero_loop"><span class="no">66</span><code class="tx">&#8203;</code></div>
+<div class="ln g-zero" data-line="67" data-who="zero_loop"><span class="no">67</span><code class="tx"><span class="w">         </span><span class="cm">/* Print message from some process */</span></code></div>
+<div class="ln g-zero" data-line="68" data-who="zero_loop"><span class="no">68</span><code class="tx"><span class="w">         </span><span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">greeting</span><span class="p">);</span></code></div>
+<div class="anno g-zero" data-who="zero_loop"><span>Prints the greeting that arrived. With wildcards, the order can differ from run to run.</span></div>
+<div class="ln g-zero" data-line="69" data-who="zero"><span class="no">69</span><code class="tx"><span class="w">      </span><span class="p">}</span><span class="w"> </span></code></div>
+<div class="ln g-all" data-line="70" data-who="all"><span class="no">70</span><code class="tx"><span class="w">   </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="71" data-who="all"><span class="no">71</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="72" data-who="all"><span class="no">72</span><code class="tx"><span class="w">   </span><span class="cm">/* Shut down MPI */</span></code></div>
+<div class="ln g-all" data-line="73" data-who="all"><span class="no">73</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Finalize</span><span class="p">();</span><span class="w"> </span></code></div>
+<div class="ln g-all" data-line="74" data-who="all"><span class="no">74</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="75" data-who="all"><span class="no">75</span><code class="tx"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="76" data-who="all"><span class="no">76</span><code class="tx"><span class="p">}</span><span class="w">  </span><span class="cm">/* main */</span></code></div>
+</div>
+<aside class="lanesbox" aria-label="Message timeline">
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<div class="lanes"></div>
+<ol class="log"></ol>
+<p class="lanes-note"></p>
+</aside>
+</div>
+<p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span><span class="lg"><i class="sw g-zero"></i>rank 0 only</span><span class="lg"><i class="sw g-work"></i>ranks other than 0</span></p>
+</section>
+<ul>
+<li class="sec">
 <p>Output with <code>mpiexec -n 4 ./mpi_hello2</code> (one real run):</p>
-<div class="highlight"><pre><span></span><code>Greetings from process 0 of 4!
+<figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ mpiexec -n 4 ./mpi_hello2</span>
+Greetings from process 0 of 4!
 Received a message from process 1 with tag 33: 31 elements
 Greetings from process 1 of 4!
 Received a message from process 2 with tag 40: 31 elements
 Greetings from process 2 of 4!
 Received a message from process 3 with tag 46: 31 elements
-Greetings from process 3 of 4!
-</code></pre></div>
-
+Greetings from process 3 of 4!</code></pre></figure>
 <ul>
 <li>The tags 33, 40, 46 come from this machine's <code>rand()</code>, so other systems can print other tags</li>
 <li>The order of the three "Received" blocks can change between runs, because <code>MPI_ANY_SOURCE</code> takes whoever arrives first</li>
 <li>Each block is one receive, so the info line and the greeting always stay together</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Why the count is 31:</p>
 <ul>
 <li>The text is "Greetings from process 1 of 4!" which is 30 characters</li>
@@ -135,7 +137,7 @@ Greetings from process 3 of 4!
 <li>For rank 10 of 12 the text is 32 characters, so the count would be 33</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Why this program needs <code>status</code>:</p>
 <ul>
 <li>With wildcards, the receiver does not know who sent the message, which tag it had, or how long it was</li>
@@ -143,7 +145,7 @@ Greetings from process 3 of 4!
 <li>Count is not a field of the status, because it depends on the datatype, so <code>MPI_Get_count</code> computes it</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Notes:</p>
 <ul>
 <li>The comment at the top of the file still says <code>mpi_hello.c</code>, and the makefile does not build this program</li>
@@ -151,9 +153,9 @@ Greetings from process 3 of 4!
 </ul>
 </li>
 </ul>
-<div class="pager"><a class="prev" href="hello.html">Previous: mpi_hello.c</a><a class="next" href="trap_sendrecv.html">Next: mpi_SendRec.c</a></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="hello.html"><span>Previous</span>mpi_hello.c</a><a class="next" href="trap_sendrecv.html"><span>Next</span>mpi_SendRec.c</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

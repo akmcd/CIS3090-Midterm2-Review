@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading MPI code | CIS*3090 midterm 2</title>
+<meta name="description" content="A routine for predicting output and spotting hangs">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-method">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html" aria-current="true">Notes</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Notes pages"><a href="concepts.html">Big ideas</a><a href="method.html" aria-current="page">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></nav></header>
+<main id="main">
+<h1>Reading MPI code</h1>
+<ul>
+<li class="sec">
+<p>Why a routine helps:</p>
+<ul>
+<li>Every code question is the same question in different clothes: what does each rank do, and do the messages line up?</li>
+<li>Doing the same steps in the same order stops you from reading the code top to bottom as if one process ran it</li>
+</ul>
+</li>
+<li class="sec">
+<p>Step 1, fix the number of processes:</p>
+<ul>
+<li>Use the number in the question, or pick a small one like 3 or 4</li>
+<li>Write down every rank: 0, 1, 2, and so on</li>
+<li>If the question says "for any number of processes", check p = 1 and p = 2 as well</li>
+</ul>
+</li>
+<li class="sec">
+<p>Step 2, split the code by rank:</p>
+<ul>
+<li>Find every <code>if (my_rank ...)</code> and decide which ranks take each branch</li>
+<li>Lines outside any branch run on every rank</li>
+<li>On the code pages, picking a rank in the lens does this for you, so use it to check your own answer</li>
+</ul>
+</li>
+<li class="sec">
+<p>Step 3, list the communication each rank makes:</p>
+<ul>
+<li>For each rank, write its calls in order: <code>Send to 0, tag 0</code> or <code>Recv from 1, tag 0</code></li>
+<li>Loops count: a loop <code>for (q = 1; q &lt; comm_sz; q++)</code> on rank 0 is <code>comm_sz - 1</code> calls</li>
+<li>A collective is one call on every rank, so it goes on every rank's list</li>
+</ul>
+</li>
+<li class="sec">
+<p>Step 4, match them up:</p>
+<ul>
+<li>A send and a receive match when the communicator, the tag, the source and the destination all agree</li>
+<li>The datatypes must agree too, and the receive count must be at least the send count</li>
+<li>Collectives match by the order they are made, so check that every rank has the same sequence</li>
+<li>Every send needs exactly one receive, and every receive needs exactly one send</li>
+<li>The Send and receive page has a lab for this step</li>
+</ul>
+</li>
+<li class="sec">
+<p>Step 5, ask whether anything waits forever:</p>
+<ul>
+<li>A receive with no matching send waits forever</li>
+<li>Two ranks that both do a blocking send first and then a receive can wait on each other</li>
+<li>A collective that one rank skips leaves the others waiting</li>
+<li><strong>deadlock</strong>: a set of processes each waiting for something only another waiting process could provide</li>
+</ul>
+</li>
+<li class="sec">
+<p>Step 6, predict the output:</p>
+<ul>
+<li>Only print statements produce output, so find which ranks reach each <code>printf</code></li>
+<li>If just one rank prints, the order is fixed</li>
+<li>If several ranks print, the order can change from run to run, so say "any order"</li>
+<li>If rank 0 prints what it received in a loop, the order follows the loop (the source it asks for)</li>
+</ul>
+</li>
+<li class="sec">
+<p>Try the routine on this program:</p>
+<figure class="snippet"><pre><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>Step 2: rank 1 runs the send, rank 0 runs the receive, and any other rank runs nothing</li>
+<li>Step 3: rank 1 has <code>Send to 0, tag 5</code>, rank 0 has <code>Recv from 1, tag 7</code></li>
+<li>Step 4: the source and destination agree, but the tags (5 and 7) do not</li>
+<li>Step 5: rank 0 waits forever, so the program hangs</li>
+<li>The Hangs and mix-ups page shows this exact program</li>
+</ul>
+</li>
+<li class="sec">
+<p>Takeaway:</p>
+<ul>
+<li>Split by rank, list each rank's calls, match them, then look for waits</li>
+</ul>
+</li>
+</ul>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="concepts.html"><span>Previous</span>Big ideas</a><a class="next" href="sendrecv.html"><span>Next</span>Send and receive</a></nav>
+</main>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

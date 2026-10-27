@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hangs and mix-ups | CIS*3090 midterm 2</title>
+<meta name="description" content="Three small programs that go wrong, and why">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-pitfalls">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Code pages"><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html" aria-current="page">Hangs and mix-ups</a></nav></header>
+<main id="main">
+<h1>Hangs and mix-ups</h1>
+<ul>
+<li class="sec">
+<p>How to use this page:</p>
+<ul>
+<li>Each program below is short and goes wrong in a different way</li>
+<li>Read the code and use the lens first, and guess what will happen before you step through</li>
+<li>These programs are not from the course; they are in <code>examples/extras/</code>, and each result was checked by running it</li>
+</ul>
+</li>
+<li class="sec">
+<p>Program 1, a tag that does not match:</p>
+<ul>
+<li>Guess first: two processes, one send, one receive, same source and communicator. Does it print <code>got 42</code>?</li>
+</ul>
+</li>
+</ul>
+<section class="walk" id="walk-tag_mismatch" data-example="tag_mismatch" aria-label="extras/tag_mismatch.c, rank by rank">
+<script type="application/json">{"example": "tag_mismatch", "refs": {"send": [7], "recv": [8]}, "summaries": {"all": "Run with 2 processes. Rank 1 sends, rank 0 receives, but the tags differ.", "0": "Rank 0 waits in MPI_Recv for tag 7 from rank 1. No such message ever arrives, so it hangs here and never prints.", "1": "Rank 1 sends x with tag 5. The send finishes (small messages are usually buffered), but nobody can receive the message."}, "fixed_p": 2}</script>
+<div class="walkbar">
+<div class="walkctl"><div class="ctl"><span class="ctl-label">Processes</span><output class="pval">2</output></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<p class="summary" aria-live="polite"></p>
+</div>
+<div class="walkbody">
+<div class="listing" role="region" aria-label="extras/tag_mismatch.c" tabindex="0">
+<div class="ln g-all" data-line="3" data-who="all"><span class="no">3</span><code class="tx"><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="4" data-who="all"><span class="no">4</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="5" data-who="all"><span class="no">5</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="6" data-who="all"><span class="no">6</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">rank</span><span class="p">);</span></code></div>
+<div class="ln g-work" data-line="7" data-who="r:1"><span class="no">7</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span><span class="w">       </span><span class="cm">/* tag 5 */</span></code></div>
+<div class="anno g-work" data-who="r:1"><span>Tag 5.</span></div>
+<div class="ln g-work" data-line="8" data-who="r:0"><span class="no">8</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span><span class="w"> </span><span class="cm">/* tag 7 */</span></code></div>
+<div class="anno g-work" data-who="r:0"><span>Tag 7. A receive only accepts a message whose source, tag and communicator all match.</span></div>
+<div class="ln g-work" data-line="9" data-who="r:0"><span class="no">9</span><code class="tx"><span class="w">                    </span><span class="n">printf</span><span class="p">(</span><span class="s">"got %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">);</span><span class="w"> </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="10" data-who="all"><span class="no">10</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Finalize</span><span class="p">();</span></code></div>
+<div class="ln g-all" data-line="11" data-who="all"><span class="no">11</span><code class="tx"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="12" data-who="all"><span class="no">12</span><code class="tx"><span class="p">}</span></code></div>
+</div>
+<aside class="lanesbox" aria-label="Message timeline">
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<div class="lanes"></div>
+<ol class="log"></ol>
+<p class="lanes-note"></p>
+</aside>
+</div>
+<p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span><span class="lg"><i class="sw g-zero"></i>rank 0 only</span><span class="lg"><i class="sw g-work"></i>rank 1 only</span></p>
+</section>
+<ul>
+<li class="sec">
+<p>What happens in program 1:</p>
+<figure class="run"><figcaption>Real run, 2 processes (killed after a timeout)</figcaption><pre><code><span class="cmd">$ mpiexec -n 2 ./tag_mismatch</span>
+(no output, the program hangs)</code></pre></figure>
+<ul>
+<li>A receive only accepts a message whose communicator, source and tag all match</li>
+<li>Rank 1's send may finish anyway, because small messages are usually buffered by the system</li>
+<li>Fix: use the same tag on both sides, or receive with <code>MPI_ANY_TAG</code></li>
+</ul>
+</li>
+<li class="sec">
+<p>Program 2, two sends facing each other:</p>
+<ul>
+<li>Guess first: both ranks send to the other and then receive. Is that safe?</li>
+</ul>
+</li>
+</ul>
+<section class="walk" id="walk-head_to_head" data-example="head_to_head" aria-label="extras/head_to_head.c, rank by rank">
+<script type="application/json">{"example": "head_to_head", "refs": {"send": [9], "recv": [10]}, "summaries": {"all": "Both ranks run exactly the same lines in the same order: send first, then receive. That symmetry is the bug.", "0": "Rank 0 sits in MPI_Ssend to rank 1 and waits for rank 1 to start a receive.", "1": "Rank 1 sits in MPI_Ssend to rank 0 and waits for rank 0 to start a receive."}, "fixed_p": 2}</script>
+<div class="walkbar">
+<div class="walkctl"><div class="ctl"><span class="ctl-label">Processes</span><output class="pval">2</output></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<p class="summary" aria-live="polite"></p>
+</div>
+<div class="walkbody">
+<div class="listing" role="region" aria-label="extras/head_to_head.c" tabindex="0">
+<div class="ln g-all" data-line="4" data-who="all"><span class="no">4</span><code class="tx"><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="5" data-who="all"><span class="no">5</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span><span class="w"> </span><span class="n">mine</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">other</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="6" data-who="all"><span class="no">6</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="7" data-who="all"><span class="no">7</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">rank</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="8" data-who="all"><span class="no">8</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">partner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">rank</span><span class="p">;</span></code></div>
+<div class="anno g-all" data-who="all"><span>Rank 0 gets 1, rank 1 gets 0: each rank&#x27;s partner is the other one.</span></div>
+<div class="ln g-all" data-line="9" data-who="all"><span class="no">9</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Ssend</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="anno g-all" data-who="all"><span>MPI_Ssend completes only after the matching receive has started. Both ranks are stuck here.</span></div>
+<div class="ln g-all" data-line="10" data-who="all"><span class="no">10</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">other</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></div>
+<div class="anno g-all" data-who="all"><span>Never reached by either rank.</span></div>
+<div class="ln g-all" data-line="11" data-who="all"><span class="no">11</span><code class="tx"><span class="w">   </span><span class="n">printf</span><span class="p">(</span><span class="s">"rank %d done</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="12" data-who="all"><span class="no">12</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Finalize</span><span class="p">();</span></code></div>
+<div class="ln g-all" data-line="13" data-who="all"><span class="no">13</span><code class="tx"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="14" data-who="all"><span class="no">14</span><code class="tx"><span class="p">}</span></code></div>
+</div>
+<aside class="lanesbox" aria-label="Message timeline">
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<div class="lanes"></div>
+<ol class="log"></ol>
+<p class="lanes-note"></p>
+</aside>
+</div>
+<p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span></p>
+</section>
+<ul>
+<li class="sec">
+<p>What happens in program 2:</p>
+<figure class="run"><figcaption>Real run, 2 processes (killed after a timeout)</figcaption><pre><code><span class="cmd">$ mpiexec -n 2 ./head_to_head</span>
+(no output, the program hangs)</code></pre></figure>
+<ul>
+<li><strong>deadlock</strong>: each rank waits for something only the other rank could do</li>
+<li>With <code>MPI_Send</code> instead of <code>MPI_Ssend</code> this might appear to work, because the message could be buffered</li>
+<li>That is why it is called <strong>unsafe</strong>: it works only if the system happens to buffer</li>
+<li>The safety check is to replace <code>MPI_Send</code> with <code>MPI_Ssend</code> and see if it still finishes</li>
+<li>Fix: even ranks send first and odd ranks receive first, or use <code>MPI_Sendrecv</code></li>
+</ul>
+</li>
+<li class="sec">
+<p>Program 3, collectives match by order, not by name:</p>
+<ul>
+<li>Guess first: rank 1 calls the two reductions in the opposite order. What are <code>b</code> and <code>d</code> on rank 0?</li>
+</ul>
+</li>
+</ul>
+<section class="walk" id="walk-reduce_order" data-example="reduce_order" aria-label="extras/reduce_order.c, rank by rank">
+<script type="application/json">{"example": "reduce_order", "refs": {"first": [9, 12], "second": [10, 13], "print": [15]}, "summaries": {"all": "Run with 3 processes. Rank 1 calls Reduce on c then a. Ranks 0 and 2 call it on a then c.", "0": "Rank 0 reduces a (1) first, then c (2). It is the root, so b and d are filled in.", "1": "Rank 1 reduces c (2) first, then a (1). Its first call is matched with the others' first call.", "2": "Rank 2 reduces a (1) first, then c (2), same as rank 0."}, "fixed_p": 3}</script>
+<div class="walkbar">
+<div class="walkctl"><div class="ctl"><span class="ctl-label">Processes</span><output class="pval">3</output></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<p class="summary" aria-live="polite"></p>
+</div>
+<div class="walkbody">
+<div class="listing" role="region" aria-label="extras/reduce_order.c" tabindex="0">
+<div class="ln g-all" data-line="4" data-who="all"><span class="no">4</span><code class="tx"><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="5" data-who="all"><span class="no">5</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="6" data-who="all"><span class="no">6</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="7" data-who="all"><span class="no">7</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">rank</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="8" data-who="all"><span class="no">8</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-work" data-line="9" data-who="r:1"><span class="no">9</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="anno g-work" data-who="r:1"><span>Rank 1&#x27;s first Reduce uses c.</span></div>
+<div class="ln g-work" data-line="10" data-who="r:1"><span class="no">10</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="11" data-who="all"><span class="no">11</span><code class="tx"><span class="w">   </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-other" data-line="12" data-who="notr:1"><span class="no">12</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="anno g-other" data-who="notr:1"><span>Everyone else&#x27;s first Reduce uses a. It still matches rank 1&#x27;s first call, because collectives match by order.</span></div>
+<div class="ln g-other" data-line="13" data-who="notr:1"><span class="no">13</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="14" data-who="all"><span class="no">14</span><code class="tx"><span class="w">   </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="15" data-who="all"><span class="no">15</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">printf</span><span class="p">(</span><span class="s">"b = %d, d = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">);</span></code></div>
+<div class="anno g-all" data-who="all"><span>Only rank 0 has meaningful values in b and d.</span></div>
+<div class="ln g-all" data-line="16" data-who="all"><span class="no">16</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Finalize</span><span class="p">();</span></code></div>
+<div class="ln g-all" data-line="17" data-who="all"><span class="no">17</span><code class="tx"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="18" data-who="all"><span class="no">18</span><code class="tx"><span class="p">}</span></code></div>
+</div>
+<aside class="lanesbox" aria-label="Message timeline">
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<div class="lanes"></div>
+<ol class="log"></ol>
+<p class="lanes-note"></p>
+</aside>
+</div>
+<p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span><span class="lg"><i class="sw g-work"></i>rank 1 only</span><span class="lg"><i class="sw g-other"></i>every rank except 1</span></p>
+</section>
+<ul>
+<li class="sec">
+<p>What happens in program 3:</p>
+<figure class="run"><figcaption>Real run, 3 processes</figcaption><pre><code><span class="cmd">$ mpiexec -n 3 ./reduce_order</span>
+b = 4, d = 5</code></pre></figure>
+<ul>
+<li>Both calls on each rank are <code>MPI_Reduce</code> with <code>MPI_SUM</code> and root 0, so MPI matches the 1st with the 1st and the 2nd with the 2nd</li>
+<li>The first call adds rank 1's <code>c</code> (2) to the others' <code>a</code> (1 each): 2 + 1 + 1 = 4, stored in rank 0's <code>b</code></li>
+<li>The second call adds rank 1's <code>a</code> (1) to the others' <code>c</code> (2 each): 1 + 2 + 2 = 5, stored in rank 0's <code>d</code></li>
+<li>This is textbook Table 3.3</li>
+</ul>
+</li>
+<li class="sec">
+<p>Takeaway:</p>
+<ul>
+<li>A hang almost always means one side is waiting for something that never comes</li>
+<li>Look for the call whose partner (matching send, receive or collective) does not exist</li>
+</ul>
+</li>
+</ul>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="trap_bcast.html"><span>Previous</span>mpi_Bcast.c</a><a class="next" href="practice.html"><span>Next</span>Code-reading questions</a></nav>
+</main>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

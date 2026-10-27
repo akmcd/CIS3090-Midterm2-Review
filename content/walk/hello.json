@@ -1,0 +1,29 @@
+{
+  "file": "mpi_hello.c",
+  "example": "hello",
+  "start": 23,
+  "end": 64,
+  "p": 4,
+  "who": [
+    [44, 48, "workers"],
+    [50, 51, "zero"],
+    [52, 52, "zero"],
+    [53, 56, "zero_loop"],
+    [57, 57, "zero"]
+  ],
+  "refs": {"own": [51], "send": [48], "recv": [54]},
+  "notes": {
+    "35": "Starts MPI. Every process runs this line.",
+    "38": "comm_sz = how many processes were started (mpiexec -n).",
+    "41": "my_rank = this process's id, 0 to comm_sz - 1. This is the only thing that makes the processes behave differently.",
+    "43": "Same program in every process. The rank picks the branch.",
+    "48": "Sends strlen+1 chars (the +1 is the '\\0') to rank 0, tag 0.",
+    "54": "Waits for the message from source q, tag 0. Looping q = 1, 2, ... is why output is in rank order.",
+    "56": "Only rank 0 prints the workers' greetings. Workers never print."
+  },
+  "summaries": {
+    "all": "With {p} processes, all of them run the setup lines and MPI_Finalize. The if / else decides who does what.",
+    "zero": "Rank 0 prints its own greeting, then receives {m} message(s), one from each worker, in rank order.",
+    "worker": "Rank {r} builds a greeting and sends it to rank 0 once. It never receives, and it never prints."
+  }
+}

@@ -3,37 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Collective communication | CIS*3090 midterm</title>
+<title>Collective communication | CIS*3090 midterm 2</title>
+<meta name="description" content="Bcast, Reduce, Allreduce, Scatter, Gather, plus a lab">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-collectives">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html">Big ideas</a>
-<a href="sendrecv.html">Send and receive</a>
-<a href="collectives.html" aria-current="page">Collective communication</a>
-<a href="trapezoid.html">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html">mpi_hello2.c</a>
-<a href="trap_sendrecv.html">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html" aria-current="true">Notes</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Notes pages"><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html" aria-current="page">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></nav></header>
 <main id="main">
 <h1>Collective communication</h1>
 <ul>
-<li>
+<li class="sec">
 <p>Two kinds of communication:</p>
 <ul>
 <li><strong>point-to-point</strong>: two processes, using <code>MPI_Send</code> and <code>MPI_Recv</code></li>
@@ -41,7 +24,7 @@
 <li>Lecture 10 groups them by shape: 1-to-N (broadcast), N-to-1 (reduction), N-to-N (all-reduce)</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Rules that differ from point-to-point (textbook 3.4.3):</p>
 <ul>
 <li>Every process in the communicator must call the same collective function</li>
@@ -52,7 +35,7 @@
 <li>Never use the same variable as both input and output: <code>MPI_Reduce(&amp;x, &amp;x, ...)</code> is illegal because MPI forbids aliasing an output argument</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Why order matters (textbook Table 3.3):</p>
 <ul>
 <li>Every process calls <code>MPI_Reduce</code> with <code>MPI_SUM</code> and destination 0</li>
@@ -63,7 +46,7 @@
 <li><code>reduce_order.c</code> in <code>examples/extras/</code> prints <code>b = 4, d = 5</code></li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Why collectives exist (the tree idea):</p>
 <ul>
 <li>A loop where rank 0 receives from everyone makes rank 0 do p - 1 receives one after another</li>
@@ -75,14 +58,31 @@
 <li>Lecture 10's picture is an example, a real implementation may shape the tree differently</li>
 </ul>
 </li>
-<li>
+<li class="sec">
+<p>Try the collectives:</p>
+<ul>
+<li>Pick a collective and a number of processes and see what each rank holds before and after the call</li>
+<li>Move the root rank to see that it does not have to be 0</li>
+</ul>
+</li>
+</ul>
+<section class="lab" id="colllab" aria-label="Collective communication lab">
+<div class="labbar">
+<label>collective<select id="c-op"><option value="bcast">MPI_Bcast</option><option value="reduce" selected>MPI_Reduce (MPI_SUM)</option><option value="allreduce">MPI_Allreduce (MPI_SUM)</option><option value="scatter">MPI_Scatter</option><option value="gather">MPI_Gather</option></select></label>
+<label>processes<select id="c-p"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+<label id="c-root-wrap">root rank<select id="c-root"></select></label>
+</div>
+<pre class="calls" id="c-call" aria-label="The call every rank makes"></pre>
+<div class="cards" id="c-cards"></div>
+<div id="c-rounds"></div>
+</section>
+<ul>
+<li class="sec">
 <p>MPI_Reduce:</p>
 <ul>
 <li>
 <p>Signature:</p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Reduce</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span><span class="w"> </span><span class="n">output_data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">operator</span><span class="p">,</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span><span class="w"> </span><span class="n">output_data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">operator</span><span class="p">,</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 </li>
 <li>
 <p>Every process contributes <code>input_data</code>, and the combined result lands in <code>output_data</code> on <code>dest_process</code></p>
@@ -92,9 +92,7 @@
 <li><code>MPI_MAXLOC</code> and <code>MPI_MINLOC</code> also return where the extreme value was</li>
 <li>
 <p>Used in the trapezoid program:</p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">total_int</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">total_int</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></pre></figure>
 </li>
 <li>
 <p>This one call replaces the whole loop of receives on rank 0</p>
@@ -102,14 +100,12 @@
 <li>After it, <code>total_int</code> only holds the answer on rank 0</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>MPI_Allreduce:</p>
 <ul>
 <li>
 <p>Same arguments as <code>MPI_Reduce</code> but with no <code>dest_process</code></p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Allreduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmpVal</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Allreduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmpVal</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 </li>
 <li>
 <p>Every process receives the combined result</p>
@@ -120,14 +116,12 @@
 <li><code>allreduce_demo.c</code> on 4 processes: rank 0 to 3 each contribute rank + 1, and every rank prints an Allreduce total of 10</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>MPI_Bcast:</p>
 <ul>
 <li>
 <p>Signature:</p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Bcast</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Bcast</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 </li>
 <li>
 <p>The process with rank <code>source</code> sends, every other process receives into the same argument</p>
@@ -138,17 +132,15 @@
 <li>The three <code>MPI_Bcast</code> calls sit outside the <code>if (my_rank == 0)</code> block on purpose</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>MPI_Scatter and MPI_Gather (lecture 10):</p>
 <ul>
 <li><strong>Scatter</strong> splits an array on one process and gives each process a different chunk</li>
 <li><strong>Gather</strong> is the reverse: it collects one chunk from every process into one array on a destination process</li>
 <li>
 <p>Signatures:</p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Scatter</span><span class="p">(</span><span class="n">send_data</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv_data</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">src_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
-<span class="n">MPI_Gather</span><span class="p">(</span><span class="n">send_data</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv_data</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Scatter</span><span class="p">(</span><span class="n">send_data</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv_data</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">src_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Gather</span><span class="p">(</span><span class="n">send_data</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv_data</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 </li>
 <li>
 <p><code>send_count</code> in Scatter is the number of elements sent to <strong>each</strong> process, not the length of the whole array</p>
@@ -160,7 +152,7 @@
 <li>The lecture says both will be used in the odd-even sort that comes next</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Other collectives in the textbook summary:</p>
 <ul>
 <li><code>MPI_Allgather</code>: like Gather but every process gets the whole array</li>
@@ -170,9 +162,9 @@
 </ul>
 </li>
 </ul>
-<div class="pager"><a class="prev" href="sendrecv.html">Previous: Send and receive</a><a class="next" href="trapezoid.html">Next: The trapezoidal rule</a></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="sendrecv.html"><span>Previous</span>Send and receive</a><a class="next" href="trapezoid.html"><span>Next</span>The trapezoidal rule</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

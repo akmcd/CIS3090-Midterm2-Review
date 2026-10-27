@@ -2,16 +2,20 @@ title: Cheat sheet
 
 - Setup and shutdown:
 
-        MPI_Init(NULL, NULL);                          /* before any other MPI call */
-        MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);       /* how many processes */
-        MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);       /* which one am I */
-        MPI_Finalize();                                /* no MPI calls after this */
+    ```c
+    MPI_Init(NULL, NULL);                          /* before any other MPI call */
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);       /* how many processes */
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);       /* which one am I */
+    MPI_Finalize();                                /* no MPI calls after this */
+    ```
 
 - Point-to-point:
 
-        MPI_Send(buf, count, datatype, dest,   tag, comm);
-        MPI_Recv(buf, count, datatype, source, tag, comm, &status);   /* or MPI_STATUS_IGNORE */
-        MPI_Get_count(&status, datatype, &count);
+    ```c
+    MPI_Send(buf, count, datatype, dest,   tag, comm);
+    MPI_Recv(buf, count, datatype, source, tag, comm, &status);   /* or MPI_STATUS_IGNORE */
+    MPI_Get_count(&status, datatype, &count);
+    ```
 
     - Recv `count` is the buffer capacity, it must be at least the size of the message
     - Wildcards `MPI_ANY_SOURCE` and `MPI_ANY_TAG` are receiver only
@@ -19,11 +23,13 @@ title: Cheat sheet
 
 - Collective:
 
-        MPI_Bcast(data, count, datatype, source, comm);
-        MPI_Reduce(in, out, count, datatype, op, dest, comm);
-        MPI_Allreduce(in, out, count, datatype, op, comm);
-        MPI_Scatter(send, send_count, send_type, recv, recv_count, recv_type, source, comm);
-        MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm);
+    ```c
+    MPI_Bcast(data, count, datatype, source, comm);
+    MPI_Reduce(in, out, count, datatype, op, dest, comm);
+    MPI_Allreduce(in, out, count, datatype, op, comm);
+    MPI_Scatter(send, send_count, send_type, recv, recv_count, recv_type, source, comm);
+    MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm);
+    ```
 
     - `send_count` in Scatter and Gather is per process, not the total
     - Every process in the communicator must make the call, in the same order
@@ -67,6 +73,8 @@ title: Cheat sheet
 
 - Commands:
 
-        mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
-        mpiexec -n 4 ./mpi_hello
-        echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
+    ```
+    mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
+    mpiexec -n 4 ./mpi_hello
+    echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
+    ```

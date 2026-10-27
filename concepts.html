@@ -3,39 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Big ideas | CIS*3090 midterm</title>
+<title>Big ideas | CIS*3090 midterm 2</title>
+<meta name="description" content="Shared vs distributed memory, SPMD, ranks and communicators">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-concepts">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html" aria-current="page">Big ideas</a>
-<a href="sendrecv.html">Send and receive</a>
-<a href="collectives.html">Collective communication</a>
-<a href="trapezoid.html">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html">mpi_hello2.c</a>
-<a href="trap_sendrecv.html">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html" aria-current="true">Notes</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Notes pages"><a href="concepts.html" aria-current="page">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></nav></header>
 <main id="main">
 <h1>Big ideas</h1>
 <ul>
-<li>
-<p>Shared memory versus distributed memory:</p>
-<ul>
+<li class="sec">Shared memory versus distributed memory:<ul>
 <li><strong>shared memory</strong>: all threads see the same variables (pthreads works this way)</li>
 <li><strong>distributed memory</strong>: each process has its own private memory, and processes talk over a network</li>
 <li>MPI is built for distributed memory</li>
@@ -43,7 +24,34 @@
 <li>MPI hides whether two processes share a machine or not</li>
 </ul>
 </li>
-<li>
+</ul>
+<figure class="diagram wide">
+<svg viewBox="0 0 660 210" role="img" aria-label="Left: four threads reach one shared memory over a bus. Right: four MPI processes each have their own memory and talk over a network.">
+<text class="dg-title" x="150" y="18" text-anchor="middle">Shared memory (pthreads)</text>
+<g class="dg-line"><path d="M42 62V104M114 62V104M186 62V104M258 62V104M150 126V152"/></g>
+<g><rect class="dg-0" x="14" y="34" width="56" height="28" rx="6"/><text x="42" y="53" text-anchor="middle">thread 0</text>
+<rect class="dg-1" x="86" y="34" width="56" height="28" rx="6"/><text x="114" y="53" text-anchor="middle">thread 1</text>
+<rect class="dg-1" x="158" y="34" width="56" height="28" rx="6"/><text x="186" y="53" text-anchor="middle">thread 2</text>
+<rect class="dg-1" x="230" y="34" width="56" height="28" rx="6"/><text x="258" y="53" text-anchor="middle">thread 3</text></g>
+<rect class="dg-bar" x="14" y="104" width="272" height="22" rx="5"/><text x="150" y="119" text-anchor="middle">bus</text>
+<rect class="dg-mem" x="70" y="152" width="160" height="40" rx="6"/><text x="150" y="176" text-anchor="middle">one memory, seen by all</text>
+<text class="dg-title" x="500" y="18" text-anchor="middle">Distributed memory (MPI)</text>
+<g class="dg-line"><path d="M368 96V140M432 96V140M496 96V140M560 96V140"/><path d="M368 62V70M432 62V70M496 62V70M560 62V70"/></g>
+<g><rect class="dg-0" x="340" y="34" width="56" height="28" rx="6"/><text x="368" y="53" text-anchor="middle">rank 0</text>
+<rect class="dg-1" x="404" y="34" width="56" height="28" rx="6"/><text x="432" y="53" text-anchor="middle">rank 1</text>
+<rect class="dg-1" x="468" y="34" width="56" height="28" rx="6"/><text x="496" y="53" text-anchor="middle">rank 2</text>
+<rect class="dg-1" x="532" y="34" width="56" height="28" rx="6"/><text x="560" y="53" text-anchor="middle">rank 3</text></g>
+<g><rect class="dg-mem" x="340" y="70" width="56" height="26" rx="6"/><text x="368" y="87" text-anchor="middle">memory</text>
+<rect class="dg-mem" x="404" y="70" width="56" height="26" rx="6"/><text x="432" y="87" text-anchor="middle">memory</text>
+<rect class="dg-mem" x="468" y="70" width="56" height="26" rx="6"/><text x="496" y="87" text-anchor="middle">memory</text>
+<rect class="dg-mem" x="532" y="70" width="56" height="26" rx="6"/><text x="560" y="87" text-anchor="middle">memory</text></g>
+<rect class="dg-bar" x="340" y="140" width="248" height="22" rx="5"/><text x="464" y="155" text-anchor="middle">network</text>
+<text class="dg-note" x="464" y="188" text-anchor="middle">Data moves only when a process sends a message.</text>
+</svg>
+<figcaption>Lecture 09, slides 3 and 4. Threads share variables; MPI processes do not.</figcaption>
+</figure>
+<ul>
+<li class="sec">
 <p>Why communication cost shapes everything:</p>
 <ul>
 <li>Sending data over a network takes time, while threads share data almost instantly</li>
@@ -52,14 +60,14 @@
 <li>Lecture 09's example is a render farm: each machine renders its own animation frame</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>MPI compared with pthreads (lecture 09):</p>
 <ul>
 <li>pthreads: shared memory, works with threads, built for concurrency, so you do all the parallel computation work by hand</li>
 <li>MPI: distributed memory, works with processes, designed with parallel computation in mind</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>SPMD:</p>
 <ul>
 <li><strong>SPMD</strong> (single program, multiple data): every process runs the same executable</li>
@@ -68,7 +76,7 @@
 <li>The textbook (3.1.5) points to the if-else in the hello program as what makes it SPMD</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>The calls every MPI program uses:</p>
 <ul>
 <li><code>MPI_Init(NULL, NULL)</code>: starts MPI, must come before any other MPI call</li>
@@ -78,7 +86,7 @@
 <li><code>MPI_Finalize()</code>: shuts MPI down, no MPI calls are allowed after it</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Two words to know:</p>
 <ul>
 <li><strong>communicator</strong>: a group of processes that can send messages to each other</li>
@@ -88,7 +96,7 @@
 <li>Several communicators let different groups talk without picking up each other's messages</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Compile and run:</p>
 <ul>
 <li><code>mpicc</code> is a wrapper around the C compiler that adds the MPI library</li>
@@ -96,7 +104,7 @@
 <li>Write programs that work for any number of processes, because you do not know the number in advance</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Naming rule from the textbook (3.1.2):</p>
 <ul>
 <li>Everything MPI defines starts with <code>MPI_</code></li>
@@ -104,7 +112,7 @@
 <li>Constants and macros are all capitals, like <code>MPI_COMM_WORLD</code></li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Input and output:</p>
 <ul>
 <li>Most implementations let only rank 0 read from stdin</li>
@@ -116,7 +124,7 @@
 <li>Debug prints should include the rank</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Error codes:</p>
 <ul>
 <li>Most MPI functions return an <code>int</code>, and <code>MPI_SUCCESS</code> means it worked</li>
@@ -124,9 +132,9 @@
 </ul>
 </li>
 </ul>
-<div class="pager"><a class="prev" href="index.html">Previous: Start here</a><a class="next" href="sendrecv.html">Next: Send and receive</a></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="index.html"><span>Previous</span>Start here</a><a class="next" href="method.html"><span>Next</span>Reading MPI code</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

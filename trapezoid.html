@@ -3,37 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The trapezoidal rule | CIS*3090 midterm</title>
+<title>The trapezoidal rule | CIS*3090 midterm 2</title>
+<meta name="description" content="The problem the course programs solve">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-trapezoid">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html">Big ideas</a>
-<a href="sendrecv.html">Send and receive</a>
-<a href="collectives.html">Collective communication</a>
-<a href="trapezoid.html" aria-current="page">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html">mpi_hello2.c</a>
-<a href="trap_sendrecv.html">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html" aria-current="true">Notes</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Notes pages"><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html" aria-current="page">The trapezoidal rule</a></nav></header>
 <main id="main">
 <h1>The trapezoidal rule</h1>
 <ul>
-<li>
+<li class="sec">
 <p>The goal:</p>
 <ul>
 <li>Estimate the area under a curve f(x) between x = a and x = b</li>
@@ -41,7 +24,7 @@
 <li>The course function is <code>f(x) = x*x</code>, and the true area from 0 to 3 is exactly 9</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>The maths:</p>
 <ul>
 <li><strong>h</strong> is the width of every trapezoid: <code>h = (b - a) / n</code></li>
@@ -52,50 +35,32 @@
 <li>As the trapezoids get narrower, the errors average out</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>The serial code (this is <code>Trap</code> in every course version):</p>
-<figure class="code"><div class="codecap">mpi_SendRec.c, lines 141 to 157</div><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kt">double</span><span class="w"> </span><span class="nf">Trap</span><span class="p">(</span>
-<span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">left_endpt</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span>
-<span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">right_endpt</span><span class="w"> </span><span class="cm">/* in */</span><span class="p">,</span>
-<span class="w">      </span><span class="kt">int</span><span class="w">    </span><span class="n">trap_count</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span>
-<span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">base_len</span><span class="w">    </span><span class="cm">/* in */</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">estimate</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">;</span>
-<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
-
-<span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">left_endpt</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">right_endpt</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span><span class="p">;</span>
-<span class="w">   </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">trap_count</span><span class="mi">-1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">left_endpt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span>
-<span class="w">      </span><span class="n">estimate</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
-<span class="w">   </span><span class="p">}</span>
-<span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">estimate</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span>
-
-<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="n">estimate</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="cm">/*  Trap  */</span>
-</code></pre></div></td></tr></table></div>
-</figure>
+<figure class="code"><figcaption>mpi_SendRec.c, lines 141 to 157</figcaption><div class="listing static"><div class="ln g-all" data-line="141" data-who="all"><span class="no">141</span><code class="tx"><span class="kt">double</span><span class="w"> </span><span class="nf">Trap</span><span class="p">(</span></code></div>
+<div class="ln g-all" data-line="142" data-who="all"><span class="no">142</span><code class="tx"><span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">left_endpt</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span></code></div>
+<div class="ln g-all" data-line="143" data-who="all"><span class="no">143</span><code class="tx"><span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">right_endpt</span><span class="w"> </span><span class="cm">/* in */</span><span class="p">,</span></code></div>
+<div class="ln g-all" data-line="144" data-who="all"><span class="no">144</span><code class="tx"><span class="w">      </span><span class="kt">int</span><span class="w">    </span><span class="n">trap_count</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span></code></div>
+<div class="ln g-all" data-line="145" data-who="all"><span class="no">145</span><code class="tx"><span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">base_len</span><span class="w">    </span><span class="cm">/* in */</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="146" data-who="all"><span class="no">146</span><code class="tx"><span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">estimate</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="147" data-who="all"><span class="no">147</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="148" data-who="all"><span class="no">148</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="149" data-who="all"><span class="no">149</span><code class="tx"><span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">left_endpt</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">right_endpt</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="150" data-who="all"><span class="no">150</span><code class="tx"><span class="w">   </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">trap_count</span><span class="mi">-1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="151" data-who="all"><span class="no">151</span><code class="tx"><span class="w">      </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">left_endpt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="152" data-who="all"><span class="no">152</span><code class="tx"><span class="w">      </span><span class="n">estimate</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="153" data-who="all"><span class="no">153</span><code class="tx"><span class="w">   </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="154" data-who="all"><span class="no">154</span><code class="tx"><span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">estimate</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="155" data-who="all"><span class="no">155</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="156" data-who="all"><span class="no">156</span><code class="tx"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="n">estimate</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="157" data-who="all"><span class="no">157</span><code class="tx"><span class="p">}</span><span class="w"> </span><span class="cm">/*  Trap  */</span></code></div></div></figure>
 <ul>
 <li>Line 149: start with the two halved end points</li>
 <li>Lines 150 to 153: add <code>f(x)</code> for each middle point</li>
 <li>Line 154: multiply by <code>h</code> once at the end</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Designing the parallel version (lecture 11 follows these four steps):</p>
 <ul>
 <li><strong>Partition</strong>: give each process one slice of the interval</li>
@@ -104,7 +69,7 @@
 <li><strong>Map</strong>: <span class="chip r0">rank 0</span> sums, <span class="chip rx">other ranks</span> compute a slice and send the result to rank 0</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Each rank's slice:</p>
 <ul>
 <li><code>h = (b-a)/n</code> is the same on every rank</li>
@@ -112,11 +77,11 @@
 <li><code>local_a = a + my_rank*local_n*h</code> is where this rank's slice starts</li>
 <li><code>local_b = local_a + local_n*h</code> is where it ends</li>
 <li>Each rank calls <code>Trap(local_a, local_b, local_n, h)</code> on its own slice</li>
-<li>Example: a = 0, b = 3, n = 1024 on 4 ranks gives local_n = 256, so <span class="chip r2">rank 2</span> covers 1.5 to 2.25</li>
+<li>Example: a = 0, b = 3, n = 1024 on 4 ranks gives local_n = 256, so <span class="chip rx">rank 2</span> covers 1.5 to 2.25</li>
 <li>The Trapezoid trace page lets you try other numbers</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>The assumption that is easy to forget:</p>
 <ul>
 <li>The code assumes <code>n</code> divides evenly by <code>comm_sz</code></li>
@@ -127,7 +92,7 @@
 <li>Textbook exercise 3.2 asks you to fix it</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>The three versions in the course:</p>
 <ul>
 <li><strong>Program 3.2</strong>, the textbook's first version: a = 0, b = 3, n = 1024 hard-coded, results summed with a loop of Send and Recv</li>
@@ -136,7 +101,7 @@
 <li><code>mpi_trap4</code> uses MPI derived datatypes, which lecture 11 says have not been covered</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>What changes between versions 2 and 3:</p>
 <ul>
 <li>Input: three <code>MPI_Send</code> calls per other rank become three <code>MPI_Bcast</code> calls</li>
@@ -147,9 +112,9 @@
 </ul>
 </li>
 </ul>
-<div class="pager"><a class="prev" href="collectives.html">Previous: Collective communication</a><a class="next" href="hello.html">Next: mpi_hello.c</a></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="collectives.html"><span>Previous</span>Collective communication</a><a class="next" href="hello.html"><span>Next</span>mpi_hello.c</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

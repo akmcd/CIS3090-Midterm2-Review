@@ -3,33 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Send and receive | CIS*3090 midterm</title>
+<title>Send and receive | CIS*3090 midterm 2</title>
+<meta name="description" content="Message matching, wildcards, blocking, plus a matching lab">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-sendrecv">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html">Big ideas</a>
-<a href="sendrecv.html" aria-current="page">Send and receive</a>
-<a href="collectives.html">Collective communication</a>
-<a href="trapezoid.html">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html">mpi_hello2.c</a>
-<a href="trap_sendrecv.html">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html" aria-current="true">Notes</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Notes pages"><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html" aria-current="page">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></nav></header>
 <main id="main">
 <h1>Send and receive</h1>
 <ul>
@@ -39,15 +22,13 @@
 <li>The two functions are <code>MPI_Send</code> and <code>MPI_Recv</code></li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>MPI_Send:</p>
 <ul>
 <li>
 <p>Signature:</p>
-<div class="highlight"><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="nf">MPI_Send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
-<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 </li>
 <li>
 <p><code>buf</code>, <code>count</code>, <code>datatype</code> describe the data: where it is, how many elements, what type</p>
@@ -60,15 +41,13 @@
 <li>The <code>+1</code> sends the terminating <code>'\0'</code> too</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>MPI_Recv:</p>
 <ul>
 <li>
 <p>Signature:</p>
-<div class="highlight"><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="nf">MPI_Recv</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
-<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status</span><span class="p">);</span>
-</code></pre></div>
-
+<figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Recv</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status</span><span class="p">);</span></code></pre></figure>
 </li>
 <li>
 <p>The first six arguments mirror <code>MPI_Send</code></p>
@@ -78,7 +57,7 @@
 <li>The receiver must already know the type, and an upper limit on the size</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Message matching:</p>
 <ul>
 <li>A send from process q to process r is received by r's <code>MPI_Recv</code> when all of these hold</li>
@@ -88,7 +67,44 @@
 <li>The buffers are compatible: same datatype, and the receive count is at least the send count (the textbook's rule of thumb)</li>
 </ul>
 </li>
-<li>
+<li class="sec">
+<p>Try the matching rules:</p>
+<ul>
+<li>Change one thing at a time and see which check fails</li>
+<li>The presets reproduce programs in <code>examples/extras/</code></li>
+</ul>
+</li>
+</ul>
+<section class="lab" id="matchlab" aria-label="Send and receive matching lab">
+<div class="labcols">
+<fieldset class="side send"><legend>Rank 1 sends</legend>
+<label>destination<select id="m-dest"><option value="0">rank 0</option><option value="2">rank 2</option><option value="3">rank 3</option></select></label>
+<label>tag<input id="m-stag" type="number" min="0" value="0"></label>
+<label>communicator<select id="m-scomm"><option value="world">MPI_COMM_WORLD</option><option value="other">another communicator</option></select></label>
+<label>datatype<select id="m-stype"><option>MPI_INT</option><option>MPI_DOUBLE</option><option>MPI_CHAR</option></select></label>
+<label>count<input id="m-scount" type="number" min="1" value="1"></label>
+</fieldset>
+<fieldset class="side recv"><legend>Rank 0 receives</legend>
+<label>source<select id="m-src"><option value="1">rank 1</option><option value="2">rank 2</option><option value="any">MPI_ANY_SOURCE</option></select></label>
+<label>tag<input id="m-rtag" type="number" min="0" value="0"></label>
+<label class="chk"><input id="m-anytag" type="checkbox"> use MPI_ANY_TAG</label>
+<label>communicator<select id="m-rcomm"><option value="world">MPI_COMM_WORLD</option><option value="other">another communicator</option></select></label>
+<label>datatype<select id="m-rtype"><option>MPI_INT</option><option>MPI_DOUBLE</option><option>MPI_CHAR</option></select></label>
+<label>count (buffer size)<input id="m-rcount" type="number" min="1" value="1"></label>
+</fieldset>
+</div>
+<pre class="calls" id="m-calls" aria-label="The two calls"></pre>
+<div class="verdict" id="m-verdict" aria-live="polite"></div>
+<ul class="checks" id="m-checks"></ul>
+<div class="presets" role="group" aria-label="Examples">
+<button type="button" data-preset="ok">Everything matches</button>
+<button type="button" data-preset="tag">Different tags (tag_mismatch.c)</button>
+<button type="button" data-preset="small">Buffer too small (recv_small.c)</button>
+<button type="button" data-preset="wild">Wildcards</button>
+</div>
+</section>
+<ul>
+<li class="sec">
 <p>Wildcards (receiver only):</p>
 <ul>
 <li><code>MPI_ANY_SOURCE</code>: accept a message from any sender</li>
@@ -99,7 +115,7 @@
 <li>There is no wildcard for the communicator</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Finding out what a wildcard receive got:</p>
 <ul>
 <li><code>status.MPI_SOURCE</code>: the sender's rank</li>
@@ -108,7 +124,7 @@
 <li>The count is not a struct member because it depends on the datatype, and computing it costs a little</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Does a send wait?:</p>
 <ul>
 <li><code>MPI_Recv</code> always blocks until a matching message has arrived</li>
@@ -120,7 +136,7 @@
 <li><code>MPI_Isend</code> and <code>MPI_Irecv</code> are non-blocking versions, and the course does not use them</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Message order:</p>
 <ul>
 <li>MPI messages are <strong>non-overtaking</strong>: two messages from the same sender to the same receiver arrive in the order they were sent</li>
@@ -128,7 +144,7 @@
 <li>This is why <code>Get_input</code> can send <code>a</code>, <code>b</code>, <code>n</code> with the same tag and still have them arrive in order</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Classic pitfalls (all likely exam material):</p>
 <ul>
 <li>A receive with no matching send hangs forever</li>
@@ -139,7 +155,7 @@
 <li><code>tag_mismatch.c</code> in <code>examples/extras/</code> shows the hang, and it really does hang when run</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Checking and fixing an unsafe program:</p>
 <ul>
 <li><strong>unsafe</strong>: it only works if the system happens to buffer the messages</li>
@@ -151,9 +167,9 @@
 </ul>
 </li>
 </ul>
-<div class="pager"><a class="prev" href="concepts.html">Previous: Big ideas</a><a class="next" href="collectives.html">Next: Collective communication</a></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="method.html"><span>Previous</span>Reading MPI code</a><a class="next" href="collectives.html"><span>Next</span>Collective communication</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

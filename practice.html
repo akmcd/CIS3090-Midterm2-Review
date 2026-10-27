@@ -3,199 +3,170 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Code-reading questions | CIS*3090 midterm</title>
+<title>Code-reading questions | CIS*3090 midterm 2</title>
+<meta name="description" content="Predict the output, find the bug, then check">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-practice">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html">Big ideas</a>
-<a href="sendrecv.html">Send and receive</a>
-<a href="collectives.html">Collective communication</a>
-<a href="trapezoid.html">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html">mpi_hello2.c</a>
-<a href="trap_sendrecv.html">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html" aria-current="page">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html">Code</a><a href="practice.html" aria-current="true">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Practice pages"><a href="practice.html" aria-current="page">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></nav></header>
 <main id="main">
 <h1>Code-reading questions</h1>
 <ul>
-<li>How to use these:<ul>
+<li class="sec">How to use these:<ul>
 <li>Read the question, decide on an answer in your head or on paper, then open the answer</li>
 <li>Every answer marked as run was checked by compiling and running the program with MPICH</li>
 <li>Programs for questions 6, 7, 8, 10, 14 and 16 are in <code>examples/extras/</code></li>
+<li>After each answer, mark whether you got it, and review the missed ones at the end</li>
 </ul>
 </li>
 </ul>
-<section class="q"><div class="qbody"><p><code>mpi_hello.c</code> is run with <code>mpiexec -n 1 ./mpi_hello</code>. What does it print, and how many times does the loop body on line 52 run?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+<div class="qprogress wide" aria-live="polite"></div>
+<section class="q" id="q1" data-q="1"><div class="qnum">Q1</div><div class="qbody"><p><code>mpi_hello.c</code> is run with <code>mpiexec -n 1 ./mpi_hello</code>. What does it print, and how many times does the loop body on line 52 run?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>It prints <code>Greetings from process 0 of 1!</code> and nothing else (run)</li>
 <li>Rank 0 is the only process, so it prints its own greeting</li>
 <li>The loop <code>for (int q = 1; q &lt; comm_sz; q++)</code> starts at 1 and <code>comm_sz</code> is 1, so the body runs zero times</li>
 <li>No sends or receives happen at all</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p><code>mpi_hello.c</code> runs on 8 processes. How many <code>MPI_Send</code> calls and how many <code>MPI_Recv</code> calls happen in total, and which ranks make them?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q2" data-q="2"><div class="qnum">Q2</div><div class="qbody"><p><code>mpi_hello.c</code> runs on 8 processes. How many <code>MPI_Send</code> calls and how many <code>MPI_Recv</code> calls happen in total, and which ranks make them?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>7 sends, made by ranks 1 to 7, one each</li>
 <li>7 receives, all made by rank 0</li>
 <li>In general <code>comm_sz - 1</code> of each, and they must match one to one</li>
 <li>A receive with no send hangs, and a send with no receive can hang or lose the message</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>In <code>mpi_hello.c</code> the receive on line 54 uses <code>q</code> as the source. Suppose you change it to <code>MPI_ANY_SOURCE</code>. Does the program still work, and what can change in the output?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q3" data-q="3"><div class="qnum">Q3</div><div class="qbody"><p>In <code>mpi_hello.c</code> the receive on line 54 uses <code>q</code> as the source. Suppose you change it to <code>MPI_ANY_SOURCE</code>. Does the program still work, and what can change in the output?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>It still works: rank 0 still receives exactly 7 messages (for 8 processes) and prints each one</li>
 <li>The order of the greeting lines can now change from run to run</li>
 <li>With <code>q</code>, rank 0 waits for rank 1 first, then 2, and so on, which forces rank order</li>
 <li>With <code>MPI_ANY_SOURCE</code>, rank 0 takes whichever message arrives first</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>In <code>mpi_hello2.c</code>, rank 7 of 16 sends the string <code>"Greetings from process 7 of 16!"</code>. What does <code>MPI_Get_count</code> give rank 0 for that message?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q4" data-q="4"><div class="qnum">Q4</div><div class="qbody"><p>In <code>mpi_hello2.c</code>, rank 7 of 16 sends the string <code>"Greetings from process 7 of 16!"</code>. What does <code>MPI_Get_count</code> give rank 0 for that message?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>The string has 31 characters</li>
 <li><code>strlen(greeting)+1</code> adds the terminator, so 32 elements are sent as <code>MPI_CHAR</code></li>
 <li><code>MPI_Get_count(&amp;status, MPI_CHAR, &amp;count)</code> therefore sets <code>count</code> to 32</li>
 <li>Check with the real run on 4 ranks: "Greetings from process 1 of 4!" is 30 characters and rank 0 reported 31 elements</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>A receiver uses <code>MPI_ANY_SOURCE</code> and <code>MPI_ANY_TAG</code>. How does it find out who sent the message, what tag it had, and how many elements arrived?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q5" data-q="5"><div class="qnum">Q5</div><div class="qbody"><p>A receiver uses <code>MPI_ANY_SOURCE</code> and <code>MPI_ANY_TAG</code>. How does it find out who sent the message, what tag it had, and how many elements arrived?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>Pass the address of an <code>MPI_Status</code> variable as the last argument of <code>MPI_Recv</code></li>
 <li><code>status.MPI_SOURCE</code> holds the sender's rank</li>
 <li><code>status.MPI_TAG</code> holds the tag</li>
 <li><code>MPI_Get_count(&amp;status, datatype, &amp;count)</code> gives the number of elements</li>
 <li>The count is a function call because it depends on the datatype</li>
 <li>Only a receiver can use wildcards, a sender must always name a destination and a tag</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>What happens when this program runs on 2 processes?</p>
-<div class="highlight"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n">MPI_Send</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_STATUS_IGNORE</span><span class="p">);</span>
-<span class="w">                 </span><span class="n">printf</span><span class="p">(</span><span class="s">"got %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
-</code></pre></div>
-</div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q6" data-q="6"><div class="qnum">Q6</div><div class="qbody"><p>What happens when this program runs on 2 processes?</p>
+<figure class="snippet"><pre><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span>
+<span class="w">                 </span><span class="n">printf</span><span class="p">(</span><span class="s">"got %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">);</span><span class="w"> </span><span class="p">}</span></code></pre></figure></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>It hangs and never prints (run: it had to be killed after a timeout)</li>
 <li>The send uses tag 5 and the receive wants tag 7, so they do not match</li>
 <li>Rank 0 blocks forever waiting for a message that matches</li>
 <li>Rank 1's message has no receive, so it is never delivered</li>
 <li>With <code>MPI_ANY_TAG</code> on the receive, the pair would match</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>Two processes each run this code, where <code>partner</code> is the other rank. Is it safe?</p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Ssend</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="n">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">other</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_STATUS_IGNORE</span><span class="p">);</span>
-</code></pre></div>
-</div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q7" data-q="7"><div class="qnum">Q7</div><div class="qbody"><p>Two processes each run this code, where <code>partner</code> is the other rank. Is it safe?</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Ssend</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">other</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></pre></figure></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>No. Both ranks block in <code>MPI_Ssend</code>, each waiting for the other to start a receive, so neither ever gets to its <code>MPI_Recv</code> (run: it hangs)</li>
 <li>This is a deadlock, because each process waits for an event the other can only cause after it finishes waiting</li>
 <li>With plain <code>MPI_Send</code> it may seem to work if the message is small enough to be buffered, which is exactly why it is called unsafe</li>
 <li>Safety check: swap <code>MPI_Send</code> for <code>MPI_Ssend</code>, if it hangs it is unsafe</li>
 <li>Fix one: even ranks send then receive, odd ranks receive then send</li>
 <li>Fix two: use <code>MPI_Sendrecv</code></li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>Three processes all have <code>a = 1</code> and <code>c = 2</code>. Rank 1 executes the first block below and ranks 0 and 2 execute the second. What are <code>b</code> and <code>d</code> on rank 0?</p>
-<div class="highlight"><pre><span></span><code><span class="cm">/* rank 1 */</span>
-<span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q8" data-q="8"><div class="qnum">Q8</div><div class="qbody"><p>Three processes all have <code>a = 1</code> and <code>c = 2</code>. Rank 1 executes the first block below and ranks 0 and 2 execute the second. What are <code>b</code> and <code>d</code> on rank 0?</p>
+<figure class="snippet"><pre><code><span class="cm">/* rank 1 */</span>
+<span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
 
 <span class="cm">/* ranks 0 and 2 */</span>
-<span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-</code></pre></div>
-</div><details><summary>Show answer</summary><div class="abody"><ul>
+<span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></pre></figure></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li><code>b = 4</code> and <code>d = 5</code> (run)</li>
 <li>Collective calls match by the order they are made, not by the variable names</li>
 <li>The first call on every rank combines <code>a</code> (rank 0) + <code>c</code> (rank 1) + <code>a</code> (rank 2) = 1 + 2 + 1 = 4, and that goes into <code>b</code> on rank 0</li>
 <li>The second call combines 2 + 1 + 2 = 5 and goes into <code>d</code></li>
 <li>This is textbook Table 3.3</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>What is wrong with this call?</p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-</code></pre></div>
-</div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q9" data-q="9"><div class="qnum">Q9</div><div class="qbody"><p>What is wrong with this call?</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></pre></figure></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>The input and output buffers are the same variable, which is called <strong>aliasing</strong></li>
 <li>MPI forbids aliasing an output argument, so the call is illegal</li>
 <li>The result is unpredictable: it might be correct, wrong, or crash</li>
 <li>Use two separate variables, as in <code>MPI_Reduce(&amp;local_int, &amp;total_int, ...)</code></li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>Four ranks each set <code>mine = rank + 1</code> and <code>total = -1</code>, then run both calls below. What do rank 0 and rank 1 hold in <code>total</code> and <code>total2</code> afterwards?</p>
-<div class="highlight"><pre><span></span><code><span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">total</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="n">MPI_Allreduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">total2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-</code></pre></div>
-</div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q10" data-q="10"><div class="qnum">Q10</div><div class="qbody"><p>Four ranks each set <code>mine = rank + 1</code> and <code>total = -1</code>, then run both calls below. What do rank 0 and rank 1 hold in <code>total</code> and <code>total2</code> afterwards?</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">total</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="n mpi">MPI_Allreduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">total2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></pre></figure></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>Rank 0: <code>total = 10</code> and <code>total2 = 10</code></li>
 <li>Rank 1: <code>total = -1</code> and <code>total2 = 10</code> (run)</li>
 <li>1 + 2 + 3 + 4 = 10</li>
 <li><code>MPI_Reduce</code> only writes its output on the destination rank, so rank 1's <code>total</code> is untouched</li>
 <li><code>MPI_Allreduce</code> has no destination, every rank gets the result</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p><code>mpi_Bcast.c</code> is run with <code>echo "0 3 1024" | mpiexec -n 3 ./mpi_Bcast</code>. The true integral of x squared from 0 to 3 is 9. What is wrong with the answer?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q11" data-q="11"><div class="qnum">Q11</div><div class="qbody"><p><code>mpi_Bcast.c</code> is run with <code>echo "0 3 1024" | mpiexec -n 3 ./mpi_Bcast</code>. The true integral of x squared from 0 to 3 is 9. What is wrong with the answer?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>It prints about 8.9737 (run: 8.973662840668112e+00) with no error message</li>
 <li><code>local_n = n/comm_sz</code> is integer division, so 1024/3 is 341</li>
 <li>3 ranks times 341 is 1023 trapezoids, so the last strip of the interval is never computed</li>
 <li>The program assumes <code>n</code> is divisible by <code>comm_sz</code></li>
 <li>It gives the same correct-looking answer on 1, 2, 4 and 8 ranks (run), because they all divide 1024</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>Find the bug.</p>
-<div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">Get_input</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">n_p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q12" data-q="12"><div class="qnum">Q12</div><div class="qbody"><p>Find the bug.</p>
+<figure class="snippet"><pre><code><span class="kt">void</span><span class="w"> </span><span class="nf">Get_input</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">n_p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"Enter a, b, and n</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
 <span class="w">      </span><span class="n">scanf</span><span class="p">(</span><span class="s">"%lf %lf %d"</span><span class="p">,</span><span class="w"> </span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="n">n_p</span><span class="p">);</span>
-<span class="w">      </span><span class="n">MPI_Bcast</span><span class="p">(</span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="w">      </span><span class="n">MPI_Bcast</span><span class="p">(</span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="w">      </span><span class="n">MPI_Bcast</span><span class="p">(</span><span class="n">n_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="w">      </span><span class="n mpi">MPI_Bcast</span><span class="p">(</span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="w">      </span><span class="n mpi">MPI_Bcast</span><span class="p">(</span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="w">      </span><span class="n mpi">MPI_Bcast</span><span class="p">(</span><span class="n">n_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
 <span class="w">   </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
-</div><details><summary>Show answer</summary><div class="abody"><ul>
+<span class="p">}</span></code></pre></figure></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>The <code>MPI_Bcast</code> calls are inside the <code>if</code>, so only rank 0 makes them</li>
 <li>Every process in the communicator must call a collective function, so this is erroneous</li>
 <li>The other ranks never receive <code>a</code>, <code>b</code>, <code>n</code> and compute with uninitialized values</li>
 <li>Fix: close the <code>if</code> after <code>scanf</code>, so all ranks execute the three <code>MPI_Bcast</code> calls</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>A sum over 8 processes is done two ways: rank 0 loops over <code>MPI_Recv</code> from each other rank, or <code>MPI_Reduce</code> uses a tree. How many steps does rank 0 take in each?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q13" data-q="13"><div class="qnum">Q13</div><div class="qbody"><p>A sum over 8 processes is done two ways: rank 0 loops over <code>MPI_Recv</code> from each other rank, or <code>MPI_Reduce</code> uses a tree. How many steps does rank 0 take in each?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>The loop: 7 receives, one after another</li>
 <li>The tree: 3 rounds, which is log2 of 8</li>
 <li>Round 1: ranks 1, 3, 5, 7 send to 0, 2, 4, 6</li>
 <li>Round 2: ranks 2 and 6 send to 0 and 4</li>
 <li>Round 3: rank 4 sends to 0</li>
 <li>The lecture's figure shows this shape, real implementations may choose a different tree</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>Four ranks run this code. What does rank 2 hold in <code>mine</code> right after the scatter, and what does rank 0 print at the end?</p>
-<div class="highlight"><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="n">all</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">},</span><span class="w"> </span><span class="n">mine</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span><span class="w"> </span><span class="n">back</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q14" data-q="14"><div class="qnum">Q14</div><div class="qbody"><p>Four ranks run this code. What does rank 2 hold in <code>mine</code> right after the scatter, and what does rank 0 print at the end?</p>
+<figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="n">all</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">},</span><span class="w"> </span><span class="n">mine</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span><span class="w"> </span><span class="n">back</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 <span class="kt">int</span><span class="w"> </span><span class="n">chunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">size</span><span class="p">;</span><span class="w">                       </span><span class="cm">/* size is 4 */</span>
-<span class="n">MPI_Scatter</span><span class="p">(</span><span class="n">all</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="n mpi">MPI_Scatter</span><span class="p">(</span><span class="n">all</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
 <span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">chunk</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">mine</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
-<span class="n">MPI_Gather</span><span class="p">(</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">back</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="cm">/* rank 0 then prints back[0] to back[7] */</span>
-</code></pre></div>
-</div><details><summary>Show answer</summary><div class="abody"><ul>
+<span class="n mpi">MPI_Gather</span><span class="p">(</span><span class="n">mine</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">back</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="cm">/* rank 0 then prints back[0] to back[7] */</span></code></pre></figure></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li><code>chunk</code> is 2, and <code>send_count</code> is the number of elements per process</li>
 <li>Rank 2 gets the third chunk: <code>mine[0] = 5</code> and <code>mine[1] = 6</code></li>
 <li>Each rank multiplies its chunk by 10</li>
 <li>Gather puts rank 0's chunk first, then rank 1's, and so on</li>
 <li>Rank 0 prints <code>10 20 30 40 50 60 70 80</code> (run)</li>
 <li>Passing 8 as the send count instead of <code>chunk</code> makes MPI abort with "Message truncated" (run)</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p><code>mpi_SendRec.c</code> runs on 6 processes. How many point-to-point messages travel in total, and where do they go?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q15" data-q="15"><div class="qnum">Q15</div><div class="qbody"><p><code>mpi_SendRec.c</code> runs on 6 processes. How many point-to-point messages travel in total, and where do they go?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>Input: 3 sends to each of the 5 other ranks, which is 15</li>
 <li>Results: 1 message from each of the 5 other ranks, which is 5</li>
 <li>Total 20, which is 4(p - 1) with p = 6</li>
 <li>All 20 are sent to or from rank 0</li>
 <li>The <code>mpi_Bcast.c</code> version does the same job with 3 <code>MPI_Bcast</code> calls and 1 <code>MPI_Reduce</code> call on every rank</li>
-</ul></div></details></section>
-<section class="q"><div class="qbody"><p>Rank 1 calls <code>MPI_Send</code> with 10 ints and tag 3. Rank 0 calls <code>MPI_Recv</code> for source 1, tag 3, same communicator and datatype, but a count of 5. Will they match?</p></div><details><summary>Show answer</summary><div class="abody"><ul>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<section class="q" id="q16" data-q="16"><div class="qnum">Q16</div><div class="qbody"><p>Rank 1 calls <code>MPI_Send</code> with 10 ints and tag 3. Rank 0 calls <code>MPI_Recv</code> for source 1, tag 3, same communicator and datatype, but a count of 5. Will they match?</p></div><details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary><div class="abody"><ul>
 <li>The source, destination, tag and communicator all match</li>
 <li>But the buffers are not compatible, because the textbook's rule of thumb needs the receive count to be at least the send count</li>
 <li>The receive buffer is too small for the message, so MPI aborts with a "Message truncated" error (run)</li>
 <li>A receive count larger than the send count is fine, which is why <code>mpi_hello.c</code> receives with <code>MAX_STRING</code></li>
-</ul></div></details></section>
-<div class="pager"><a class="prev" href="trace.html">Previous: Trapezoid trace</a><a class="next" href="reference.html">Next: Cheat sheet</a></div>
+</ul></div><div class="qmark"><button type="button" data-mark="got">I got it</button><button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div></details></section>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="pitfalls.html"><span>Previous</span>Hangs and mix-ups</a><a class="next" href="trace.html"><span>Next</span>Trapezoid trace</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

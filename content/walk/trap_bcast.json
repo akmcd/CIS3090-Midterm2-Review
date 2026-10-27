@@ -1,0 +1,31 @@
+{
+  "file": "mpi_Bcast.c",
+  "example": "bcast",
+  "segments": [{"start": 43, "end": 84}, {"start": 96, "end": 106}],
+  "p": 4,
+  "who": [
+    [75, 77, "zero"],
+    [100, 101, "zero"]
+  ],
+  "legend": [["g-all", "every rank"], ["g-zero", "rank 0 only"]],
+  "refs": {
+    "scanf": [101],
+    "bcast": [103, 104, 105],
+    "compute": [65, 66, 67],
+    "reduce": [70, 71],
+    "print": [75, 76, 77]
+  },
+  "notes": {
+    "65": "Same slicing as the Send/Recv version.",
+    "70": "Every rank calls Reduce. Each passes its local_int; only rank 0 (the root) gets total_int filled in.",
+    "74": "total_int is only valid on rank 0, so only rank 0 prints it.",
+    "101": "Only rank 0 reads stdin.",
+    "103": "Every rank makes this call, including rank 0. On rank 0 it sends; on the others it receives. Root is 0.",
+    "105": "Calls match by order: the 1st Bcast delivers a, the 2nd b, the 3rd n."
+  },
+  "summaries": {
+    "all": "There is no rank branch around the communication. Every rank makes the same four collective calls in the same order.",
+    "zero": "Rank 0 reads the input, takes part in 3 broadcasts as the root, integrates its slice, and is the root of the reduce. It prints the result.",
+    "worker": "Rank {r} takes part in the same 3 broadcasts and the reduce, but only as a participant. It prints nothing."
+  }
+}

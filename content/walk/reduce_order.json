@@ -1,0 +1,24 @@
+{
+  "file": "extras/reduce_order.c",
+  "example": "reduce_order",
+  "start": 4,
+  "end": 18,
+  "fixed_p": 3,
+  "who": [
+    [9, 10, "r:1"],
+    [12, 13, "notr:1"]
+  ],
+  "legend": [["g-all", "every rank"], ["g-work", "rank 1 only"], ["g-other", "every rank except 1"]],
+  "refs": {"first": [9, 12], "second": [10, 13], "print": [15]},
+  "notes": {
+    "9": "Rank 1's first Reduce uses c.",
+    "12": "Everyone else's first Reduce uses a. It still matches rank 1's first call, because collectives match by order.",
+    "15": "Only rank 0 has meaningful values in b and d."
+  },
+  "summaries": {
+    "all": "Run with 3 processes. Rank 1 calls Reduce on c then a. Ranks 0 and 2 call it on a then c.",
+    "0": "Rank 0 reduces a (1) first, then c (2). It is the root, so b and d are filled in.",
+    "1": "Rank 1 reduces c (2) first, then a (1). Its first call is matched with the others' first call.",
+    "2": "Rank 2 reduces a (1) first, then c (2), same as rank 0."
+  }
+}

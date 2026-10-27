@@ -3,37 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mpi_SendRec.c | CIS*3090 midterm</title>
+<title>mpi_SendRec.c | CIS*3090 midterm 2</title>
+<meta name="description" content="Trapezoidal rule with only Send and Recv">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="page-trap_sendrecv">
 <a class="skip" href="#main">Skip to content</a>
-<nav class="side" aria-label="Pages">
-<a class="brand" href="index.html">CIS*3090 midterm</a>
-<a href="index.html">Start here</a>
-<div class="grp">Notes</div>
-<a href="concepts.html">Big ideas</a>
-<a href="sendrecv.html">Send and receive</a>
-<a href="collectives.html">Collective communication</a>
-<a href="trapezoid.html">The trapezoidal rule</a>
-<div class="grp">Code walkthroughs</div>
-<a href="hello.html">mpi_hello.c</a>
-<a href="hello2.html">mpi_hello2.c</a>
-<a href="trap_sendrecv.html" aria-current="page">mpi_SendRec.c</a>
-<a href="trap_bcast.html">mpi_Bcast.c</a>
-<div class="grp">Practice</div>
-<a href="trace.html">Trapezoid trace</a>
-<a href="practice.html">Code-reading questions</a>
-<div class="grp">Reference</div>
-<a href="reference.html">Cheat sheet</a>
-</nav>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Code pages"><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html" aria-current="page">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></nav></header>
 <main id="main">
 <h1>mpi_SendRec.c</h1>
 <ul>
-<li>
+<li class="sec">
 <p>What it is:</p>
 <ul>
 <li>The textbook's <code>mpi_trap2.c</code>: a parallel trapezoidal rule using only <code>MPI_Send</code> and <code>MPI_Recv</code></li>
@@ -41,173 +24,128 @@
 <li>Textbook reference: 3.2 and 3.3.2, lecture 09 slides 38 to 42 and lecture 11</li>
 </ul>
 </li>
-<li>
-<p>The main function:</p>
-<figure class="code"><div class="codecap">mpi_SendRec.c, lines 44 to 95</div><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">44</span>
-<span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span>
-<span class="normal">86</span>
-<span class="normal">87</span>
-<span class="normal">88</span>
-<span class="normal">89</span>
-<span class="normal">90</span>
-<span class="normal">91</span>
-<span class="normal">92</span>
-<span class="normal">93</span>
-<span class="normal">94</span>
-<span class="normal">95</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">;</span>
-<span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="p">,</span><span class="w"> </span><span class="n">local_a</span><span class="p">,</span><span class="w"> </span><span class="n">local_b</span><span class="p">;</span>
-<span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="n">total_int</span><span class="p">;</span>
-<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">;</span>
-
-<span class="w">   </span><span class="cm">/* Let the system do what it needs to start up MPI */</span>
-<span class="w">   </span><span class="n">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
-
-<span class="w">   </span><span class="cm">/* Get my process rank */</span>
-<span class="w">   </span><span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_rank</span><span class="p">);</span>
-
-<span class="w">   </span><span class="cm">/* Find out how many processes are being used */</span>
-<span class="w">   </span><span class="n">MPI_Comm_size</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">comm_sz</span><span class="p">);</span>
-
-<span class="hll"><span class="w">   </span><span class="n">Get_input</span><span class="p">(</span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">n</span><span class="p">);</span>
-</span>
-<span class="hll"><span class="w">   </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">/</span><span class="n">n</span><span class="p">;</span><span class="w">          </span><span class="cm">/* h is the same for all processes */</span>
-</span><span class="hll"><span class="w">   </span><span class="n">local_n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="n">comm_sz</span><span class="p">;</span><span class="w">  </span><span class="cm">/* So is the number of trapezoids  */</span>
-</span>
-<span class="w">   </span><span class="cm">/* Length of each process' interval of</span>
-<span class="cm">    * integration = local_n*h.  So my interval</span>
-<span class="cm">    * starts at: */</span>
-<span class="hll"><span class="w">   </span><span class="n">local_a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">my_rank</span><span class="o">*</span><span class="n">local_n</span><span class="o">*</span><span class="n">h</span><span class="p">;</span>
-</span><span class="hll"><span class="w">   </span><span class="n">local_b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">local_n</span><span class="o">*</span><span class="n">h</span><span class="p">;</span>
-</span><span class="hll"><span class="w">   </span><span class="n">local_int</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Trap</span><span class="p">(</span><span class="n">local_a</span><span class="p">,</span><span class="w"> </span><span class="n">local_b</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="p">);</span>
-</span>
-<span class="w">   </span><span class="cm">/* Add up the integrals calculated by each process */</span>
-<span class="hll"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
-</span><span class="hll"><span class="w">      </span><span class="n">MPI_Send</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span class="w">            </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-<span class="w">   </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="n">total_int</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_int</span><span class="p">;</span>
-<span class="hll"><span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span><span class="w"> </span><span class="n">source</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span class="hll"><span class="w">         </span><span class="n">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span class="w">            </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_STATUS_IGNORE</span><span class="p">);</span>
-<span class="hll"><span class="w">         </span><span class="n">total_int</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">local_int</span><span class="p">;</span>
-</span><span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">}</span>
-
-<span class="w">   </span><span class="cm">/* Print the result */</span>
-<span class="hll"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"With n = %d trapezoids, our estimate</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
-<span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"of the integral from %f to %f = %.15e</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
-<span class="w">          </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">total_int</span><span class="p">);</span>
-<span class="w">   </span><span class="p">}</span>
-
-<span class="w">   </span><span class="cm">/* Shut down MPI */</span>
-<span class="w">   </span><span class="n">MPI_Finalize</span><span class="p">();</span>
-
-<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="cm">/*  main  */</span>
-</code></pre></div></td></tr></table></div>
-</figure>
-</li>
-<li>
-<p>Line by line:</p>
+<li class="sec">
+<p>Try this first:</p>
 <ul>
-<li>Lines 45 to 48: <code>local_a</code>, <code>local_b</code> and <code>local_int</code> get a different value on each rank</li>
-<li><code>local_n</code> is the same number everywhere, but the textbook still calls it a <strong>local</strong> variable, meaning one process uses it</li>
-<li><code>a</code>, <code>b</code>, <code>n</code> are the textbook's <strong>global</strong> variables, meaning every process needs the same values</li>
-<li>Line 59: <strong>every</strong> rank calls <code>Get_input</code>, and inside it each rank takes a different branch</li>
-<li>Lines 61 and 62: <code>h</code> and <code>local_n</code>, identical on all ranks</li>
-<li>Lines 67 to 69: each rank computes its own slice and its own partial integral</li>
-<li>Lines 72 to 74: <span class="chip rx">other ranks</span> send <code>local_int</code> to rank 0 (one <code>MPI_DOUBLE</code>, tag 0)</li>
-<li>Lines 76 to 81: <span class="chip r0">rank 0</span> starts <code>total_int</code> with its own part, then receives from rank 1, 2, ... and adds each in turn</li>
-<li>Lines 85 to 89: only <span class="chip r0">rank 0</span> prints the result</li>
+<li>Select Rank 0, then Rank 1, and compare how many lines each one runs</li>
+<li>Step through and count the arrows: there are <code>4(p - 1)</code> of them, and every one touches rank 0</li>
+<li>The gray bar in the timeline is the stretch where all ranks compute their own slice</li>
 </ul>
 </li>
-<li>
-<p>The input function (lines 107 to 127):</p>
-<figure class="code"><div class="codecap">mpi_SendRec.c, lines 107 to 127</div><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">Get_input</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">b_p</span><span class="p">,</span>
-<span class="w">      </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">n_p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">;</span>
-
-<span class="hll"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span class="hll"><span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"Enter a, b, and n</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
-</span><span class="hll"><span class="w">      </span><span class="n">scanf</span><span class="p">(</span><span class="s">"%lf %lf %d"</span><span class="p">,</span><span class="w"> </span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="n">n_p</span><span class="p">);</span>
-</span><span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">dest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">dest</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span><span class="w"> </span><span class="n">dest</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="hll"><span class="w">         </span><span class="n">MPI_Send</span><span class="p">(</span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-</span><span class="hll"><span class="w">         </span><span class="n">MPI_Send</span><span class="p">(</span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-</span><span class="hll"><span class="w">         </span><span class="n">MPI_Send</span><span class="p">(</span><span class="n">n_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
-</span><span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* my_rank != 0 */</span>
-<span class="hll"><span class="w">      </span><span class="n">MPI_Recv</span><span class="p">(</span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span>
-</span><span class="w">            </span><span class="n">MPI_STATUS_IGNORE</span><span class="p">);</span>
-<span class="hll"><span class="w">      </span><span class="n">MPI_Recv</span><span class="p">(</span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span>
-</span><span class="w">            </span><span class="n">MPI_STATUS_IGNORE</span><span class="p">);</span>
-<span class="hll"><span class="w">      </span><span class="n">MPI_Recv</span><span class="p">(</span><span class="n">n_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span>
-</span><span class="w">            </span><span class="n">MPI_STATUS_IGNORE</span><span class="p">);</span>
-<span class="w">   </span><span class="p">}</span>
-<span class="p">}</span><span class="w">  </span><span class="cm">/* Get_input */</span>
-</code></pre></div></td></tr></table></div>
-</figure>
+</ul>
+<section class="walk" id="walk-trap_sendrecv" data-example="sendrecv" aria-label="mpi_SendRec.c, rank by rank">
+<script type="application/json">{"example": "sendrecv", "refs": {"scanf": [113], "insend": [115, 116, 117], "inrecv": [120, 121, 122, 123, 124, 125], "compute": [67, 68, 69], "rsend": [73, 74], "rrecv": [78, 79], "print": [86, 87, 88]}, "summaries": {"all": "Every rank runs main() and calls Get_input and Trap. Only the branches differ.", "zero": "Rank 0 reads a, b, n and sends all three to each of the {m} other rank(s). It integrates its own slice, then receives and adds {m} partial result(s), and prints.", "worker": "Rank {r} receives a, b, n from rank 0, integrates its slice, sends one double back to rank 0, and prints nothing."}, "p": 4}</script>
+<div class="walkbar">
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-trap_sendrecv">Processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-trap_sendrecv"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<p class="summary" aria-live="polite"></p>
+</div>
+<div class="walkbody">
+<div class="listing" role="region" aria-label="mpi_SendRec.c" tabindex="0">
+<div class="ln g-all" data-line="44" data-who="all"><span class="no">44</span><code class="tx"><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="45" data-who="all"><span class="no">45</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="46" data-who="all"><span class="no">46</span><code class="tx"><span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="p">,</span><span class="w"> </span><span class="n">local_a</span><span class="p">,</span><span class="w"> </span><span class="n">local_b</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="47" data-who="all"><span class="no">47</span><code class="tx"><span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="n">total_int</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="48" data-who="all"><span class="no">48</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="49" data-who="all"><span class="no">49</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="50" data-who="all"><span class="no">50</span><code class="tx"><span class="w">   </span><span class="cm">/* Let the system do what it needs to start up MPI */</span></code></div>
+<div class="ln g-all" data-line="51" data-who="all"><span class="no">51</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="52" data-who="all"><span class="no">52</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="53" data-who="all"><span class="no">53</span><code class="tx"><span class="w">   </span><span class="cm">/* Get my process rank */</span></code></div>
+<div class="ln g-all" data-line="54" data-who="all"><span class="no">54</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_rank</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="55" data-who="all"><span class="no">55</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="56" data-who="all"><span class="no">56</span><code class="tx"><span class="w">   </span><span class="cm">/* Find out how many processes are being used */</span></code></div>
+<div class="ln g-all" data-line="57" data-who="all"><span class="no">57</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Comm_size</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">comm_sz</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="58" data-who="all"><span class="no">58</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="59" data-who="all"><span class="no">59</span><code class="tx"><span class="w">   </span><span class="n">Get_input</span><span class="p">(</span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">n</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="60" data-who="all"><span class="no">60</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="61" data-who="all"><span class="no">61</span><code class="tx"><span class="w">   </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">/</span><span class="n">n</span><span class="p">;</span><span class="w">          </span><span class="cm">/* h is the same for all processes */</span></code></div>
+<div class="ln g-all" data-line="62" data-who="all"><span class="no">62</span><code class="tx"><span class="w">   </span><span class="n">local_n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="n">comm_sz</span><span class="p">;</span><span class="w">  </span><span class="cm">/* So is the number of trapezoids  */</span></code></div>
+<div class="anno g-all" data-who="all"><span>Integer division. If n is not a multiple of comm_sz, the leftover trapezoids are never computed.</span></div>
+<div class="ln g-all" data-line="63" data-who="all"><span class="no">63</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="64" data-who="all"><span class="no">64</span><code class="tx"><span class="w">   </span><span class="cm">/* Length of each process' interval of</span></code></div>
+<div class="ln g-all" data-line="65" data-who="all"><span class="no">65</span><code class="tx"><span class="cm">    * integration = local_n*h.  So my interval</span></code></div>
+<div class="ln g-all" data-line="66" data-who="all"><span class="no">66</span><code class="tx"><span class="cm">    * starts at: */</span></code></div>
+<div class="ln g-all" data-line="67" data-who="all"><span class="no">67</span><code class="tx"><span class="w">   </span><span class="n">local_a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">my_rank</span><span class="o">*</span><span class="n">local_n</span><span class="o">*</span><span class="n">h</span><span class="p">;</span></code></div>
+<div class="anno g-all" data-who="all"><span>Each rank starts where the previous rank&#x27;s slice ends: a + my_rank * local_n * h.</span></div>
+<div class="ln g-all" data-line="68" data-who="all"><span class="no">68</span><code class="tx"><span class="w">   </span><span class="n">local_b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">local_n</span><span class="o">*</span><span class="n">h</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="69" data-who="all"><span class="no">69</span><code class="tx"><span class="w">   </span><span class="n">local_int</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Trap</span><span class="p">(</span><span class="n">local_a</span><span class="p">,</span><span class="w"> </span><span class="n">local_b</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="p">);</span></code></div>
+<div class="anno g-all" data-who="all"><span>Every rank, including rank 0, integrates its own slice.</span></div>
+<div class="ln g-all" data-line="70" data-who="all"><span class="no">70</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="71" data-who="all"><span class="no">71</span><code class="tx"><span class="w">   </span><span class="cm">/* Add up the integrals calculated by each process */</span></code></div>
+<div class="ln g-all" data-line="72" data-who="all"><span class="no">72</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span></code></div>
+<div class="ln g-work" data-line="73" data-who="workers"><span class="no">73</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span></code></div>
+<div class="anno g-work" data-who="workers"><span>Each worker sends one double (its partial integral) to rank 0.</span></div>
+<div class="ln g-work" data-line="74" data-who="workers"><span class="no">74</span><code class="tx"><span class="w">            </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="75" data-who="all"><span class="no">75</span><code class="tx"><span class="w">   </span><span class="k">else</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-zero" data-line="76" data-who="zero"><span class="no">76</span><code class="tx"><span class="w">      </span><span class="n">total_int</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_int</span><span class="p">;</span></code></div>
+<div class="anno g-zero" data-who="zero"><span>Rank 0 starts the total with its own slice.</span></div>
+<div class="ln g-zero" data-line="77" data-who="zero_loop"><span class="no">77</span><code class="tx"><span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span><span class="w"> </span><span class="n">source</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-zero" data-line="78" data-who="zero_loop"><span class="no">78</span><code class="tx"><span class="w">         </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span></code></div>
+<div class="anno g-zero" data-who="zero_loop"><span>Rank 0 receives from source 1, then 2, and so on, and adds each into total_int.</span></div>
+<div class="ln g-zero" data-line="79" data-who="zero_loop"><span class="no">79</span><code class="tx"><span class="w">            </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></div>
+<div class="ln g-zero" data-line="80" data-who="zero_loop"><span class="no">80</span><code class="tx"><span class="w">         </span><span class="n">total_int</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">local_int</span><span class="p">;</span></code></div>
+<div class="ln g-zero" data-line="81" data-who="zero_loop"><span class="no">81</span><code class="tx"><span class="w">      </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="82" data-who="all"><span class="no">82</span><code class="tx"><span class="w">   </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="83" data-who="all"><span class="no">83</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="84" data-who="all"><span class="no">84</span><code class="tx"><span class="w">   </span><span class="cm">/* Print the result */</span></code></div>
+<div class="ln g-all" data-line="85" data-who="all"><span class="no">85</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-zero" data-line="86" data-who="zero"><span class="no">86</span><code class="tx"><span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"With n = %d trapezoids, our estimate</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span></code></div>
+<div class="ln g-zero" data-line="87" data-who="zero"><span class="no">87</span><code class="tx"><span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"of the integral from %f to %f = %.15e</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span></code></div>
+<div class="ln g-zero" data-line="88" data-who="zero"><span class="no">88</span><code class="tx"><span class="w">          </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">total_int</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="89" data-who="all"><span class="no">89</span><code class="tx"><span class="w">   </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="90" data-who="all"><span class="no">90</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="91" data-who="all"><span class="no">91</span><code class="tx"><span class="w">   </span><span class="cm">/* Shut down MPI */</span></code></div>
+<div class="ln g-all" data-line="92" data-who="all"><span class="no">92</span><code class="tx"><span class="w">   </span><span class="n mpi">MPI_Finalize</span><span class="p">();</span></code></div>
+<div class="ln g-all" data-line="93" data-who="all"><span class="no">93</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="94" data-who="all"><span class="no">94</span><code class="tx"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="95" data-who="all"><span class="no">95</span><code class="tx"><span class="p">}</span><span class="w"> </span><span class="cm">/*  main  */</span></code></div>
+<div class="gap" aria-hidden="true">lines 96 to 106 not shown</div>
+<div class="ln g-all" data-line="107" data-who="all"><span class="no">107</span><code class="tx"><span class="kt">void</span><span class="w"> </span><span class="nf">Get_input</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">my_rank</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">b_p</span><span class="p">,</span></code></div>
+<div class="ln g-all" data-line="108" data-who="all"><span class="no">108</span><code class="tx"><span class="w">      </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">n_p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-all" data-line="109" data-who="all"><span class="no">109</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">;</span></code></div>
+<div class="ln g-all" data-line="110" data-who="all"><span class="no">110</span><code class="tx">&#8203;</code></div>
+<div class="ln g-all" data-line="111" data-who="all"><span class="no">111</span><code class="tx"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-zero" data-line="112" data-who="zero"><span class="no">112</span><code class="tx"><span class="w">      </span><span class="n">printf</span><span class="p">(</span><span class="s">"Enter a, b, and n</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span></code></div>
+<div class="ln g-zero" data-line="113" data-who="zero"><span class="no">113</span><code class="tx"><span class="w">      </span><span class="n">scanf</span><span class="p">(</span><span class="s">"%lf %lf %d"</span><span class="p">,</span><span class="w"> </span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="n">n_p</span><span class="p">);</span></code></div>
+<div class="anno g-zero" data-who="zero"><span>Only rank 0 reads stdin.</span></div>
+<div class="ln g-zero" data-line="114" data-who="zero"><span class="no">114</span><code class="tx"><span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">dest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">dest</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span><span class="w"> </span><span class="n">dest</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln g-zero" data-line="115" data-who="zero_loop"><span class="no">115</span><code class="tx"><span class="w">         </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="anno g-zero" data-who="zero_loop"><span>Three separate sends per worker: a, then b, then n.</span></div>
+<div class="ln g-zero" data-line="116" data-who="zero_loop"><span class="no">116</span><code class="tx"><span class="w">         </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="ln g-zero" data-line="117" data-who="zero_loop"><span class="no">117</span><code class="tx"><span class="w">         </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="n">n_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></div>
+<div class="ln g-zero" data-line="118" data-who="zero"><span class="no">118</span><code class="tx"><span class="w">      </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="119" data-who="all"><span class="no">119</span><code class="tx"><span class="w">   </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* my_rank != 0 */</span></code></div>
+<div class="ln g-work" data-line="120" data-who="workers"><span class="no">120</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">a_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span></code></div>
+<div class="anno g-work" data-who="workers"><span>The receives must be in the same order as the sends: a, b, n.</span></div>
+<div class="ln g-work" data-line="121" data-who="workers"><span class="no">121</span><code class="tx"><span class="w">            </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></div>
+<div class="ln g-work" data-line="122" data-who="workers"><span class="no">122</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">b_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span></code></div>
+<div class="ln g-work" data-line="123" data-who="workers"><span class="no">123</span><code class="tx"><span class="w">            </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></div>
+<div class="ln g-work" data-line="124" data-who="workers"><span class="no">124</span><code class="tx"><span class="w">      </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">n_p</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span></code></div>
+<div class="ln g-work" data-line="125" data-who="workers"><span class="no">125</span><code class="tx"><span class="w">            </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></div>
+<div class="ln g-all" data-line="126" data-who="all"><span class="no">126</span><code class="tx"><span class="w">   </span><span class="p">}</span></code></div>
+<div class="ln g-all" data-line="127" data-who="all"><span class="no">127</span><code class="tx"><span class="p">}</span><span class="w">  </span><span class="cm">/* Get_input */</span></code></div>
+</div>
+<aside class="lanesbox" aria-label="Message timeline">
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<div class="lanes"></div>
+<ol class="log"></ol>
+<p class="lanes-note"></p>
+</aside>
+</div>
+<p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span><span class="lg"><i class="sw g-zero"></i>rank 0 only</span><span class="lg"><i class="sw g-work"></i>ranks other than 0</span></p>
+</section>
+<ul>
+<li class="sec">
+<p>What the variables mean:</p>
+<ul>
+<li><code>local_a</code>, <code>local_b</code> and <code>local_int</code> get a different value on each rank</li>
+<li><code>local_n</code> is the same number everywhere, but the textbook still calls it a <strong>local</strong> variable, meaning one process uses it</li>
+<li><code>a</code>, <code>b</code>, <code>n</code> are the textbook's <strong>global</strong> variables, meaning every process needs the same values</li>
+<li><strong>every</strong> rank calls <code>Get_input</code>, and inside it each rank takes a different branch</li>
+</ul>
+</li>
+<li class="sec">
+<p>How the input messages line up:</p>
 <ul>
 <li><span class="chip r0">rank 0</span> prompts, reads <code>a</code>, <code>b</code>, <code>n</code> with one <code>scanf</code>, then loops over every other rank sending three messages to each</li>
 <li><span class="chip rx">other ranks</span> do three receives from rank 0 in the same order: <code>a</code>, then <code>b</code>, then <code>n</code></li>
@@ -217,20 +155,18 @@
 <li>Swapping the receive for <code>n</code> with one of those would be a type mismatch</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Running it (the program asks for keyboard input, so pipe it in):</p>
-<div class="highlight"><pre><span></span><code>$ echo "0 3 1024" | mpiexec -n 4 ./mpi_SendRec
+<figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ echo &quot;0 3 1024&quot; | mpiexec -n 4 ./mpi_SendRec</span>
 Enter a, b, and n
 With n = 1024 trapezoids, our estimate
-of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00
-</code></pre></div>
-
+of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00</code></pre></figure>
 <ul>
-<li>This is a real run, and the true answer is 9</li>
+<li>The true answer is 9</li>
 <li>The estimate is slightly high because x squared is convex</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Counting messages for p processes:</p>
 <ul>
 <li>Input: 3 sends to each of the other p - 1 ranks, which is 3(p - 1)</li>
@@ -240,7 +176,7 @@ of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00
 <li>Rank 0 handles these one after another, which is the bottleneck that collectives fix</li>
 </ul>
 </li>
-<li>
+<li class="sec">
 <p>Things to check yourself on:</p>
 <ul>
 <li>Why does the sum loop receive from <code>source</code> in rank order, and what does that mean for the floating-point result?</li>
@@ -250,9 +186,9 @@ of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00
 </ul>
 </li>
 </ul>
-<div class="pager"><a class="prev" href="hello2.html">Previous: mpi_hello2.c</a><a class="next" href="trap_bcast.html">Next: mpi_Bcast.c</a></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="hello2.html"><span>Previous</span>mpi_hello2.c</a><a class="next" href="trap_bcast.html"><span>Next</span>mpi_Bcast.c</a></nav>
 </main>
-
-<script>(function(){var n=document.querySelector("nav.side"),c=n&&n.querySelector("[aria-current]");if(n&&c&&n.scrollWidth>n.clientWidth){n.scrollLeft=Math.max(0,c.offsetLeft-24);}})();</script>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

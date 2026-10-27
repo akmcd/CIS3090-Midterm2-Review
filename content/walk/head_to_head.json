@@ -1,0 +1,19 @@
+{
+  "file": "extras/head_to_head.c",
+  "example": "head_to_head",
+  "start": 4,
+  "end": 14,
+  "fixed_p": 2,
+  "legend": [["g-all", "every rank"]],
+  "refs": {"send": [9], "recv": [10]},
+  "notes": {
+    "8": "Rank 0 gets 1, rank 1 gets 0: each rank's partner is the other one.",
+    "9": "MPI_Ssend completes only after the matching receive has started. Both ranks are stuck here.",
+    "10": "Never reached by either rank."
+  },
+  "summaries": {
+    "all": "Both ranks run exactly the same lines in the same order: send first, then receive. That symmetry is the bug.",
+    "0": "Rank 0 sits in MPI_Ssend to rank 1 and waits for rank 1 to start a receive.",
+    "1": "Rank 1 sits in MPI_Ssend to rank 0 and waits for rank 0 to start a receive."
+  }
+}

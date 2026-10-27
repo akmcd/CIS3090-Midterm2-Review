@@ -1,0 +1,22 @@
+{
+  "file": "extras/tag_mismatch.c",
+  "example": "tag_mismatch",
+  "start": 3,
+  "end": 12,
+  "fixed_p": 2,
+  "who": [
+    [7, 7, "r:1"],
+    [8, 9, "r:0"]
+  ],
+  "legend": [["g-all", "every rank"], ["g-zero", "rank 0 only"], ["g-work", "rank 1 only"]],
+  "refs": {"send": [7], "recv": [8]},
+  "notes": {
+    "7": "Tag 5.",
+    "8": "Tag 7. A receive only accepts a message whose source, tag and communicator all match."
+  },
+  "summaries": {
+    "all": "Run with 2 processes. Rank 1 sends, rank 0 receives, but the tags differ.",
+    "0": "Rank 0 waits in MPI_Recv for tag 7 from rank 1. No such message ever arrives, so it hangs here and never prints.",
+    "1": "Rank 1 sends x with tag 5. The send finishes (small messages are usually buffered), but nobody can receive the message."
+  }
+}

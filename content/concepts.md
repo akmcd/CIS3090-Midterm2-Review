@@ -7,6 +7,8 @@ title: Big ideas
     - The same MPI program also runs on one machine with several cores
     - MPI hides whether two processes share a machine or not
 
+{{diagram memory}}
+
 - Why communication cost shapes everything:
     - Sending data over a network takes time, while threads share data almost instantly
     - So MPI pays off when each process computes for a long time between messages

@@ -1,0 +1,29 @@
+{
+  "file": "mpi_hello2.c",
+  "example": "hello2",
+  "start": 23,
+  "end": 76,
+  "p": 4,
+  "who": [
+    [46, 53, "workers"],
+    [55, 57, "zero"],
+    [58, 68, "zero_loop"],
+    [69, 69, "zero"]
+  ],
+  "refs": {"own": [56], "send": [53], "recv": [60], "status": [61, 62, 64]},
+  "notes": {
+    "49": "Seeds rand() with the rank, so each worker gets its own tag.",
+    "50": "A tag from 0 to 49. Different ranks will usually get different tags.",
+    "53": "The tag is no longer 0. The receiver can read it from status.",
+    "60": "Accepts a message from any sender with any tag. status will say which message it was.",
+    "61": "status.MPI_SOURCE: who sent it.",
+    "62": "status.MPI_TAG: the tag it was sent with.",
+    "64": "MPI_Get_count: how many MPI_CHARs actually arrived (not the buffer size of 100).",
+    "68": "Prints the greeting that arrived. With wildcards, the order can differ from run to run."
+  },
+  "summaries": {
+    "all": "Same shape as mpi_hello.c. The difference is how rank 0 receives.",
+    "zero": "Rank 0 prints its own greeting, then makes {m} wildcard receive(s). Whichever worker's message arrives first is handled first.",
+    "worker": "Rank {r} sends one greeting to rank 0 using a tag taken from rand() % 50."
+  }
+}
