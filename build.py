@@ -127,16 +127,6 @@ def inline(text):
     return re.sub(r"`([^`]+)`", r"<code>\1</code>", html.escape(text))
 
 
-def role_class(role):
-    if role in ("zero", "zero_loop"):
-        return "g-zero"
-    if role == "workers" or role.startswith("r:"):
-        return "g-work"
-    if role.startswith("notr:"):
-        return "g-other"
-    return "g-all"
-
-
 def listing_html(fname, segments, roles=None, notes=None, marks=()):
     path = EXAMPLES / fname
     if not path.exists():
@@ -151,16 +141,17 @@ def listing_html(fname, segments, roles=None, notes=None, marks=()):
         for i, h in enumerate(rendered[: e - s + 1]):
             n = s + i
             role = (roles or {}).get(n, "all")
-            cls = role_class(role) + (" mark" if n in marks else "")
-            out.append(
-                f'<div class="ln {cls}" data-line="{n}" data-who="{role}">'
-                f'<span class="no">{n}</span><code class="tx">{h or "&#8203;"}</code></div>'
+            has_note = bool(notes and str(n) in notes)
+            btn = (
+                f'<button type="button" class="notebtn" aria-expanded="false" aria-label="Show the note for line {n}" title="Note for line {n}">i</button>'
+                if has_note else ""
             )
-            if notes and str(n) in notes:
-                out.append(
-                    f'<div class="anno {role_class(role)}" data-who="{role}">'
-                    f'<span>{inline(notes[str(n)])}</span></div>'
-                )
+            out.append(
+                f'<div class="ln{" mark" if n in marks else ""}" data-line="{n}" data-who="{role}">'
+                f'<span class="no">{n}</span><code class="tx">{h or "&#8203;"}</code>{btn}</div>'
+            )
+            if has_note:
+                out.append(f'<div class="anno" data-who="{role}"><span>{inline(notes[str(n)])}</span></div>')
         prev_end = e
     return "\n".join(out)
 
@@ -178,9 +169,6 @@ def render_code(spec):
     )
 
 
-LEGEND_DEFAULT = [["g-all", "every rank"], ["g-zero", "rank 0 only"], ["g-work", "ranks other than 0"]]
-
-
 def render_walk(name):
     path = WALKS / f"{name}.json"
     if not path.exists():
@@ -194,10 +182,6 @@ def render_walk(name):
     listing = listing_html(cfg["file"], segments, roles, cfg.get("notes"))
     client = {k: cfg[k] for k in ("example", "refs", "summaries", "p", "fixed_p") if k in cfg}
     data = json.dumps(client).replace("</", "<\\/")
-    legend = "".join(
-        f'<span class="lg"><i class="sw {c}"></i>{html.escape(t)}</span>'
-        for c, t in cfg.get("legend", LEGEND_DEFAULT)
-    )
     fixed = cfg.get("fixed_p")
     if fixed:
         pctl = f'<div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">{fixed}</output></div>'
@@ -209,31 +193,37 @@ def render_walk(name):
             '<button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div>'
         ).replace("{id}", name)
     title = html.escape(cfg["file"])
-    howto = (
-        '<p class="howto"><b>How to use this:</b> choose a rank to light up only the lines that rank runs. '
-        'Press <b>Next step</b> to follow the messages one at a time.</p>'
+    has_notes = bool(cfg.get("notes"))
+    toggle = (
+        '<label class="notes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label>'
+        if has_notes else ""
+    )
+    help_ = (
+        '<p class="codehelp">Press the <b>i</b> button on a line to read its note.</p>' if has_notes else ""
     )
     return f"""<section class="walk" id="walk-{name}" data-example="{html.escape(cfg['example'])}" aria-label="{title}, rank by rank">
 <script type="application/json">{data}</script>
-{howto}
 <div class="walkbar">
-<div class="walkctl">{pctl}<div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div><label class="ctl notes-toggle"><input type="checkbox" checked> Show notes under the code</label></div>
+<div class="walkctl">{pctl}<div class="ctl"><span class="ctl-label">Show the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
+<div class="codecol">
+<div class="codehead"><span class="fname">{title}</span>{toggle}</div>
+{help_}
 <div class="listing" role="region" aria-label="{title}" tabindex="0">
 {listing}
 </div>
-<aside class="lanesbox" aria-label="Message timeline">
-<h3 class="lanes-title">Message timeline</h3>
-<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered. This shows one possible order: ranks that do not wait on each other can run in any order.</p>
-<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
+</div>
+<aside class="lanesbox" aria-label="Follow the messages">
+<h3 class="lanes-title">Follow the messages</h3>
+<p class="stepcaption idle" aria-live="polite"></p>
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Reset</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
-<ol class="log"></ol>
 <p class="lanes-note"></p>
+<details class="steplist"><summary>All steps as a list</summary><ol class="log"></ol></details>
 </aside>
 </div>
-<p class="legend" aria-label="Gutter colours">{legend}</p>
 </section>"""
 
 
@@ -306,6 +296,47 @@ MEMORY_DIAGRAM = """<figure class="diagram wide">
 </figure>"""
 
 
+HERO_ART = """<svg viewBox="0 0 420 230" role="img" aria-label="Ranks 1, 2 and 3 each send a message to rank 0.">
+<line class="lane" x1="70" y1="52" x2="70" y2="214"/><line class="lane" x1="165" y1="52" x2="165" y2="214"/>
+<line class="lane" x1="260" y1="52" x2="260" y2="214"/><line class="lane" x1="355" y1="52" x2="355" y2="214"/>
+<rect x="50" y="14" width="40" height="32" rx="8" fill="var(--blue)"/><text class="hl" x="70" y="35" text-anchor="middle">0</text>
+<rect x="145" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="165" y="35" text-anchor="middle">1</text>
+<rect x="240" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="260" y="35" text-anchor="middle">2</text>
+<rect x="335" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="355" y="35" text-anchor="middle">3</text>
+<line class="a0" x1="165" y1="90" x2="82" y2="90"/><path class="ah" d="M70 90 l13 -6 v12z"/>
+<line class="a0" x1="260" y1="140" x2="82" y2="140"/><path class="ah" d="M70 140 l13 -6 v12z"/>
+<line class="a0" x1="355" y1="190" x2="82" y2="190"/><path class="ah" d="M70 190 l13 -6 v12z"/>
+</svg>"""
+
+
+def render_home():
+    rows = []
+    for g in GROUPS:
+        items = [(s, l) for s, l, gg, _d in PAGES if gg == g]
+        first = items[0][0]
+        names = ", ".join(l for _s, l in items)
+        desc = {
+            "Learn": "Separate memory, ranks, send and receive, collectives and the trapezoidal rule.",
+            "Code": "Each course program with a rank picker and a message timeline.",
+            "Practice": "Predict outputs and find hangs, then check yourself.",
+            "MPI reference": "Look up any MPI call used in this course.",
+        }[g]
+        rows.append(
+            f'<li><a href="{first}.html"><span class="name">{html.escape(g)}</span>'
+            f'<span class="desc">{html.escape(desc)}<small>{html.escape(names)}</small></span></a></li>'
+        )
+    return (
+        '<section class="hero"><div>'
+        '<h1>Understand MPI code by following every rank</h1>'
+        '<p class="lede">Midterm 2 study site for CIS*3090. Pick a rank, see the lines it runs, and step through the messages one at a time.</p>'
+        '<div class="hero-btns"><a class="primary" href="hello.html">Follow a program</a>'
+        '<a class="secondary" href="concepts.html">Start with the big ideas</a></div></div>'
+        f'<div class="hero-art">{HERO_ART}<p>Every worker sends to rank 0, and rank 0 receives in order.</p></div></section>'
+        '<div class="home-grid"><section><h2>Study</h2>'
+        f'<ul class="studylist">{"".join(rows)}</ul></section></div>'
+    )
+
+
 def render_map():
     out = ['<div class="map wide">']
     for g in [None] + GROUPS:
@@ -343,14 +374,6 @@ def render_fnindex():
         out.append("</ul></div>")
     out.append('</div><p class="fnempty" hidden>No function matches that search.</p></div>')
     return "".join(out)
-
-
-CARDS = """<nav class="cards4 wide" aria-label="Where to start">
-<a href="concepts.html"><small>Learn</small><strong>The big ideas</strong><span>Separate memory, ranks, and the rules for exchanging data.</span></a>
-<a href="hello.html"><small>Code</small><strong>Follow a program</strong><span>Pick a rank and see only the lines it runs, then step through its messages.</span></a>
-<a href="practice.html"><small>Practice</small><strong>Test yourself</strong><span>Predict outputs and find bugs before you open the answers.</span></a>
-<a href="ref_index.html"><small>MPI reference</small><strong>Look up a function</strong><span>Signatures, arguments and common mistakes for every call used here.</span></a>
-</nav>"""
 
 
 # ---------------------------------------------------------------- preprocessing
@@ -393,12 +416,12 @@ def preprocess(text, stash):
             return indent + keep(render_map())
         if kind == "fnindex":
             return indent + keep(render_fnindex())
-        if kind == "cards":
-            return indent + keep(CARDS)
+        if kind == "home":
+            return indent + keep(render_home())
         raise SystemExit(f"unknown directive: {m.group(0)}")
 
     text = re.sub(
-        r"^( *)\{\{(walk|code|lab|diagram|progress|map|fnindex|cards)([^}\n]*)\}\}[ \t]*$",
+        r"^( *)\{\{(walk|code|lab|diagram|progress|map|fnindex|home)([^}\n]*)\}\}[ \t]*$",
         directive,
         text,
         flags=re.M,
@@ -483,17 +506,17 @@ PAGE = """<!doctype html>
 <meta name="description" content="%%DESC%%">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body class="%%BODYCLASS%%">
 <a class="skip" href="#main">Skip to content</a>
 %%HEADER%%
 <div class="shell">
-%%SIDEBAR%%
+%%PAGELIST%%
 <main id="main">
-<h1>%%TITLE%%</h1>
-<p class="lede">%%LEDE%%</p>
+%%INTRO%%
 %%BODY%%
 <nav class="pager" aria-label="Previous and next page">%%PREV%%%%NEXT%%</nav>
 </main>
@@ -511,35 +534,35 @@ def group_of(slug):
 
 def header(current):
     group = group_of(current)
-    links = []
+    links = ['<a href="index.html"{}>Home</a>'.format(' aria-current="true"' if current == "index" else "")]
     for g in GROUPS:
         first = next(s for s, _l, gg, _d in PAGES if gg == g)
         cur = ' aria-current="true"' if g == group else ""
         links.append(f'<a href="{first}.html"{cur}>{html.escape(g)}</a>')
     return (
         '<header class="top"><div class="topin">'
-        '<a class="brand" href="index.html">CIS*3090 midterm 2</a>'
-        f'<nav class="groups" aria-label="Sections">{"".join(links)}</nav></div></header>'
+        '<a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>'
+        f'{html.escape(SITE_NAME)}</a>'
+        f'<nav class="groups" aria-label="Sections">{"".join(links)}</nav>'
+        '<button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>'
     )
 
 
-def sidebar(current):
-    def links(group):
-        return "".join(
-            '<a href="{}.html"{}>{}</a>'.format(s, ' aria-current="page"' if s == current else "", html.escape(l))
-            for s, l, gg, _d in PAGES
-            if gg == group
-        )
-
-    home = '<a href="index.html"{}>Start here</a>'.format(' aria-current="page"' if current == "index" else "")
-    body = home + "".join(
-        f'<div class="grp"><p class="gl">{html.escape(g)}</p>{links(g)}</div>' for g in GROUPS
+def pagelist(current):
+    """Short numbered list of the pages in the current group. Nothing nested."""
+    group = group_of(current)
+    if group is None:
+        return ""
+    items = [(s, l) for s, l, gg, _d in PAGES if gg == group]
+    links = "".join(
+        '<a href="{}.html"{}>{}. {}</a>'.format(s, ' aria-current="page"' if s == current else "", i, html.escape(l))
+        for i, (s, l) in enumerate(items, 1)
     )
-    label = next((l for s, l, _g, _d in PAGES if s == current), "Pages")
+    label = next(l for s, l in items if s == current)
     return (
-        f'<nav class="sidebar" aria-label="All pages">{body}</nav>'
-        f'<details class="mobilenav"><summary>All pages: {html.escape(label)}</summary>'
-        f'<nav aria-label="All pages">{body}</nav></details>'
+        f'<nav class="pagelist" aria-label="{html.escape(group)} pages"><p class="gl">{html.escape(group)}</p>{links}</nav>'
+        f'<details class="mobilenav"><summary>{html.escape(group)}: {html.escape(label)}</summary>'
+        f'<nav aria-label="{html.escape(group)} pages">{links}</nav></details>'
     )
 
 
@@ -564,14 +587,15 @@ def main():
             ns, nl = PAGES[i + 1][0], PAGES[i + 1][1]
             nxt = f'<a class="next" href="{ns}.html"><span>Next</span>{html.escape(nl)}</a>'
 
+        intro = "" if slug == "index" else f'<h1>{html.escape(title)}</h1>\n<p class="lede">{html.escape(desc)}</p>'
         page = (
-            PAGE.replace("%%TITLE%%", html.escape(title))
+            PAGE.replace("%%INTRO%%", intro)
+            .replace("%%TITLE%%", html.escape(title))
             .replace("%%SITE%%", html.escape(SITE_NAME))
             .replace("%%DESC%%", html.escape(desc))
-            .replace("%%LEDE%%", html.escape(desc))
             .replace("%%BODYCLASS%%", f"page-{slug}" + (" home" if slug == "index" else ""))
             .replace("%%HEADER%%", header(slug))
-            .replace("%%SIDEBAR%%", sidebar(slug))
+            .replace("%%PAGELIST%%", pagelist(slug))
             .replace("%%BODY%%", body)
             .replace("%%PREV%%", prev)
             .replace("%%NEXT%%", nxt)

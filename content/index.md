@@ -1,14 +1,11 @@
 title: Understand MPI code by following every rank
 
-{{cards}}
-
-- Try it now on `mpi_hello.c`, run with 4 processes. This is the kind of question the midterm asks.
-
-{{walk hello}}
+{{home}}
 
 - What this site is for:
-    - Each code page lets you pick a rank and see only the lines that rank runs
-    - Each message timeline can be stepped through, one send or receive at a time
+    - Each code page shows the program as plain code. Pick a rank to see which lines it runs
+    - Press Next step to follow the messages one send or receive at a time
+    - Press the i button on a line to read what it does
     - **MPI** (Message Passing Interface): a C library for running one program as several cooperating processes
     - Every output shown here came from compiling and running the code with MPICH
 
@@ -36,7 +33,3 @@ title: Understand MPI code by following every rank
     - `mpicc -std=c99 -Wall -o mpi_hello mpi_hello.c`
     - `mpiexec -n 4 ./mpi_hello`
     - `-n 4` starts four processes
-
-- All pages:
-
-{{map}}

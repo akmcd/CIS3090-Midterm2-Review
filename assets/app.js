@@ -194,6 +194,7 @@ function initWalk(root) {
   const lnote = $(".lanes-note", root);
   const stepbar = $(".stepbar", root);
   const stepinfo = $(".stepinfo", stepbar);
+  const caption = $(".stepcaption", root);
   const state = { p: cfg.fixed_p || cfg.p || 4, rank: "all", step: null };
   let res = null;
   let stepEls = [];
@@ -271,6 +272,10 @@ function initWalk(root) {
     $('[data-s="next"]', stepbar).disabled = n === 0 || state.step === n - 1;
     $('[data-s="all"]', stepbar).disabled = state.step === null;
     stepinfo.textContent = state.step === null ? n + " steps" : "Step " + (state.step + 1) + " of " + n;
+    caption.classList.toggle("idle", state.step === null);
+    caption.textContent = state.step === null
+      ? "Press Next step to follow the messages one at a time."
+      : steps()[state.step].text;
     applyHot(state.step);
     if (scroll && state.step !== null) {
       const first = lineEls.find(e => e.classList.contains("hot"));
@@ -394,6 +399,16 @@ function initWalk(root) {
   }
 
   root.addEventListener("click", e => {
+    const nb = e.target.closest(".notebtn");
+    if (nb && root.contains(nb)) {
+      const line = nb.closest(".ln");
+      const note = line && line.nextElementSibling;
+      if (note && note.classList.contains("anno")) {
+        const open = note.classList.toggle("show");
+        nb.setAttribute("aria-expanded", String(open));
+      }
+      return;
+    }
     const pb = e.target.closest("[data-act]");
     if (pb && root.contains(pb)) {
       state.p = Math.max(1, Math.min(8, state.p + (pb.dataset.act === "p+" ? 1 : -1)));
@@ -418,6 +433,15 @@ function initWalk(root) {
       updateSteps(true);
     }
   });
+
+  const all = $(".allnotes", root);
+  if (all) {
+    all.addEventListener("change", () => {
+      listing.classList.toggle("shownotes", all.checked);
+      $$(".notebtn", listing).forEach(b => b.setAttribute("aria-expanded", String(all.checked)));
+      $$(".anno", listing).forEach(a => a.classList.remove("show"));
+    });
+  }
 
   rebuild(true);
 }
@@ -735,55 +759,70 @@ initPractice();
 initTrace();
 })();
 
-/* Page furniture: jump links, notes toggle, function search, sidebar position. */
+/* Page furniture: theme toggle, foldable sections, function search. */
 (() => {
   "use strict";
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const root = document.documentElement;
+
+  // dark mode toggle
+  const btn = $("#themebtn");
+  if (btn) {
+    const isDark = () => root.dataset.theme
+      ? root.dataset.theme === "dark"
+      : !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const sync = () => {
+      btn.textContent = isDark() ? "Light mode" : "Dark mode";
+      btn.setAttribute("aria-pressed", String(isDark()));
+    };
+    btn.addEventListener("click", () => {
+      const next = isDark() ? "light" : "dark";
+      root.dataset.theme = next;
+      try { localStorage.setItem("theme", next); } catch (e) {}
+      sync();
+    });
+    sync();
+  }
+
   const main = $("main");
   if (!main) return;
 
-  function secLabel(li) {
+  // foldable sections: each top-level bullet that ends in a colon gets a fold button
+  const secs = $$(":scope > ul > li.sec", main);
+  secs.forEach(li => {
     const first = li.firstElementChild;
-    if (first && first.tagName === "P" && !li.firstChild.textContent.trim()) return first.textContent;
-    let t = "";
-    for (const c of li.childNodes) {
-      if (c.nodeType === 1 && /^(UL|OL|FIGURE|SECTION|DIV|ASIDE)$/.test(c.tagName)) break;
-      t += c.textContent;
+    const lead = li.firstChild && li.firstChild.nodeType === 3 ? li.firstChild.textContent.trim() : "";
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "fold";
+    b.setAttribute("aria-expanded", "true");
+    b.setAttribute("aria-label", "Fold or unfold this section");
+    if (!lead && first && first.tagName === "P") {
+      first.classList.add("seclabel");
+      first.prepend(b);
+    } else {
+      li.prepend(b);
     }
-    return t;
-  }
-
-  // Under the current page in the sidebar, list the sections (or functions) on this page
-  const targets = $$(":scope > ul > li.sec, :scope > .fn", main);
-  const items = [];
-  targets.forEach((t, i) => {
-    const isFn = t.classList.contains("fn");
-    const label = (isFn ? $("h2", t).textContent : secLabel(t)).trim().replace(/:$/, "");
-    if (!label) return;
-    t.id = t.id || "section-" + (i + 1);
-    items.push({ id: t.id, label, fn: isFn });
-  });
-  if (items.length >= 2) {
-    $$('.sidebar [aria-current="page"], .mobilenav nav [aria-current="page"]').forEach(link => {
-      const toc = document.createElement("div");
-      toc.className = "toc";
-      items.forEach(it => {
-        const a = document.createElement("a");
-        a.href = "#" + it.id;
-        if (it.fn) { const c = document.createElement("code"); c.textContent = it.label; a.append(c); }
-        else a.textContent = it.label;
-        toc.append(a);
-      });
-      link.after(toc);
+    b.addEventListener("click", () => {
+      const f = li.classList.toggle("folded");
+      b.setAttribute("aria-expanded", String(!f));
     });
-  }
-
-  // hide or show the notes under the code
-  $$(".walk").forEach(w => {
-    const box = $(".notes-toggle input", w);
-    if (box) box.addEventListener("change", () => w.classList.toggle("nonotes", !box.checked));
   });
+  if (secs.length >= 3 && !document.body.classList.contains("home")) {
+    const bar = document.createElement("div");
+    bar.className = "foldbar";
+    bar.innerHTML = '<button type="button" id="collapse-all">Collapse all sections</button><button type="button" id="expand-all">Expand all</button>';
+    const lede = $(".lede", main);
+    (lede || main.firstElementChild).after(bar);
+    const setAll = fold => secs.forEach(li => {
+      li.classList.toggle("folded", fold);
+      const b = $(".fold", li);
+      if (b) b.setAttribute("aria-expanded", String(!fold));
+    });
+    $("#collapse-all", bar).addEventListener("click", () => setAll(true));
+    $("#expand-all", bar).addEventListener("click", () => setAll(false));
+  }
 
   // search on the function index
   const f = $("#fnfilter");
@@ -799,8 +838,10 @@ initTrace();
     });
   }
 
-  // keep the current page visible in the sidebar
-  const side = $(".sidebar");
-  const cur = side && $('[aria-current="page"]', side);
-  if (cur) side.scrollTop = Math.max(0, cur.offsetTop - side.clientHeight / 3);
+  // open a folded section when a link points inside it
+  if (location.hash) {
+    const t = document.getElementById(location.hash.slice(1));
+    const li = t && t.closest("li.sec.folded");
+    if (li) li.classList.remove("folded");
+  }
 })();

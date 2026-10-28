@@ -46,7 +46,7 @@ Handy syntax inside the Markdown files:
 
 - `{{walk NAME}}` rank lens plus message timeline, from `content/walk/NAME.json`
 - `{{code mpi_hello.c 23-64 hl=35,48}}` a plain listing with real line numbers
-- `{{lab match}}`, `{{lab collective}}`, `{{diagram memory}}`, `{{progress}}`, `{{map}}`, `{{cards}}`, `{{fnindex}}`
+- `{{lab match}}`, `{{lab collective}}`, `{{diagram memory}}`, `{{progress}}`, `{{map}}`, `{{home}}`, `{{fnindex}}`
 - `[[r0]]`, `[[rx]]` small rank labels
 - `::: fn MPI_Name` a function entry for the MPI reference (first line is the one-line purpose, then a fenced signature, an arguments table and bullets); it also appears in the searchable function index
 - `::: q` question, a `---` line, the answer, then `:::`
