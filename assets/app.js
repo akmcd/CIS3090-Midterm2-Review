@@ -735,66 +735,72 @@ initPractice();
 initTrace();
 })();
 
-/* Progressive study navigation: content remains readable without JavaScript. */
+/* Page furniture: jump links, notes toggle, function search, sidebar position. */
 (() => {
   "use strict";
-  const main = document.querySelector("main");
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const main = $("main");
   if (!main) return;
-  const title = main.querySelector("h1");
-  const page = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
-  const intros = {
-    index: ["Understand the code. Follow every rank.", "One program, several processes, separate memories. Learn how they exchange data, then practise predicting what happens."],
-    concepts: ["Big ideas", "Start with this: every MPI process has its own variables. A rank identifies the process; messages let processes share data."],
-    method: ["Read MPI code, one rank at a time", "Choose a rank, follow its branch, track its variables, and match its communication calls. Repeat for the other ranks."],
-    sendrecv: ["Send it. Match it. Receive it.", "A message needs the right destination, source, tag, and communicator. Then check that the receiving buffer can safely hold its data."],
-    collectives: ["One operation. Every rank.", "Broadcast copies data. Scatter splits it. Gather collects it. Reduce combines it. Allreduce gives the combined result to everyone."],
-    trapezoid: ["Split the interval. Add the results.", "Each rank estimates the area over one slice. The final answer is the sum of those local estimates."],
-    practice: ["Can you predict what happens?", "Write your answer before revealing it. Explain which ranks run each call, what changes, and whether any process gets stuck."],
-    pitfalls: ["Find the call that cannot finish", "Trace what each rank is waiting for. Then check whether another rank can actually perform the matching operation."],
-    reference: ["MPI at a glance", "Use this to check syntax after attempting a question. Counts refer to elements, and ranks belong to a communicator."],
-    trace: ["Watch the work split across ranks", "Change the interval, number of trapezoids, or process count. Check whether every part of the interval gets computed."]
-  };
-  if (title && intros[page]) {
-    const [heading, intro] = intros[page];
-    title.textContent = heading;
-    const p = document.createElement("p");
-    p.className = "study-intro"; p.textContent = intro; title.after(p);
-    if (page === "index") {
-      const path = document.createElement("nav");
-      path.className = "study-path"; path.setAttribute("aria-label", "Suggested study path");
-      const cards = [
-        ["Step 1","Learn the ideas","Separate memory, ranks, and the rules for exchanging data.","concepts.html","Start with the big ideas"],
-        ["Step 2","Follow the code","Choose a rank and follow its messages through the program.","hello.html","Open a code walkthrough"],
-        ["Step 3","Test yourself","Predict outputs and find bugs before revealing the explanations.","practice.html","Try the questions"]
-      ];
-      cards.forEach(([n,h,d,url,cta]) => {
-        const a=document.createElement("a"); a.href=url;
-        [["small",n],["strong",h],["span",d],["b",cta+" →"]].forEach(([tag,text])=>{const e=document.createElement(tag);e.textContent=text;a.append(e);});
-        path.append(a);
-      });
-      p.after(path);
+
+  function secLabel(li) {
+    const first = li.firstElementChild;
+    if (first && first.tagName === "P" && !li.firstChild.textContent.trim()) return first.textContent;
+    let t = "";
+    for (const c of li.childNodes) {
+      if (c.nodeType === 1 && /^(UL|OL|FIGURE|SECTION|DIV|ASIDE)$/.test(c.tagName)) break;
+      t += c.textContent;
     }
+    return t;
   }
-  const sections = [...main.querySelectorAll(":scope > ul > li.sec")];
-  if (sections.length > 2 && page !== "index") {
-    const nav = document.createElement("nav"); nav.className="study-jump"; nav.setAttribute("aria-label","On this page"); const jl=document.createElement("span"); jl.className="study-jump-label"; jl.textContent="Jump to:"; nav.append(jl);
-    sections.forEach((s,i)=>{
-      const label=[...s.childNodes].filter(n=>n.nodeType===3 || n.nodeName==="P").map(n=>n.textContent).join(" ").trim().replace(/:$/,"");
-      if(!label)return; s.id=s.id || "study-section-"+(i+1);
-      const a=document.createElement("a");a.href="#"+s.id;a.textContent=label;nav.append(a);
+
+  // Under the current page in the sidebar, list the sections (or functions) on this page
+  const targets = $$(":scope > ul > li.sec, :scope > .fn", main);
+  const items = [];
+  targets.forEach((t, i) => {
+    const isFn = t.classList.contains("fn");
+    const label = (isFn ? $("h2", t).textContent : secLabel(t)).trim().replace(/:$/, "");
+    if (!label) return;
+    t.id = t.id || "section-" + (i + 1);
+    items.push({ id: t.id, label, fn: isFn });
+  });
+  if (items.length >= 2) {
+    $$('.sidebar [aria-current="page"], .mobilenav nav [aria-current="page"]').forEach(link => {
+      const toc = document.createElement("div");
+      toc.className = "toc";
+      items.forEach(it => {
+        const a = document.createElement("a");
+        a.href = "#" + it.id;
+        if (it.fn) { const c = document.createElement("code"); c.textContent = it.label; a.append(c); }
+        else a.textContent = it.label;
+        toc.append(a);
+      });
+      link.after(toc);
     });
-    const anchor=main.querySelector(".study-intro") || title;
-    if(anchor)anchor.after(nav);
   }
-  if(main.querySelector(".walk")) {
-    const tools=document.createElement("div"); tools.className="study-tools";
-    const btn=document.createElement("button");btn.type="button";btn.textContent="Hide the notes under the code";btn.setAttribute("aria-pressed","false");
-    btn.addEventListener("click",()=>{const on=document.body.classList.toggle("study-focus");btn.setAttribute("aria-pressed",String(on));btn.textContent=on?"Show the notes under the code":"Hide the notes under the code";});
-    const hint=document.createElement("span");hint.textContent="Handy for testing yourself: hide the notes, predict what each rank does, then show them.";hint.className="study-intro";hint.style.margin="0";hint.style.fontSize=".9rem";
-    tools.append(btn,hint);main.querySelector(".walk").before(tools);
-    const tip=document.createElement("p");tip.className="study-tip";tip.textContent="The timeline shows one possible execution. Independent ranks can progress in different orders; use the matching calls to determine what is guaranteed.";
-    main.querySelector(".walk").after(tip);
+
+  // hide or show the notes under the code
+  $$(".walk").forEach(w => {
+    const box = $(".notes-toggle input", w);
+    if (box) box.addEventListener("change", () => w.classList.toggle("nonotes", !box.checked));
+  });
+
+  // search on the function index
+  const f = $("#fnfilter");
+  if (f) {
+    const rows = $$(".fnrow");
+    const groups = $$(".fngroup");
+    const none = $(".fnempty");
+    f.addEventListener("input", () => {
+      const q = f.value.trim().toLowerCase();
+      rows.forEach(r => { r.hidden = q !== "" && !r.textContent.toLowerCase().includes(q); });
+      groups.forEach(g => { g.hidden = $$(".fnrow:not([hidden])", g).length === 0; });
+      if (none) none.hidden = groups.some(g => !g.hidden);
+    });
   }
-  const top=document.querySelector(".top");
-  if(top && typeof ResizeObserver !== "undefined") new ResizeObserver(()=>document.documentElement.style.setProperty("--topH",top.getBoundingClientRect().height+"px")).observe(top);
+
+  // keep the current page visible in the sidebar
+  const side = $(".sidebar");
+  const cur = side && $('[aria-current="page"]', side);
+  if (cur) side.scrollTop = Math.max(0, cur.offsetTop - side.clientHeight / 3);
 })();

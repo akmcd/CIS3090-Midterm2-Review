@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datatypes, operators and constants | CIS*3090 midterm 2</title>
+<meta name="description" content="Datatypes, reduction operators, constants and common errors.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-ref_types">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav></div></header>
+<div class="shell">
+<nav class="sidebar" aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html" aria-current="page">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav><details class="mobilenav"><summary>All pages: Datatypes and operators</summary><nav aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html" aria-current="page">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav></details>
+<main id="main">
+<h1>Datatypes, operators and constants</h1>
+<p class="lede">Datatypes, reduction operators, constants and common errors.</p>
+<ul>
+<li class="sec">Datatypes:<ul>
+<li>MPI needs the type of the data as an <code>MPI_Datatype</code> value, and it must match the C type of the variable</li>
+<li><code>count</code> arguments are numbers of elements, never bytes</li>
+</ul>
+</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>C type</th>
+<th>MPI datatype</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>char</code></td>
+<td><code>MPI_CHAR</code></td>
+</tr>
+<tr>
+<td><code>signed char</code></td>
+<td><code>MPI_SIGNED_CHAR</code></td>
+</tr>
+<tr>
+<td><code>unsigned char</code></td>
+<td><code>MPI_UNSIGNED_CHAR</code></td>
+</tr>
+<tr>
+<td><code>short</code></td>
+<td><code>MPI_SHORT</code></td>
+</tr>
+<tr>
+<td><code>int</code></td>
+<td><code>MPI_INT</code></td>
+</tr>
+<tr>
+<td><code>unsigned</code></td>
+<td><code>MPI_UNSIGNED</code></td>
+</tr>
+<tr>
+<td><code>long</code></td>
+<td><code>MPI_LONG</code></td>
+</tr>
+<tr>
+<td><code>long long</code></td>
+<td><code>MPI_LONG_LONG</code></td>
+</tr>
+<tr>
+<td><code>float</code></td>
+<td><code>MPI_FLOAT</code></td>
+</tr>
+<tr>
+<td><code>double</code></td>
+<td><code>MPI_DOUBLE</code></td>
+</tr>
+<tr>
+<td><code>long double</code></td>
+<td><code>MPI_LONG_DOUBLE</code></td>
+</tr>
+<tr>
+<td>raw bytes</td>
+<td><code>MPI_BYTE</code></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li class="sec">Reduction operators (textbook Table 3.2):<ul>
+<li>Used as the <code>operator</code> argument of <code>MPI_Reduce</code> and <code>MPI_Allreduce</code></li>
+</ul>
+</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MPI_SUM</code>, <code>MPI_PROD</code></td>
+<td>sum, product</td>
+</tr>
+<tr>
+<td><code>MPI_MAX</code>, <code>MPI_MIN</code></td>
+<td>maximum, minimum</td>
+</tr>
+<tr>
+<td><code>MPI_MAXLOC</code>, <code>MPI_MINLOC</code></td>
+<td>extreme value and where it is</td>
+</tr>
+<tr>
+<td><code>MPI_LAND</code>, <code>MPI_LOR</code>, <code>MPI_LXOR</code></td>
+<td>logical and, or, exclusive or</td>
+</tr>
+<tr>
+<td><code>MPI_BAND</code>, <code>MPI_BOR</code>, <code>MPI_BXOR</code></td>
+<td>bitwise and, or, exclusive or</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Constants:</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MPI_COMM_WORLD</code></td>
+<td>the communicator with every process</td>
+</tr>
+<tr>
+<td><code>MPI_ANY_SOURCE</code></td>
+<td>wildcard for the source of a receive</td>
+</tr>
+<tr>
+<td><code>MPI_ANY_TAG</code></td>
+<td>wildcard for the tag of a receive</td>
+</tr>
+<tr>
+<td><code>MPI_STATUS_IGNORE</code></td>
+<td>pass instead of a status when you do not need one</td>
+</tr>
+<tr>
+<td><code>MPI_SUCCESS</code></td>
+<td>the return value of a call that worked</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Common errors and what they mean:</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>What you see</th>
+<th>Usual cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The program hangs</td>
+<td>a receive or collective with no partner, or two blocking sends facing each other</td>
+</tr>
+<tr>
+<td>"Message truncated"</td>
+<td>the receive count is smaller than the message</td>
+</tr>
+<tr>
+<td>Right answer on rank 0, garbage elsewhere</td>
+<td>the output of <code>MPI_Reduce</code> is only valid on the destination</td>
+</tr>
+<tr>
+<td>Wrong total with no error</td>
+<td><code>n</code> is not divisible by <code>comm_sz</code>, so some trapezoids are skipped</td>
+</tr>
+</tbody>
+</table></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_coll.html"><span>Previous</span>Collective functions</a><a class="next" href="reference.html"><span>Next</span>Cheat sheet</a></nav>
+</main>
+</div>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

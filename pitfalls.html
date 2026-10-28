@@ -4,17 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hangs and mix-ups | CIS*3090 midterm 2</title>
-<meta name="description" content="Three small programs that go wrong, and why">
+<meta name="description" content="Three small programs that go wrong, and how to see why.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body class="page-pitfalls">
 <a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Code pages"><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html" aria-current="page">Hangs and mix-ups</a></nav></header>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Learn</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav></div></header>
+<div class="shell">
+<nav class="sidebar" aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html" aria-current="page">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav><details class="mobilenav"><summary>All pages: Hangs and mix-ups</summary><nav aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html" aria-current="page">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav></details>
 <main id="main">
 <h1>Hangs and mix-ups</h1>
+<p class="lede">Three small programs that go wrong, and how to see why.</p>
 <ul>
 <li class="sec">
 <p>How to use this page:</p>
@@ -33,9 +36,9 @@
 </ul>
 <section class="walk" id="walk-tag_mismatch" data-example="tag_mismatch" aria-label="extras/tag_mismatch.c, rank by rank">
 <script type="application/json">{"example": "tag_mismatch", "refs": {"send": [7], "recv": [8]}, "summaries": {"all": "Run with 2 processes. Rank 1 sends, rank 0 receives, but the tags differ.", "0": "Rank 0 waits in MPI_Recv for tag 7 from rank 1. No such message ever arrives, so it hangs here and never prints.", "1": "Rank 1 sends x with tag 5. The send finishes (small messages are usually buffered), but nobody can receive the message."}, "fixed_p": 2}</script>
-<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
+<p class="howto"><b>How to use this:</b> choose a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">2</output></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">2</output></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div><label class="ctl notes-toggle"><input type="checkbox" checked> Show notes under the code</label></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -55,7 +58,7 @@
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
 <h3 class="lanes-title">Message timeline</h3>
-<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered. This shows one possible order: ranks that do not wait on each other can run in any order.</p>
 <div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
@@ -84,9 +87,9 @@
 </ul>
 <section class="walk" id="walk-head_to_head" data-example="head_to_head" aria-label="extras/head_to_head.c, rank by rank">
 <script type="application/json">{"example": "head_to_head", "refs": {"send": [9], "recv": [10]}, "summaries": {"all": "Both ranks run exactly the same lines in the same order: send first, then receive. That symmetry is the bug.", "0": "Rank 0 sits in MPI_Ssend to rank 1 and waits for rank 1 to start a receive.", "1": "Rank 1 sits in MPI_Ssend to rank 0 and waits for rank 0 to start a receive."}, "fixed_p": 2}</script>
-<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
+<p class="howto"><b>How to use this:</b> choose a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">2</output></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">2</output></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div><label class="ctl notes-toggle"><input type="checkbox" checked> Show notes under the code</label></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -108,7 +111,7 @@
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
 <h3 class="lanes-title">Message timeline</h3>
-<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered. This shows one possible order: ranks that do not wait on each other can run in any order.</p>
 <div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
@@ -139,9 +142,9 @@
 </ul>
 <section class="walk" id="walk-reduce_order" data-example="reduce_order" aria-label="extras/reduce_order.c, rank by rank">
 <script type="application/json">{"example": "reduce_order", "refs": {"first": [9, 12], "second": [10, 13], "print": [15]}, "summaries": {"all": "Run with 3 processes. Rank 1 calls Reduce on c then a. Ranks 0 and 2 call it on a then c.", "0": "Rank 0 reduces a (1) first, then c (2). It is the root, so b and d are filled in.", "1": "Rank 1 reduces c (2) first, then a (1). Its first call is matched with the others' first call.", "2": "Rank 2 reduces a (1) first, then c (2), same as rank 0."}, "fixed_p": 3}</script>
-<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
+<p class="howto"><b>How to use this:</b> choose a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">3</output></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">3</output></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div><label class="ctl notes-toggle"><input type="checkbox" checked> Show notes under the code</label></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -167,7 +170,7 @@
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
 <h3 class="lanes-title">Message timeline</h3>
-<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered. This shows one possible order: ranks that do not wait on each other can run in any order.</p>
 <div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
@@ -198,6 +201,7 @@ b = 4, d = 5</code></pre></figure>
 </ul>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="trap_bcast.html"><span>Previous</span>mpi_Bcast.c</a><a class="next" href="practice.html"><span>Next</span>Code-reading questions</a></nav>
 </main>
+</div>
 <footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
 <script src="assets/app.js" defer></script>
 </body>

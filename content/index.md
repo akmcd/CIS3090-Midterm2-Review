@@ -1,4 +1,6 @@
-title: Predict what every rank does
+title: Understand MPI code by following every rank
+
+{{cards}}
 
 - Try it now on `mpi_hello.c`, run with 4 processes. This is the kind of question the midterm asks.
 

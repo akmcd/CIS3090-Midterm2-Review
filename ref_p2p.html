@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send and receive functions | CIS*3090 midterm 2</title>
+<meta name="description" content="MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-ref_p2p">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav></div></header>
+<div class="shell">
+<nav class="sidebar" aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html" aria-current="page">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav><details class="mobilenav"><summary>All pages: Send and receive functions</summary><nav aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html" aria-current="page">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav></details>
+<main id="main">
+<h1>Send and receive functions</h1>
+<p class="lede">MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards.</p>
+<ul>
+<li class="sec">How a send finds its receive:<ul>
+<li>A send and a receive match when the communicator, the tag, the source and the destination all agree</li>
+<li>The datatypes must agree too, and the receive count must be at least the send count</li>
+<li>Only the receiver may use wildcards, and a sender must always name a destination and a tag</li>
+<li>Messages from one sender to one receiver arrive in the order they were sent (<strong>non-overtaking</strong>)</li>
+<li>The Send and receive page explains this with a lab</li>
+</ul>
+</li>
+</ul>
+<section class="fn" id="MPI_Send"><header class="fn-head"><h2>MPI_Send</h2><p>Sends a message to one other process.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">msg_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">msg_size</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">msg_type</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">communicator</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>msg_buf_p</code></td>
+<td>where the data is</td>
+</tr>
+<tr>
+<td><code>msg_size</code></td>
+<td>how many elements to send (not bytes)</td>
+</tr>
+<tr>
+<td><code>msg_type</code></td>
+<td>the type of each element, like <code>MPI_INT</code></td>
+</tr>
+<tr>
+<td><code>dest</code></td>
+<td>rank of the receiving process</td>
+</tr>
+<tr>
+<td><code>tag</code></td>
+<td>a non-negative int the receiver can use to tell messages apart</td>
+</tr>
+<tr>
+<td><code>communicator</code></td>
+<td>usually <code>MPI_COMM_WORLD</code></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>It may copy the message into a system buffer and return at once, or wait until the receiver is ready</li>
+<li>Small messages are usually buffered and large ones usually wait, but the standard does not promise either</li>
+<li>When it returns, your send buffer is safe to reuse, but the message may not have arrived yet</li>
+<li>To send a string, send <code>strlen(s) + 1</code> characters so the <code>'\0'</code> goes too</li>
+<li>Used in the course: <code>mpi_hello.c</code> line 48, <code>mpi_SendRec.c</code> lines 73 and 115 to 117</li>
+</ul></div></section>
+<section class="fn" id="MPI_Recv"><header class="fn-head"><h2>MPI_Recv</h2><p>Receives one message. It waits until a matching message arrives.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Recv</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">msg_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">buf_size</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">buf_type</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">communicator</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status_p</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>msg_buf_p</code></td>
+<td>where to put the data</td>
+</tr>
+<tr>
+<td><code>buf_size</code></td>
+<td>how many elements the buffer can hold (not how many will arrive)</td>
+</tr>
+<tr>
+<td><code>buf_type</code></td>
+<td>the type of each element</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>rank to receive from, or <code>MPI_ANY_SOURCE</code></td>
+</tr>
+<tr>
+<td><code>tag</code></td>
+<td>tag to match, or <code>MPI_ANY_TAG</code></td>
+</tr>
+<tr>
+<td><code>communicator</code></td>
+<td>must be the same as the sender used</td>
+</tr>
+<tr>
+<td><code>status_p</code></td>
+<td>filled with details about the message, or <code>MPI_STATUS_IGNORE</code></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>A receive with no matching send waits forever, so the program hangs</li>
+<li>If the message has more elements than <code>buf_size</code>, MPI reports a "Message truncated" error</li>
+<li>A buffer that is bigger than the message is fine</li>
+<li>Used in the course: <code>mpi_hello.c</code> line 54, <code>mpi_hello2.c</code> line 60, <code>mpi_SendRec.c</code> lines 78 and 120 to 124</li>
+</ul></div></section>
+<section class="fn" id="MPI_Ssend"><header class="fn-head"><h2>MPI_Ssend</h2><p>A send that does not return until the receiver has started a matching receive.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Ssend</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">msg_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">msg_size</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">msg_type</span><span class="p">,</span>
+<span class="w">              </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">communicator</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>It takes the same arguments as <code>MPI_Send</code></li>
+<li>It never uses a system buffer, so it shows what the program does when sends have to wait</li>
+<li>Safety check: replace every <code>MPI_Send</code> with <code>MPI_Ssend</code>, and if the program hangs it was <strong>unsafe</strong> (it only worked because messages happened to be buffered)</li>
+<li>Used in this site: <code>head_to_head.c</code> in <code>examples/extras/</code></li>
+</ul></div></section>
+<section class="fn" id="MPI_Sendrecv"><header class="fn-head"><h2>MPI_Sendrecv</h2><p>Sends one message and receives another in a single call, in a way that cannot deadlock.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Sendrecv</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_buf_size</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_buf_type</span><span class="p">,</span>
+<span class="w">                 </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_tag</span><span class="p">,</span>
+<span class="w">                 </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_buf_size</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_buf_type</span><span class="p">,</span>
+<span class="w">                 </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">communicator</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status_p</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>It is the fix for two processes that each want to send first and then receive</li>
+<li>The send buffer and the receive buffer must be different</li>
+<li>The course mentions it as a fix, and does not use it in the example programs</li>
+</ul></div></section>
+<section class="fn" id="MPI_Status"><header class="fn-head"><h2>MPI_Status</h2><p>A struct that a receive fills in with details about the message it got.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="n mpi">MPI_Status</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_SOURCE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_TAG</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">sender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n mpi">MPI_SOURCE</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n mpi">MPI_TAG</span><span class="p">;</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status.MPI_SOURCE</code></td>
+<td>rank of the sender</td>
+</tr>
+<tr>
+<td><code>status.MPI_TAG</code></td>
+<td>the tag the message was sent with</td>
+</tr>
+<tr>
+<td><code>status.MPI_ERROR</code></td>
+<td>error code</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>It matters most with wildcards, because then the receiver does not otherwise know who sent the message or with what tag</li>
+<li>The number of elements is not a member, because it depends on the datatype, so use <code>MPI_Get_count</code></li>
+<li>If you do not need the details, pass <code>MPI_STATUS_IGNORE</code></li>
+<li>Used in the course: <code>mpi_hello2.c</code> lines 59 to 62</li>
+</ul></div></section>
+<section class="fn" id="MPI_Get_count"><header class="fn-head"><h2>MPI_Get_count</h2><p>Tells you how many elements a received message contained.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Get_count</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n mpi">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status_p</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">count_p</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status_p</code></td>
+<td>the status filled in by <code>MPI_Recv</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>the datatype you received with</td>
+</tr>
+<tr>
+<td><code>count_p</code></td>
+<td>output: the number of elements</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>This is the actual message length, which can be smaller than the buffer size you passed to <code>MPI_Recv</code></li>
+<li>Used in the course: <code>mpi_hello2.c</code> line 64, where a 30 character greeting reports 31 elements because the <code>'\0'</code> was sent too</li>
+</ul></div></section>
+<ul>
+<li class="sec">Wildcards (receiver only):<ul>
+<li><code>MPI_ANY_SOURCE</code>: accept a message from any sender</li>
+<li><code>MPI_ANY_TAG</code>: accept a message with any tag</li>
+<li>There is no wildcard for the communicator</li>
+<li>With <code>MPI_ANY_SOURCE</code>, the order messages are received in can change from run to run</li>
+</ul>
+</li>
+</ul>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_start.html"><span>Previous</span>Setup and shutdown</a><a class="next" href="ref_coll.html"><span>Next</span>Collective functions</a></nav>
+</main>
+</div>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

@@ -4,17 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mpi_hello.c | CIS*3090 midterm 2</title>
-<meta name="description" content="Rank 0 collects a greeting from every other rank">
+<meta name="description" content="Every rank except 0 sends a greeting, and rank 0 receives and prints them in order.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body class="page-hello">
 <a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Code pages"><a href="hello.html" aria-current="page">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></nav></header>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Learn</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav></div></header>
+<div class="shell">
+<nav class="sidebar" aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html" aria-current="page">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav><details class="mobilenav"><summary>All pages: mpi_hello.c</summary><nav aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html" aria-current="page">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav></details>
 <main id="main">
 <h1>mpi_hello.c</h1>
+<p class="lede">Every rank except 0 sends a greeting, and rank 0 receives and prints them in order.</p>
 <ul>
 <li class="sec">What it does:<ul>
 <li>Every rank except 0 builds a greeting string and sends it to rank 0</li>
@@ -25,9 +28,9 @@
 </ul>
 <section class="walk" id="walk-hello" data-example="hello" aria-label="mpi_hello.c, rank by rank">
 <script type="application/json">{"example": "hello", "refs": {"own": [51], "send": [48], "recv": [54]}, "summaries": {"all": "With {p} processes, all of them run the setup lines and MPI_Finalize. The if / else decides who does what.", "zero": "Rank 0 prints its own greeting, then receives {m} message(s), one from each worker, in rank order.", "worker": "Rank {r} builds a greeting and sends it to rank 0 once. It never receives, and it never prints."}, "p": 4}</script>
-<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
+<p class="howto"><b>How to use this:</b> choose a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-hello">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-hello"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-hello">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-hello"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div><label class="ctl notes-toggle"><input type="checkbox" checked> Show notes under the code</label></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -84,7 +87,7 @@
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
 <h3 class="lanes-title">Message timeline</h3>
-<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered. This shows one possible order: ranks that do not wait on each other can run in any order.</p>
 <div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
@@ -134,6 +137,7 @@ Greetings from process 3 of 4!</code></pre></figure>
 </ul>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="trapezoid.html"><span>Previous</span>The trapezoidal rule</a><a class="next" href="hello2.html"><span>Next</span>mpi_hello2.c</a></nav>
 </main>
+</div>
 <footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
 <script src="assets/app.js" defer></script>
 </body>

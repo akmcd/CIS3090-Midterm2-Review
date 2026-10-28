@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collective functions | CIS*3090 midterm 2</title>
+<meta name="description" content="MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-ref_coll">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav></div></header>
+<div class="shell">
+<nav class="sidebar" aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html" aria-current="page">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav><details class="mobilenav"><summary>All pages: Collective functions</summary><nav aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html" aria-current="page">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav></details>
+<main id="main">
+<h1>Collective functions</h1>
+<p class="lede">MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather and more.</p>
+<ul>
+<li class="sec">What makes a call collective:<ul>
+<li>Every process in the communicator must make the call</li>
+<li>The arguments must be compatible on every process, for example the same root rank</li>
+<li>There are no tags, so calls match by communicator and by the order they are made</li>
+<li>Output arguments must not be the same variable as input arguments (aliasing is illegal)</li>
+<li>Matching a collective on one process with a <code>MPI_Recv</code> on another is an error</li>
+<li>The Collective communication page explains this with a lab</li>
+</ul>
+</li>
+</ul>
+<section class="fn" id="MPI_Bcast"><header class="fn-head"><h2>MPI_Bcast</h2><p>Copies data from one process to every other process.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Bcast</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
+<span class="w">              </span><span class="kt">int</span><span class="w"> </span><span class="n">source_proc</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data_p</code></td>
+<td>input on <code>source_proc</code>, output on every other process</td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td>number of elements</td>
+</tr>
+<tr>
+<td><code>datatype</code></td>
+<td>type of each element</td>
+</tr>
+<tr>
+<td><code>source_proc</code></td>
+<td>rank that holds the data</td>
+</tr>
+<tr>
+<td><code>comm</code></td>
+<td>the communicator</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Every process makes the same call, including the source</li>
+<li>Putting it inside <code>if (my_rank == 0)</code> is a bug, because the other ranks never take part</li>
+<li>Used in the course: <code>mpi_Bcast.c</code> lines 103 to 105</li>
+</ul></div></section>
+<section class="fn" id="MPI_Reduce"><header class="fn-head"><h2>MPI_Reduce</h2><p>Combines one value from every process into a single result on one process.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Reduce</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">input_data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">output_data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span>
+<span class="w">               </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Op</span><span class="w"> </span><span class="n">operator</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input_data_p</code></td>
+<td>this process's contribution</td>
+</tr>
+<tr>
+<td><code>output_data_p</code></td>
+<td>where the result goes, only used on <code>dest_process</code></td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td>number of elements; with more than 1 it combines arrays element by element</td>
+</tr>
+<tr>
+<td><code>datatype</code></td>
+<td>type of each element</td>
+</tr>
+<tr>
+<td><code>operator</code></td>
+<td>how to combine, like <code>MPI_SUM</code></td>
+</tr>
+<tr>
+<td><code>dest_process</code></td>
+<td>rank that receives the result</td>
+</tr>
+<tr>
+<td><code>comm</code></td>
+<td>the communicator</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Every process must pass an <code>output_data_p</code>, but only the destination's is written (<code>NULL</code> is fine elsewhere)</li>
+<li><code>MPI_Reduce(&amp;x, &amp;x, ...)</code> is illegal, because the input and output are the same variable</li>
+<li>A tree lets pairs combine at the same time, so p processes need about log2(p) rounds instead of p - 1 receives in a row</li>
+<li>Used in the course: <code>mpi_Bcast.c</code> lines 70 and 71</li>
+</ul></div></section>
+<section class="fn" id="MPI_Allreduce"><header class="fn-head"><h2>MPI_Allreduce</h2><p>Like <code>MPI_Reduce</code>, but every process gets the result.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Allreduce</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">input_data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">output_data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span>
+<span class="w">                  </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Op</span><span class="w"> </span><span class="n">operator</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>It has no destination argument, because the destination is everyone</li>
+<li>Use it when every process needs the total for its next step</li>
+<li>The lecture calls it a <strong>butterfly reduce</strong>: a tree sum followed by the same tree run backwards</li>
+<li>Used in this site: <code>allreduce_demo.c</code> in <code>examples/extras/</code></li>
+</ul></div></section>
+<section class="fn" id="MPI_Scatter"><header class="fn-head"><h2>MPI_Scatter</h2><p>Splits an array on one process and gives each process a different chunk.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Scatter</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span>
+<span class="w">                </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span>
+<span class="w">                </span><span class="kt">int</span><span class="w"> </span><span class="n">src_proc</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>send_buf_p</code></td>
+<td>the whole array, only used on <code>src_proc</code></td>
+</tr>
+<tr>
+<td><code>send_count</code></td>
+<td>elements sent to each process, not the length of the whole array</td>
+</tr>
+<tr>
+<td><code>recv_buf_p</code></td>
+<td>where this process's chunk goes</td>
+</tr>
+<tr>
+<td><code>recv_count</code></td>
+<td>elements received by each process</td>
+</tr>
+<tr>
+<td><code>src_proc</code></td>
+<td>rank that holds the array</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Rank 0 gets the first chunk, rank 1 the next, and so on (a <strong>block</strong> distribution)</li>
+<li>Passing the total length as <code>send_count</code> makes MPI abort with "Message truncated"</li>
+<li>Used in this site: <code>scatter_gather.c</code> in <code>examples/extras/</code></li>
+</ul></div></section>
+<section class="fn" id="MPI_Gather"><header class="fn-head"><h2>MPI_Gather</h2><p>Collects one chunk from every process into one array on a single process.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Gather</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span>
+<span class="w">               </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span>
+<span class="w">               </span><span class="kt">int</span><span class="w"> </span><span class="n">dest_proc</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>It is the reverse of <code>MPI_Scatter</code></li>
+<li>Rank 0's chunk goes first, then rank 1's, and so on</li>
+<li><code>recv_count</code> is the number of elements from each process, not the total</li>
+<li><code>recv_buf_p</code> is only used on <code>dest_proc</code></li>
+</ul></div></section>
+<section class="fn" id="MPI_Allgather"><header class="fn-head"><h2>MPI_Allgather</h2><p>Like <code>MPI_Gather</code>, but every process receives the whole array.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Allgather</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span>
+<span class="w">                  </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>It has no destination argument</li>
+<li>Every process needs a receive buffer big enough for all the chunks</li>
+</ul></div></section>
+<section class="fn" id="MPI_Barrier"><header class="fn-head"><h2>MPI_Barrier</h2><p>Makes every process wait until all of them have reached the call.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Barrier</span><span class="p">(</span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>No process returns from it until every process in the communicator has started it</li>
+<li>It is mostly used for timing and for ordering output while debugging</li>
+</ul></div></section>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_p2p.html"><span>Previous</span>Send and receive functions</a><a class="next" href="ref_types.html"><span>Next</span>Datatypes and operators</a></nav>
+</main>
+</div>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setup and shutdown | CIS*3090 midterm 2</title>
+<meta name="description" content="MPI_Init, MPI_Comm_size, MPI_Comm_rank and MPI_Finalize.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-ref_start">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav></div></header>
+<div class="shell">
+<nav class="sidebar" aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html" aria-current="page">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav><details class="mobilenav"><summary>All pages: Setup and shutdown</summary><nav aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html" aria-current="page">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav></details>
+<main id="main">
+<h1>Setup and shutdown</h1>
+<p class="lede">MPI_Init, MPI_Comm_size, MPI_Comm_rank and MPI_Finalize.</p>
+<ul>
+<li class="sec">Every MPI program has the same frame:<ul>
+<li>Start MPI, find out how many processes there are and which one this is, do the work, shut MPI down</li>
+<li>All four functions below are called by every process</li>
+<li>The order is always Init, then Comm_size and Comm_rank, then your code, then Finalize</li>
+</ul>
+</li>
+</ul>
+<section class="fn" id="MPI_Init"><header class="fn-head"><h2>MPI_Init</h2><p>Starts MPI. It must come before any other MPI call.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Init</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">argc_p</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">***</span><span class="w"> </span><span class="n">argv_p</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>argc_p</code></td>
+<td>pointer to <code>argc</code> from <code>main</code>, or <code>NULL</code></td>
+</tr>
+<tr>
+<td><code>argv_p</code></td>
+<td>pointer to <code>argv</code> from <code>main</code>, or <code>NULL</code></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Every process calls it</li>
+<li>The course programs pass <code>NULL, NULL</code> because they do not read command-line arguments</li>
+<li>Used in the course: <code>mpi_hello.c</code> line 35, <code>mpi_SendRec.c</code> line 51</li>
+</ul></div></section>
+<section class="fn" id="MPI_Comm_size"><header class="fn-head"><h2>MPI_Comm_size</h2><p>Finds out how many processes are in a communicator.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Comm_size</span><span class="p">(</span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">comm_sz_p</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>comm</code></td>
+<td>the communicator, usually <code>MPI_COMM_WORLD</code></td>
+</tr>
+<tr>
+<td><code>comm_sz_p</code></td>
+<td>output: where to store the number of processes</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>The number comes from <code>mpiexec -n 4</code>, so the same program can run with any count</li>
+<li>Write code that works for any <code>comm_sz</code>, because you do not know it when you write the program</li>
+<li>Used in the course: <code>mpi_hello.c</code> line 38</li>
+</ul></div></section>
+<section class="fn" id="MPI_Comm_rank"><header class="fn-head"><h2>MPI_Comm_rank</h2><p>Finds out which process this is, as a number from 0 to <code>comm_sz - 1</code>.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">my_rank_p</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>comm</code></td>
+<td>the communicator, usually <code>MPI_COMM_WORLD</code></td>
+</tr>
+<tr>
+<td><code>my_rank_p</code></td>
+<td>output: where to store this process's rank</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Each process gets a different answer, and that is the only thing that makes processes behave differently</li>
+<li>Programs branch on it: <code>if (my_rank != 0) { ... } else { ... }</code></li>
+<li>A rank belongs to a communicator, so the same process can have different ranks in different communicators</li>
+<li>Used in the course: <code>mpi_hello.c</code> line 41</li>
+</ul></div></section>
+<section class="fn" id="MPI_Finalize"><header class="fn-head"><h2>MPI_Finalize</h2><p>Shuts MPI down and frees what it was using.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Finalize</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>Every process calls it, after its last MPI call</li>
+<li>No MPI function may be called after it</li>
+<li>Used in the course: <code>mpi_hello.c</code> line 61</li>
+</ul></div></section>
+<ul>
+<li class="sec">
+<p>Names and constants:</p>
+<ul>
+<li><strong>communicator</strong>: a group of processes that can send messages to each other</li>
+<li><code>MPI_COMM_WORLD</code>: the communicator holding every process that <code>mpiexec</code> started</li>
+<li><strong>rank</strong>: a process's number inside a communicator</li>
+<li>Everything MPI defines starts with <code>MPI_</code></li>
+<li>Function names and types have a capital letter right after the underscore, like <code>MPI_Comm_rank</code></li>
+<li>Constants and macros are all capitals, like <code>MPI_COMM_WORLD</code></li>
+</ul>
+</li>
+<li class="sec">
+<p>Return values:</p>
+<ul>
+<li>Most MPI functions return an <code>int</code>, and <code>MPI_SUCCESS</code> means the call worked</li>
+<li>The course examples ignore return values to keep the code short</li>
+</ul>
+</li>
+<li class="sec">
+<p>Compiling and running:</p>
+<ul>
+<li><code>mpicc -std=c99 -Wall -o prog prog.c</code> compiles with the MPI library</li>
+<li><code>mpiexec -n 4 ./prog</code> starts 4 processes of <code>prog</code></li>
+<li>Most systems let only rank 0 read from the keyboard, so pipe input in: <code>echo "0 3 1024" | mpiexec -n 4 ./prog</code></li>
+<li>Every process can print, but the order of lines from different ranks can change from run to run</li>
+</ul>
+</li>
+</ul>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_index.html"><span>Previous</span>Find a function</a><a class="next" href="ref_p2p.html"><span>Next</span>Send and receive functions</a></nav>
+</main>
+</div>
+<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

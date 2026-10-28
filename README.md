@@ -8,16 +8,10 @@ Covers lectures 09 to 11 and textbook Chapter 3, sections 3.1 to 3.4.
 Direct links:
 
 - [Start here](https://akmcd.github.io/CIS3090-Midterm2-Review/)
-- [Big ideas](https://akmcd.github.io/CIS3090-Midterm2-Review/concepts.html)
-- [Reading MPI code](https://akmcd.github.io/CIS3090-Midterm2-Review/method.html)
-- [Send and receive](https://akmcd.github.io/CIS3090-Midterm2-Review/sendrecv.html)
-- [Collective communication](https://akmcd.github.io/CIS3090-Midterm2-Review/collectives.html)
-- [The trapezoidal rule](https://akmcd.github.io/CIS3090-Midterm2-Review/trapezoid.html)
-- [Code walkthroughs](https://akmcd.github.io/CIS3090-Midterm2-Review/hello.html)
-- [Hangs and mix-ups](https://akmcd.github.io/CIS3090-Midterm2-Review/pitfalls.html)
-- [Code-reading questions](https://akmcd.github.io/CIS3090-Midterm2-Review/practice.html)
-- [Trapezoid trace](https://akmcd.github.io/CIS3090-Midterm2-Review/trace.html)
-- [Cheat sheet](https://akmcd.github.io/CIS3090-Midterm2-Review/reference.html)
+- Learn: [Big ideas](https://akmcd.github.io/CIS3090-Midterm2-Review/concepts.html), [Reading MPI code](https://akmcd.github.io/CIS3090-Midterm2-Review/method.html), [Send and receive](https://akmcd.github.io/CIS3090-Midterm2-Review/sendrecv.html), [Collective communication](https://akmcd.github.io/CIS3090-Midterm2-Review/collectives.html), [The trapezoidal rule](https://akmcd.github.io/CIS3090-Midterm2-Review/trapezoid.html)
+- Code: [mpi_hello.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello.html), [mpi_hello2.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello2.html), [mpi_SendRec.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_sendrecv.html), [mpi_Bcast.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_bcast.html), [Hangs and mix-ups](https://akmcd.github.io/CIS3090-Midterm2-Review/pitfalls.html)
+- Practice: [Code-reading questions](https://akmcd.github.io/CIS3090-Midterm2-Review/practice.html), [Trapezoid trace](https://akmcd.github.io/CIS3090-Midterm2-Review/trace.html)
+- MPI reference: [Find a function](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_index.html), [Setup and shutdown](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_start.html), [Send and receive functions](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_p2p.html), [Collective functions](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_coll.html), [Datatypes and operators](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_types.html), [Cheat sheet](https://akmcd.github.io/CIS3090-Midterm2-Review/reference.html)
 
 ## How the site is published (GitHub Pages)
 
@@ -38,7 +32,7 @@ The notes live in `content/*.md` as nested bullet lists. After editing, rebuild:
 To add a page (for example a new lecture):
 
 1. Create `content/<slug>.md`, starting with a line like `title: Lecture 12`
-2. Add `("<slug>", "Label", "Group", "One-line description")` to `PAGES` in `build.py`
+2. Add `("<slug>", "Label", "Group", "One-line description")` to `PAGES` in `build.py` (the group is one of Learn, Code, Practice, MPI reference; the description is shown under the page title)
 3. Run `python build.py` and commit the new `.html` files
 
 To add a code walkthrough:
@@ -52,8 +46,9 @@ Handy syntax inside the Markdown files:
 
 - `{{walk NAME}}` rank lens plus message timeline, from `content/walk/NAME.json`
 - `{{code mpi_hello.c 23-64 hl=35,48}}` a plain listing with real line numbers
-- `{{lab match}}`, `{{lab collective}}`, `{{diagram memory}}`, `{{progress}}`, `{{map}}`
+- `{{lab match}}`, `{{lab collective}}`, `{{diagram memory}}`, `{{progress}}`, `{{map}}`, `{{cards}}`, `{{fnindex}}`
 - `[[r0]]`, `[[rx]]` small rank labels
+- `::: fn MPI_Name` a function entry for the MPI reference (first line is the one-line purpose, then a fenced signature, an arguments table and bullets); it also appears in the searchable function index
 - `::: q` question, a `---` line, the answer, then `:::`
 - `::: run Caption` real program output (a first line starting with `$ ` is styled as the command), `::: warn` and `::: note` callouts
 - Fenced code blocks and the blocks above can be indented to stay inside a bullet

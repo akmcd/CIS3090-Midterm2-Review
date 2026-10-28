@@ -4,17 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mpi_Bcast.c | CIS*3090 midterm 2</title>
-<meta name="description" content="The same program with Bcast and Reduce">
+<meta name="description" content="The same program using MPI_Bcast and MPI_Reduce.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body class="page-trap_bcast">
 <a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Notes</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="reference.html">Reference</a></nav></div><nav class="sub" aria-label="Code pages"><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html" aria-current="page">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></nav></header>
+<header class="top"><div class="topin"><a class="brand" href="index.html">CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="concepts.html">Learn</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav></div></header>
+<div class="shell">
+<nav class="sidebar" aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html" aria-current="page">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav><details class="mobilenav"><summary>All pages: mpi_Bcast.c</summary><nav aria-label="All pages"><a href="index.html">Start here</a><div class="grp"><p class="gl">Learn</p><a href="concepts.html">Big ideas</a><a href="method.html">Reading MPI code</a><a href="sendrecv.html">Send and receive</a><a href="collectives.html">Collective communication</a><a href="trapezoid.html">The trapezoidal rule</a></div><div class="grp"><p class="gl">Code</p><a href="hello.html">mpi_hello.c</a><a href="hello2.html">mpi_hello2.c</a><a href="trap_sendrecv.html">mpi_SendRec.c</a><a href="trap_bcast.html" aria-current="page">mpi_Bcast.c</a><a href="pitfalls.html">Hangs and mix-ups</a></div><div class="grp"><p class="gl">Practice</p><a href="practice.html">Code-reading questions</a><a href="trace.html">Trapezoid trace</a></div><div class="grp"><p class="gl">MPI reference</p><a href="ref_index.html">Find a function</a><a href="ref_start.html">Setup and shutdown</a><a href="ref_p2p.html">Send and receive functions</a><a href="ref_coll.html">Collective functions</a><a href="ref_types.html">Datatypes and operators</a><a href="reference.html">Cheat sheet</a></div></nav></details>
 <main id="main">
 <h1>mpi_Bcast.c</h1>
+<p class="lede">The same program using MPI_Bcast and MPI_Reduce.</p>
 <ul>
 <li class="sec">What it is:<ul>
 <li>The textbook's <code>mpi_trap3.c</code>: the same trapezoidal rule, with the hand-written message loops replaced by collective calls</li>
@@ -25,9 +28,9 @@
 </ul>
 <section class="walk" id="walk-trap_bcast" data-example="bcast" aria-label="mpi_Bcast.c, rank by rank">
 <script type="application/json">{"example": "bcast", "refs": {"scanf": [101], "bcast": [103, 104, 105], "compute": [65, 66, 67], "reduce": [70, 71], "print": [75, 76, 77]}, "summaries": {"all": "There is no rank branch around the communication. Every rank makes the same four collective calls in the same order.", "zero": "Rank 0 reads the input, takes part in 3 broadcasts as the root, integrates its slice, and is the root of the reduce. It prints the result.", "worker": "Rank {r} takes part in the same 3 broadcasts and the reduce, but only as a participant. It prints nothing."}, "p": 4}</script>
-<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
+<p class="howto"><b>How to use this:</b> choose a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-trap_bcast">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-trap_bcast"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-trap_bcast">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-trap_bcast"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div><label class="ctl notes-toggle"><input type="checkbox" checked> Show notes under the code</label></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -95,7 +98,7 @@
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
 <h3 class="lanes-title">Message timeline</h3>
-<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered. This shows one possible order: ranks that do not wait on each other can run in any order.</p>
 <div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
@@ -171,6 +174,7 @@ of the integral from 0.000000 to 3.000000 = 8.973662840668112e+00</code></pre></
 </ul>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="trap_sendrecv.html"><span>Previous</span>mpi_SendRec.c</a><a class="next" href="pitfalls.html"><span>Next</span>Hangs and mix-ups</a></nav>
 </main>
+</div>
 <footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
 <script src="assets/app.js" defer></script>
 </body>

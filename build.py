@@ -46,22 +46,27 @@ SITE_NAME = "CIS*3090 midterm 2"
 
 # (slug, label, group, one-line description). Order here is the order on the site.
 PAGES = [
-    ("index", "Start here", None, ""),
-    ("concepts", "Big ideas", "Notes", "Shared vs distributed memory, SPMD, ranks and communicators"),
-    ("method", "Reading MPI code", "Notes", "A routine for predicting output and spotting hangs"),
-    ("sendrecv", "Send and receive", "Notes", "Message matching, wildcards, blocking, plus a matching lab"),
-    ("collectives", "Collective communication", "Notes", "Bcast, Reduce, Allreduce, Scatter, Gather, plus a lab"),
-    ("trapezoid", "The trapezoidal rule", "Notes", "The problem the course programs solve"),
-    ("hello", "mpi_hello.c", "Code", "Rank 0 collects a greeting from every other rank"),
-    ("hello2", "mpi_hello2.c", "Code", "Wildcard receives and the status object"),
-    ("trap_sendrecv", "mpi_SendRec.c", "Code", "Trapezoidal rule with only Send and Recv"),
-    ("trap_bcast", "mpi_Bcast.c", "Code", "The same program with Bcast and Reduce"),
-    ("pitfalls", "Hangs and mix-ups", "Code", "Three small programs that go wrong, and why"),
-    ("practice", "Code-reading questions", "Practice", "Predict the output, find the bug, then check"),
-    ("trace", "Trapezoid trace", "Practice", "Try inputs and see which slice each rank computes"),
-    ("reference", "Cheat sheet", "Reference", "Signatures, operators and formulas"),
+    ("index", "Start here", None, "Midterm 2 study site for CIS*3090. Pick a rank, step through the messages, and practise predicting what MPI programs do."),
+    ("concepts", "Big ideas", "Learn", "Each MPI process has its own memory. A rank identifies the process, and messages move data between processes."),
+    ("method", "Reading MPI code", "Learn", "A routine for predicting the output and spotting hangs in any MPI code question."),
+    ("sendrecv", "Send and receive", "Learn", "How a send finds its receive, what the wildcards do, and when a send waits."),
+    ("collectives", "Collective communication", "Learn", "Calls that every process makes together: broadcast, reduce, scatter and gather."),
+    ("trapezoid", "The trapezoidal rule", "Learn", "The problem the course programs solve, and how each rank gets its slice."),
+    ("hello", "mpi_hello.c", "Code", "Every rank except 0 sends a greeting, and rank 0 receives and prints them in order."),
+    ("hello2", "mpi_hello2.c", "Code", "The same idea with wildcard receives and the status object."),
+    ("trap_sendrecv", "mpi_SendRec.c", "Code", "The trapezoidal rule using only MPI_Send and MPI_Recv."),
+    ("trap_bcast", "mpi_Bcast.c", "Code", "The same program using MPI_Bcast and MPI_Reduce."),
+    ("pitfalls", "Hangs and mix-ups", "Code", "Three small programs that go wrong, and how to see why."),
+    ("practice", "Code-reading questions", "Practice", "Write your answer first, then open the explanation and mark how you did."),
+    ("trace", "Trapezoid trace", "Practice", "Change the inputs and see which slice of the interval each rank computes."),
+    ("ref_index", "Find a function", "MPI reference", "Look up any MPI function used in this course: what it does, its arguments, and the mistakes to avoid."),
+    ("ref_start", "Setup and shutdown", "MPI reference", "MPI_Init, MPI_Comm_size, MPI_Comm_rank and MPI_Finalize."),
+    ("ref_p2p", "Send and receive functions", "MPI reference", "MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards."),
+    ("ref_coll", "Collective functions", "MPI reference", "MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather and more."),
+    ("ref_types", "Datatypes and operators", "MPI reference", "Datatypes, reduction operators, constants and common errors."),
+    ("reference", "Cheat sheet", "MPI reference", "The most important calls and formulas on one page."),
 ]
-GROUPS = ["Notes", "Code", "Practice", "Reference"]
+GROUPS = ["Learn", "Code", "Practice", "MPI reference"]
 
 CHIPS = {
     "r0": ("r0", "rank 0"),
@@ -205,14 +210,14 @@ def render_walk(name):
         ).replace("{id}", name)
     title = html.escape(cfg["file"])
     howto = (
-        '<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. '
+        '<p class="howto"><b>How to use this:</b> choose a rank to light up only the lines that rank runs. '
         'Press <b>Next step</b> to follow the messages one at a time.</p>'
     )
     return f"""<section class="walk" id="walk-{name}" data-example="{html.escape(cfg['example'])}" aria-label="{title}, rank by rank">
 <script type="application/json">{data}</script>
 {howto}
 <div class="walkbar">
-<div class="walkctl">{pctl}<div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl">{pctl}<div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div><label class="ctl notes-toggle"><input type="checkbox" checked> Show notes under the code</label></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -221,7 +226,7 @@ def render_walk(name):
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
 <h3 class="lanes-title">Message timeline</h3>
-<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered. This shows one possible order: ranks that do not wait on each other can run in any order.</p>
 <div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
@@ -315,9 +320,42 @@ def render_map():
     return "".join(out)
 
 
+FN_RE = re.compile(r"^::: fn (\S+)\n([^\n]*)", re.M)
+
+
+def render_fnindex():
+    out = ['<div class="fnindex wide"><label class="fnsearch">Search functions'
+           '<input id="fnfilter" type="search" placeholder="Try Reduce, tag or status" autocomplete="off"></label>'
+           '<div class="fncols">']
+    for slug, label, group, _d in PAGES:
+        path = CONTENT / f"{slug}.md"
+        if group != "MPI reference" or not path.exists():
+            continue
+        found = FN_RE.findall(path.read_text(encoding="utf-8"))
+        if not found:
+            continue
+        out.append(f'<div class="fngroup"><h2>{html.escape(label)}</h2><ul>')
+        for name, purpose in found:
+            out.append(
+                f'<li class="fnrow"><a href="{slug}.html#{name}"><code>{name}</code></a>'
+                f'<span>{inline(purpose.strip())}</span></li>'
+            )
+        out.append("</ul></div>")
+    out.append('</div><p class="fnempty" hidden>No function matches that search.</p></div>')
+    return "".join(out)
+
+
+CARDS = """<nav class="cards4 wide" aria-label="Where to start">
+<a href="concepts.html"><small>Learn</small><strong>The big ideas</strong><span>Separate memory, ranks, and the rules for exchanging data.</span></a>
+<a href="hello.html"><small>Code</small><strong>Follow a program</strong><span>Pick a rank and see only the lines it runs, then step through its messages.</span></a>
+<a href="practice.html"><small>Practice</small><strong>Test yourself</strong><span>Predict outputs and find bugs before you open the answers.</span></a>
+<a href="ref_index.html"><small>MPI reference</small><strong>Look up a function</strong><span>Signatures, arguments and common mistakes for every call used here.</span></a>
+</nav>"""
+
+
 # ---------------------------------------------------------------- preprocessing
 
-BLOCK_RE = re.compile(r"^( *)::: (q|warn|note|run)([^\n]*)\n(.*?)\n\1:::[ \t]*$", re.M | re.S)
+BLOCK_RE = re.compile(r"^( *)::: (q|warn|note|run|fn)([^\n]*)\n(.*?)\n\1:::[ \t]*$", re.M | re.S)
 FENCE_RE = re.compile(r"^( *)```(\w*)\n(.*?)\n\1```[ \t]*$", re.M | re.S)
 
 
@@ -353,10 +391,14 @@ def preprocess(text, stash):
             return indent + keep('<div class="qprogress wide" aria-live="polite"></div>')
         if kind == "map":
             return indent + keep(render_map())
+        if kind == "fnindex":
+            return indent + keep(render_fnindex())
+        if kind == "cards":
+            return indent + keep(CARDS)
         raise SystemExit(f"unknown directive: {m.group(0)}")
 
     text = re.sub(
-        r"^( *)\{\{(walk|code|lab|diagram|progress|map)([^}\n]*)\}\}[ \t]*$",
+        r"^( *)\{\{(walk|code|lab|diagram|progress|map|fnindex|cards)([^}\n]*)\}\}[ \t]*$",
         directive,
         text,
         flags=re.M,
@@ -377,6 +419,14 @@ def preprocess(text, stash):
                 '<div class="qmark"><button type="button" data-mark="got">I got it</button>'
                 '<button type="button" data-mark="missed">I missed it</button><span class="qstate"></span></div>'
                 "</details></section>"
+            )
+        elif kind == "fn":
+            name = caption
+            purpose, _, rest = body.strip().partition("\n")
+            markup = (
+                f'<section class="fn" id="{html.escape(name)}"><header class="fn-head">'
+                f'<h2>{html.escape(name)}</h2><p>{inline(purpose.strip())}</p></header>'
+                f'<div class="fn-body">{md_engine().convert(rest.strip())}</div></section>'
             )
         elif kind == "run":
             lines = []
@@ -433,17 +483,21 @@ PAGE = """<!doctype html>
 <meta name="description" content="%%DESC%%">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400..600&family=Spline+Sans+Mono:wght@400..500&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body class="%%BODYCLASS%%">
 <a class="skip" href="#main">Skip to content</a>
 %%HEADER%%
+<div class="shell">
+%%SIDEBAR%%
 <main id="main">
 <h1>%%TITLE%%</h1>
+<p class="lede">%%LEDE%%</p>
 %%BODY%%
 <nav class="pager" aria-label="Previous and next page">%%PREV%%%%NEXT%%</nav>
 </main>
+</div>
 <footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
 <script src="assets/app.js" defer></script>
 </body>
@@ -451,27 +505,41 @@ PAGE = """<!doctype html>
 """
 
 
+def group_of(slug):
+    return next((g for s, _l, g, _d in PAGES if s == slug), None)
+
+
 def header(current):
-    group = next((g for s, _l, g, _d in PAGES if s == current), None)
-    groups = []
+    group = group_of(current)
+    links = []
     for g in GROUPS:
         first = next(s for s, _l, gg, _d in PAGES if gg == g)
         cur = ' aria-current="true"' if g == group else ""
-        groups.append(f'<a href="{first}.html"{cur}>{g}</a>')
-    brand_cur = ' aria-current="page"' if current == "index" else ""
-    sub = ""
-    if group:
-        cur_attr = ' aria-current="page"'
-        links = "".join(
-            '<a href="{}.html"{}>{}</a>'.format(s, cur_attr if s == current else "", html.escape(l))
+        links.append(f'<a href="{first}.html"{cur}>{html.escape(g)}</a>')
+    return (
+        '<header class="top"><div class="topin">'
+        '<a class="brand" href="index.html">CIS*3090 midterm 2</a>'
+        f'<nav class="groups" aria-label="Sections">{"".join(links)}</nav></div></header>'
+    )
+
+
+def sidebar(current):
+    def links(group):
+        return "".join(
+            '<a href="{}.html"{}>{}</a>'.format(s, ' aria-current="page"' if s == current else "", html.escape(l))
             for s, l, gg, _d in PAGES
             if gg == group
         )
-        sub = f'<nav class="sub" aria-label="{group} pages">{links}</nav>'
+
+    home = '<a href="index.html"{}>Start here</a>'.format(' aria-current="page"' if current == "index" else "")
+    body = home + "".join(
+        f'<div class="grp"><p class="gl">{html.escape(g)}</p>{links(g)}</div>' for g in GROUPS
+    )
+    label = next((l for s, l, _g, _d in PAGES if s == current), "Pages")
     return (
-        '<header class="top"><div class="topin">'
-        f'<a class="brand" href="index.html"{brand_cur}>{html.escape(SITE_NAME)}</a>'
-        f'<nav class="groups" aria-label="Sections">{"".join(groups)}</nav></div>{sub}</header>'
+        f'<nav class="sidebar" aria-label="All pages">{body}</nav>'
+        f'<details class="mobilenav"><summary>All pages: {html.escape(label)}</summary>'
+        f'<nav aria-label="All pages">{body}</nav></details>'
     )
 
 
@@ -499,9 +567,11 @@ def main():
         page = (
             PAGE.replace("%%TITLE%%", html.escape(title))
             .replace("%%SITE%%", html.escape(SITE_NAME))
-            .replace("%%DESC%%", html.escape(desc or "MPI study notes, code walkthroughs and practice for CIS*3090 midterm 2"))
+            .replace("%%DESC%%", html.escape(desc))
+            .replace("%%LEDE%%", html.escape(desc))
             .replace("%%BODYCLASS%%", f"page-{slug}" + (" home" if slug == "index" else ""))
             .replace("%%HEADER%%", header(slug))
+            .replace("%%SIDEBAR%%", sidebar(slug))
             .replace("%%BODY%%", body)
             .replace("%%PREV%%", prev)
             .replace("%%NEXT%%", nxt)
