@@ -743,31 +743,29 @@ initTrace();
   const title = main.querySelector("h1");
   const page = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
   const intros = {
-    index: ["MPI / MIDTERM 2", "Understand the code. Follow every rank.", "One program, several processes, separate memories. Learn how they exchange data, then practise predicting what happens."],
-    concepts: ["01 / UNDERSTAND", "Big ideas", "Start with this: every MPI process has its own variables. A rank identifies the process; messages let processes share data."],
-    method: ["01 / UNDERSTAND", "Read MPI code, one rank at a time", "Choose a rank, follow its branch, track its variables, and match its communication calls. Repeat for the other ranks."],
-    sendrecv: ["02 / COMMUNICATE", "Send it. Match it. Receive it.", "A message needs the right destination, source, tag, and communicator. Then check that the receiving buffer can safely hold its data."],
-    collectives: ["02 / COMMUNICATE", "One operation. Every rank.", "Broadcast copies data. Scatter splits it. Gather collects it. Reduce combines it. Allreduce gives the combined result to everyone."],
-    trapezoid: ["03 / APPLY", "Split the interval. Add the results.", "Each rank estimates the area over one slice. The final answer is the sum of those local estimates."],
-    practice: ["04 / TEST YOURSELF", "Can you predict what happens?", "Write your answer before revealing it. Explain which ranks run each call, what changes, and whether any process gets stuck."],
-    pitfalls: ["03 / DEBUG", "Find the call that cannot finish", "Trace what each rank is waiting for. Then check whether another rank can actually perform the matching operation."],
-    reference: ["QUICK REFERENCE", "MPI at a glance", "Use this to check syntax after attempting a question. Counts refer to elements, and ranks belong to a communicator."],
-    trace: ["03 / EXPERIMENT", "Watch the work split across ranks", "Change the interval, number of trapezoids, or process count. Check whether every part of the interval gets computed."]
+    index: ["Understand the code. Follow every rank.", "One program, several processes, separate memories. Learn how they exchange data, then practise predicting what happens."],
+    concepts: ["Big ideas", "Start with this: every MPI process has its own variables. A rank identifies the process; messages let processes share data."],
+    method: ["Read MPI code, one rank at a time", "Choose a rank, follow its branch, track its variables, and match its communication calls. Repeat for the other ranks."],
+    sendrecv: ["Send it. Match it. Receive it.", "A message needs the right destination, source, tag, and communicator. Then check that the receiving buffer can safely hold its data."],
+    collectives: ["One operation. Every rank.", "Broadcast copies data. Scatter splits it. Gather collects it. Reduce combines it. Allreduce gives the combined result to everyone."],
+    trapezoid: ["Split the interval. Add the results.", "Each rank estimates the area over one slice. The final answer is the sum of those local estimates."],
+    practice: ["Can you predict what happens?", "Write your answer before revealing it. Explain which ranks run each call, what changes, and whether any process gets stuck."],
+    pitfalls: ["Find the call that cannot finish", "Trace what each rank is waiting for. Then check whether another rank can actually perform the matching operation."],
+    reference: ["MPI at a glance", "Use this to check syntax after attempting a question. Counts refer to elements, and ranks belong to a communicator."],
+    trace: ["Watch the work split across ranks", "Change the interval, number of trapezoids, or process count. Check whether every part of the interval gets computed."]
   };
   if (title && intros[page]) {
-    const [label, heading, intro] = intros[page];
-    const eyebrow = document.createElement("div");
-    eyebrow.className = "study-eyebrow"; eyebrow.textContent = label;
-    title.before(eyebrow); title.textContent = heading;
+    const [heading, intro] = intros[page];
+    title.textContent = heading;
     const p = document.createElement("p");
     p.className = "study-intro"; p.textContent = intro; title.after(p);
     if (page === "index") {
       const path = document.createElement("nav");
       path.className = "study-path"; path.setAttribute("aria-label", "Suggested study path");
       const cards = [
-        ["01 / BUILD THE FOUNDATION","Understand MPI","Separate memory, ranks, and the rules for exchanging data.","concepts.html","Start learning"],
-        ["02 / FOLLOW THE EXECUTION","Trace the code","Choose a rank and follow its messages through the program.","hello.html","Open a walkthrough"],
-        ["03 / CHECK YOUR UNDERSTANDING","Try it yourself","Predict outputs and find bugs before revealing the explanations.","practice.html","Practise now"]
+        ["Step 1","Learn the ideas","Separate memory, ranks, and the rules for exchanging data.","concepts.html","Start with the big ideas"],
+        ["Step 2","Follow the code","Choose a rank and follow its messages through the program.","hello.html","Open a code walkthrough"],
+        ["Step 3","Test yourself","Predict outputs and find bugs before revealing the explanations.","practice.html","Try the questions"]
       ];
       cards.forEach(([n,h,d,url,cta]) => {
         const a=document.createElement("a"); a.href=url;
@@ -779,7 +777,7 @@ initTrace();
   }
   const sections = [...main.querySelectorAll(":scope > ul > li.sec")];
   if (sections.length > 2 && page !== "index") {
-    const nav = document.createElement("nav"); nav.className="study-jump"; nav.setAttribute("aria-label","On this page");
+    const nav = document.createElement("nav"); nav.className="study-jump"; nav.setAttribute("aria-label","On this page"); const jl=document.createElement("span"); jl.className="study-jump-label"; jl.textContent="Jump to:"; nav.append(jl);
     sections.forEach((s,i)=>{
       const label=[...s.childNodes].filter(n=>n.nodeType===3 || n.nodeName==="P").map(n=>n.textContent).join(" ").trim().replace(/:$/,"");
       if(!label)return; s.id=s.id || "study-section-"+(i+1);
@@ -790,9 +788,9 @@ initTrace();
   }
   if(main.querySelector(".walk")) {
     const tools=document.createElement("div"); tools.className="study-tools";
-    const btn=document.createElement("button");btn.type="button";btn.textContent="Hide line explanations";btn.setAttribute("aria-pressed","false");
-    btn.addEventListener("click",()=>{const on=document.body.classList.toggle("study-focus");btn.setAttribute("aria-pressed",String(on));btn.textContent=on?"Show line explanations":"Hide line explanations";});
-    const hint=document.createElement("span");hint.textContent="Predict first, then reveal the notes.";hint.className="study-intro";hint.style.margin="0";hint.style.fontSize=".9rem";
+    const btn=document.createElement("button");btn.type="button";btn.textContent="Hide the notes under the code";btn.setAttribute("aria-pressed","false");
+    btn.addEventListener("click",()=>{const on=document.body.classList.toggle("study-focus");btn.setAttribute("aria-pressed",String(on));btn.textContent=on?"Show the notes under the code":"Hide the notes under the code";});
+    const hint=document.createElement("span");hint.textContent="Handy for testing yourself: hide the notes, predict what each rank does, then show them.";hint.className="study-intro";hint.style.margin="0";hint.style.fontSize=".9rem";
     tools.append(btn,hint);main.querySelector(".walk").before(tools);
     const tip=document.createElement("p");tip.className="study-tip";tip.textContent="The timeline shows one possible execution. Independent ranks can progress in different orders; use the matching calls to determine what is guaranteed.";
     main.querySelector(".walk").after(tip);

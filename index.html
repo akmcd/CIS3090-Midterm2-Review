@@ -16,16 +16,13 @@
 <main id="main">
 <h1>Predict what every rank does</h1>
 <ul>
-<li class="sec">Midterm 2 is about reading MPI code and explaining what happens. Try it on <code>mpi_hello.c</code>, run with 4 processes:<ul>
-<li>Click Rank 0, then Rank 2, and watch which lines stay lit</li>
-<li>Press Next step to see the messages in the order they happen</li>
-</ul>
-</li>
+<li>Try it now on <code>mpi_hello.c</code>, run with 4 processes. This is the kind of question the midterm asks.</li>
 </ul>
 <section class="walk" id="walk-hello" data-example="hello" aria-label="mpi_hello.c, rank by rank">
 <script type="application/json">{"example": "hello", "refs": {"own": [51], "send": [48], "recv": [54]}, "summaries": {"all": "With {p} processes, all of them run the setup lines and MPI_Finalize. The if / else decides who does what.", "zero": "Rank 0 prints its own greeting, then receives {m} message(s), one from each worker, in rank order.", "worker": "Rank {r} builds a greeting and sends it to rank 0 once. It never receives, and it never prints."}, "p": 4}</script>
+<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-hello">Processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-hello"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-hello">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-hello"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -81,7 +78,9 @@
 <div class="ln g-all" data-line="64" data-who="all"><span class="no">64</span><code class="tx"><span class="p">}</span><span class="w">  </span><span class="cm">/* main */</span></code></div>
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
-<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<h3 class="lanes-title">Message timeline</h3>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
 <p class="lanes-note"></p>

@@ -195,19 +195,24 @@ def render_walk(name):
     )
     fixed = cfg.get("fixed_p")
     if fixed:
-        pctl = f'<div class="ctl"><span class="ctl-label">Processes</span><output class="pval">{fixed}</output></div>'
+        pctl = f'<div class="ctl"><span class="ctl-label">Number of processes</span><output class="pval">{fixed}</output></div>'
     else:
         pctl = (
-            '<div class="ctl"><span class="ctl-label" id="pl-{id}">Processes</span>'
+            '<div class="ctl"><span class="ctl-label" id="pl-{id}">Number of processes</span>'
             '<button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button>'
             '<output class="pval" aria-labelledby="pl-{id}"></output>'
             '<button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div>'
         ).replace("{id}", name)
     title = html.escape(cfg["file"])
+    howto = (
+        '<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. '
+        'Press <b>Next step</b> to follow the messages one at a time.</p>'
+    )
     return f"""<section class="walk" id="walk-{name}" data-example="{html.escape(cfg['example'])}" aria-label="{title}, rank by rank">
 <script type="application/json">{data}</script>
+{howto}
 <div class="walkbar">
-<div class="walkctl">{pctl}<div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl">{pctl}<div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -215,7 +220,9 @@ def render_walk(name):
 {listing}
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
-<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<h3 class="lanes-title">Message timeline</h3>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
 <p class="lanes-note"></p>

@@ -87,8 +87,6 @@ body {
   font-family: var(--serif);
   font-size: 1.08rem;
   line-height: 1.66;
-  border-top: 4px solid transparent;
-  border-image: linear-gradient(90deg, var(--blue) 0 25%, var(--orange) 25% 100%) 1;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -503,7 +501,7 @@ td code { white-space: nowrap; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Study workspace refresh */
-body { font-family: var(--ui); font-size: 1rem; line-height: 1.75; background: var(--panel); border: 0; }
+body { font-family: var(--ui); font-size: 1rem; line-height: 1.75; background: var(--panel); }
 main { max-width: 86rem; padding-top: 3rem; }
 main > * { max-width: 56rem; }
 h1 { font-size: clamp(1.9rem, 4vw, 3rem); letter-spacing: -.045em; max-width: 24ch; }
@@ -523,11 +521,10 @@ main > ul > li.sec > p:first-child { margin-top: 0; }
 .q summary { color: var(--blue-ink); cursor: pointer; }
 .qprogress { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; }
 .study-intro { color: var(--muted); font-size: 1.12rem; max-width: 66ch; margin: -0.4rem 0 1.8rem; }
-.study-eyebrow { color: var(--blue-ink); font: 600 .75rem var(--mono); text-transform: uppercase; letter-spacing: .13em; margin-bottom: .8rem; }
 .study-path { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1rem; max-width: none; margin: 1.6rem 0 2.5rem; }
 .study-path a { display: flex; flex-direction: column; gap: .65rem; text-decoration: none; padding: 1.5rem; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; color: var(--ink); }
 .study-path a:hover { border-color: var(--blue); }
-.study-path small { font: 500 .75rem var(--mono); color: var(--blue-ink); }
+.study-path small { font: 600 .85rem var(--ui); color: var(--blue-ink); }
 .study-path strong { font-size: 1.3rem; letter-spacing: -.025em; }
 .study-path span { font-size: .94rem; color: var(--muted); }
 .study-path b { color: var(--blue-ink); font-size: .9rem; margin-top: auto; padding-top: .5rem; }
@@ -555,3 +552,10 @@ button, select { min-height: 36px; }
  .walkbar,.lanesbox { position:static; }
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; } }
+
+/* friendlier code reader */
+.howto { margin: 0 0 .9rem; padding: .7rem 1rem; background: var(--blue-soft); color: var(--blue-ink); border-radius: 10px; font-family: var(--ui); font-size: .95rem; line-height: 1.5; }
+.howto b { font-weight: 600; }
+.lanes-title { margin: 0 0 .5rem; font: 600 .95rem var(--ui); }
+.lanes-help { margin: 0 0 .7rem; font-size: .88rem; color: var(--muted); line-height: 1.5; }
+.study-jump-label { align-self: center; color: var(--muted); font-size: .85rem; }

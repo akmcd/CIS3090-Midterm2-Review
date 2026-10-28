@@ -16,27 +16,18 @@
 <main id="main">
 <h1>mpi_Bcast.c</h1>
 <ul>
-<li class="sec">
-<p>What it is:</p>
-<ul>
+<li class="sec">What it is:<ul>
 <li>The textbook's <code>mpi_trap3.c</code>: the same trapezoidal rule, with the hand-written message loops replaced by collective calls</li>
 <li><code>MPI_Bcast</code> shares the input and <code>MPI_Reduce</code> adds up the partial results</li>
 <li>Textbook reference: 3.4.2 and 3.4.5, lecture 10 and lecture 11</li>
 </ul>
 </li>
-<li class="sec">
-<p>Try this first:</p>
-<ul>
-<li>Select Rank 0, then Rank 3, and compare the lit lines with mpi_SendRec.c</li>
-<li>Almost every line is lit for every rank, because collective calls are made by everyone</li>
-<li>Step through and look at the shape of the arrows: a tree, not a fan out of rank 0</li>
-</ul>
-</li>
 </ul>
 <section class="walk" id="walk-trap_bcast" data-example="bcast" aria-label="mpi_Bcast.c, rank by rank">
 <script type="application/json">{"example": "bcast", "refs": {"scanf": [101], "bcast": [103, 104, 105], "compute": [65, 66, 67], "reduce": [70, 71], "print": [75, 76, 77]}, "summaries": {"all": "There is no rank branch around the communication. Every rank makes the same four collective calls in the same order.", "zero": "Rank 0 reads the input, takes part in 3 broadcasts as the root, integrates its slice, and is the root of the reduce. It prints the result.", "worker": "Rank {r} takes part in the same 3 broadcasts and the reduce, but only as a participant. It prints nothing."}, "p": 4}</script>
+<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-trap_bcast">Processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-trap_bcast"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-trap_bcast">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-trap_bcast"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -103,7 +94,9 @@
 <div class="ln g-all" data-line="106" data-who="all"><span class="no">106</span><code class="tx"><span class="p">}</span><span class="w">  </span><span class="cm">/* Get_input */</span></code></div>
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
-<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<h3 class="lanes-title">Message timeline</h3>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
 <p class="lanes-note"></p>
@@ -112,6 +105,14 @@
 <p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span><span class="lg"><i class="sw g-zero"></i>rank 0 only</span></p>
 </section>
 <ul>
+<li class="sec">
+<p>Things to notice as you step through:</p>
+<ul>
+<li>Select Rank 0, then Rank 3, and compare the lit lines with mpi_SendRec.c</li>
+<li>Almost every line is lit for every rank, because collective calls are made by everyone</li>
+<li>Step through and look at the shape of the arrows: a tree, not a fan out of rank 0</li>
+</ul>
+</li>
 <li class="sec">
 <p>Reading the MPI_Reduce call:</p>
 <ul>

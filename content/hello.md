@@ -5,12 +5,11 @@ title: mpi_hello.c
     - [[r0]] prints its own greeting, then receives and prints the others in rank order
     - Textbook reference: Section 3.1 and lecture 09, slides 13 to 22
 
-- Try this first:
-    - Pick Rank 0, then Rank 2, and watch which lines stay lit
-    - Press Next step to see the messages in the order they happen
-    - Change the number of processes and see how the loop on line 52 follows it
-
 {{walk hello}}
+
+- Things to notice as you step through:
+    - Pick Rank 0, then Rank 2, and compare which lines stay lit
+    - Change the number of processes and see how the loop on line 52 follows it
 
 - Output with `mpiexec -n 4 ./mpi_hello`:
 

@@ -5,11 +5,11 @@ title: mpi_hello2.c
     - [[r0]] receives with wildcards, then asks the `status` object who sent it, which tag it had, and how many elements arrived
     - Textbook reference: 3.1.9 and 3.1.10 (message matching and the status argument)
 
-- Try this first:
+{{walk hello2}}
+
+- Things to notice as you step through:
     - Step through with 4 processes, then press Shuffle arrival order and step again
     - Notice that the code is the same but the order of the messages is not
-
-{{walk hello2}}
 
 - Output with `mpiexec -n 4 ./mpi_hello2` (one real run):
 

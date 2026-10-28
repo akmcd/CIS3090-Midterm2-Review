@@ -16,27 +16,18 @@
 <main id="main">
 <h1>mpi_SendRec.c</h1>
 <ul>
-<li class="sec">
-<p>What it is:</p>
-<ul>
+<li class="sec">What it is:<ul>
 <li>The textbook's <code>mpi_trap2.c</code>: a parallel trapezoidal rule using only <code>MPI_Send</code> and <code>MPI_Recv</code></li>
 <li>Input is read by <span class="chip r0">rank 0</span> and sent to everyone, and the partial results are summed by <span class="chip r0">rank 0</span> with a loop of receives</li>
 <li>Textbook reference: 3.2 and 3.3.2, lecture 09 slides 38 to 42 and lecture 11</li>
 </ul>
 </li>
-<li class="sec">
-<p>Try this first:</p>
-<ul>
-<li>Select Rank 0, then Rank 1, and compare how many lines each one runs</li>
-<li>Step through and count the arrows: there are <code>4(p - 1)</code> of them, and every one touches rank 0</li>
-<li>The gray bar in the timeline is the stretch where all ranks compute their own slice</li>
-</ul>
-</li>
 </ul>
 <section class="walk" id="walk-trap_sendrecv" data-example="sendrecv" aria-label="mpi_SendRec.c, rank by rank">
 <script type="application/json">{"example": "sendrecv", "refs": {"scanf": [113], "insend": [115, 116, 117], "inrecv": [120, 121, 122, 123, 124, 125], "compute": [67, 68, 69], "rsend": [73, 74], "rrecv": [78, 79], "print": [86, 87, 88]}, "summaries": {"all": "Every rank runs main() and calls Get_input and Trap. Only the branches differ.", "zero": "Rank 0 reads a, b, n and sends all three to each of the {m} other rank(s). It integrates its own slice, then receives and adds {m} partial result(s), and prints.", "worker": "Rank {r} receives a, b, n from rank 0, integrates its slice, sends one double back to rank 0, and prints nothing."}, "p": 4}</script>
+<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-trap_sendrecv">Processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-trap_sendrecv"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-trap_sendrecv">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-trap_sendrecv"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -126,7 +117,9 @@
 <div class="ln g-all" data-line="127" data-who="all"><span class="no">127</span><code class="tx"><span class="p">}</span><span class="w">  </span><span class="cm">/* Get_input */</span></code></div>
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
-<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<h3 class="lanes-title">Message timeline</h3>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
 <p class="lanes-note"></p>
@@ -135,6 +128,14 @@
 <p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span><span class="lg"><i class="sw g-zero"></i>rank 0 only</span><span class="lg"><i class="sw g-work"></i>ranks other than 0</span></p>
 </section>
 <ul>
+<li class="sec">
+<p>Things to notice as you step through:</p>
+<ul>
+<li>Select Rank 0, then Rank 1, and compare how many lines each one runs</li>
+<li>Step through and count the arrows: there are <code>4(p - 1)</code> of them, and every one touches rank 0</li>
+<li>The gray bar in the timeline is the stretch where all ranks compute their own slice</li>
+</ul>
+</li>
 <li class="sec">
 <p>What the variables mean:</p>
 <ul>

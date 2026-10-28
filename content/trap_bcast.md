@@ -5,12 +5,12 @@ title: mpi_Bcast.c
     - `MPI_Bcast` shares the input and `MPI_Reduce` adds up the partial results
     - Textbook reference: 3.4.2 and 3.4.5, lecture 10 and lecture 11
 
-- Try this first:
+{{walk trap_bcast}}
+
+- Things to notice as you step through:
     - Select Rank 0, then Rank 3, and compare the lit lines with mpi_SendRec.c
     - Almost every line is lit for every rank, because collective calls are made by everyone
     - Step through and look at the shape of the arrows: a tree, not a fan out of rank 0
-
-{{walk trap_bcast}}
 
 - Reading the MPI_Reduce call:
     - `&local_int`: this rank's partial result, the input

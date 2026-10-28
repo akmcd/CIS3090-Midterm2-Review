@@ -1,8 +1,6 @@
 title: Predict what every rank does
 
-- Midterm 2 is about reading MPI code and explaining what happens. Try it on `mpi_hello.c`, run with 4 processes:
-    - Click Rank 0, then Rank 2, and watch which lines stay lit
-    - Press Next step to see the messages in the order they happen
+- Try it now on `mpi_hello.c`, run with 4 processes. This is the kind of question the midterm asks.
 
 {{walk hello}}
 

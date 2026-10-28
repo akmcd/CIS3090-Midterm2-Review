@@ -5,12 +5,12 @@ title: mpi_SendRec.c
     - Input is read by [[r0]] and sent to everyone, and the partial results are summed by [[r0]] with a loop of receives
     - Textbook reference: 3.2 and 3.3.2, lecture 09 slides 38 to 42 and lecture 11
 
-- Try this first:
+{{walk trap_sendrecv}}
+
+- Things to notice as you step through:
     - Select Rank 0, then Rank 1, and compare how many lines each one runs
     - Step through and count the arrows: there are `4(p - 1)` of them, and every one touches rank 0
     - The gray bar in the timeline is the stretch where all ranks compute their own slice
-
-{{walk trap_sendrecv}}
 
 - What the variables mean:
     - `local_a`, `local_b` and `local_int` get a different value on each rank

@@ -16,27 +16,18 @@
 <main id="main">
 <h1>mpi_hello.c</h1>
 <ul>
-<li class="sec">
-<p>What it does:</p>
-<ul>
+<li class="sec">What it does:<ul>
 <li>Every rank except 0 builds a greeting string and sends it to rank 0</li>
 <li><span class="chip r0">rank 0</span> prints its own greeting, then receives and prints the others in rank order</li>
 <li>Textbook reference: Section 3.1 and lecture 09, slides 13 to 22</li>
 </ul>
 </li>
-<li class="sec">
-<p>Try this first:</p>
-<ul>
-<li>Pick Rank 0, then Rank 2, and watch which lines stay lit</li>
-<li>Press Next step to see the messages in the order they happen</li>
-<li>Change the number of processes and see how the loop on line 52 follows it</li>
-</ul>
-</li>
 </ul>
 <section class="walk" id="walk-hello" data-example="hello" aria-label="mpi_hello.c, rank by rank">
 <script type="application/json">{"example": "hello", "refs": {"own": [51], "send": [48], "recv": [54]}, "summaries": {"all": "With {p} processes, all of them run the setup lines and MPI_Finalize. The if / else decides who does what.", "zero": "Rank 0 prints its own greeting, then receives {m} message(s), one from each worker, in rank order.", "worker": "Rank {r} builds a greeting and sends it to rank 0 once. It never receives, and it never prints."}, "p": 4}</script>
+<p class="howto"><b>How to use this:</b> pick a rank to light up only the lines that rank runs. Press <b>Next step</b> to follow the messages one at a time.</p>
 <div class="walkbar">
-<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-hello">Processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-hello"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Show lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
+<div class="walkctl"><div class="ctl"><span class="ctl-label" id="pl-hello">Number of processes</span><button type="button" class="stepper" data-act="p-" aria-label="Fewer processes">&minus;</button><output class="pval" aria-labelledby="pl-hello"></output><button type="button" class="stepper" data-act="p+" aria-label="More processes">+</button></div><div class="ctl"><span class="ctl-label">Highlight the lines run by</span><div class="ranks" role="group" aria-label="Choose a rank"></div></div></div>
 <p class="summary" aria-live="polite"></p>
 </div>
 <div class="walkbody">
@@ -92,7 +83,9 @@
 <div class="ln g-all" data-line="64" data-who="all"><span class="no">64</span><code class="tx"><span class="p">}</span><span class="w">  </span><span class="cm">/* main */</span></code></div>
 </div>
 <aside class="lanesbox" aria-label="Message timeline">
-<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show all</button><span class="stepinfo" aria-live="polite"></span></div>
+<h3 class="lanes-title">Message timeline</h3>
+<p class="lanes-help">Each column is a rank. Each arrow is one message, pointing at the rank that receives it. A red cross means it never gets delivered.</p>
+<div class="stepbar"><button type="button" data-s="prev">Back</button><button type="button" data-s="next">Next step</button><button type="button" data-s="all">Show every step</button><span class="stepinfo" aria-live="polite"></span></div>
 <div class="lanes"></div>
 <ol class="log"></ol>
 <p class="lanes-note"></p>
@@ -101,6 +94,13 @@
 <p class="legend" aria-label="Gutter colours"><span class="lg"><i class="sw g-all"></i>every rank</span><span class="lg"><i class="sw g-zero"></i>rank 0 only</span><span class="lg"><i class="sw g-work"></i>ranks other than 0</span></p>
 </section>
 <ul>
+<li class="sec">
+<p>Things to notice as you step through:</p>
+<ul>
+<li>Pick Rank 0, then Rank 2, and compare which lines stay lit</li>
+<li>Change the number of processes and see how the loop on line 52 follows it</li>
+</ul>
+</li>
 <li class="sec">
 <p>Output with <code>mpiexec -n 4 ./mpi_hello</code>:</p>
 <figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ mpiexec -n 4 ./mpi_hello</span>
