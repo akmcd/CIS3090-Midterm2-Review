@@ -1,32 +1,28 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mpi_hello.c | CIS*3090 midterm 2</title>
-<meta name="description" content="Every rank except 0 sends a greeting, and rank 0 receives and prints them in order.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mpi_hello.c — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="Every rank except 0 sends a greeting, and rank 0 receives and prints them in order.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-hello">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html">Learn</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
-<nav class="pagelist" aria-label="Code pages"><p class="gl">Code</p><a href="hello.html" aria-current="page">1. mpi_hello.c</a><a href="hello2.html">2. mpi_hello2.c</a><a href="trap_sendrecv.html">3. mpi_SendRec.c</a><a href="trap_bcast.html">4. mpi_Bcast.c</a><a href="heat_code.html">5. heatDiffusionMpi.c</a><a href="pitfalls.html">6. Hangs and mix-ups</a></nav><details class="mobilenav"><summary>Code: mpi_hello.c</summary><nav aria-label="Code pages"><a href="hello.html" aria-current="page">1. mpi_hello.c</a><a href="hello2.html">2. mpi_hello2.c</a><a href="trap_sendrecv.html">3. mpi_SendRec.c</a><a href="trap_bcast.html">4. mpi_Bcast.c</a><a href="heat_code.html">5. heatDiffusionMpi.c</a><a href="pitfalls.html">6. Hangs and mix-ups</a></nav></details>
-<main id="main">
-<h1>mpi_hello.c</h1>
-<p class="lede">Every rank except 0 sends a greeting, and rank 0 receives and prints them in order.</p>
-<ul>
-<li class="sec">What it does:<ul>
+<body data-page="code">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head"><h1>mpi_hello.c</h1><p>Every rank except 0 sends a greeting, and rank 0 receives and prints them in order.</p></div>
+    <nav class="chip-row subnav" aria-label="Pages in this part"><a class="chip" href="code.html">All code</a><a class="chip" href="hello.html" aria-current="page">mpi_hello.c</a><a class="chip" href="hello2.html">mpi_hello2.c</a><a class="chip" href="trap_sendrecv.html">mpi_SendRec.c</a><a class="chip" href="trap_bcast.html">mpi_Bcast.c</a><a class="chip" href="heat_code.html">heatDiffusionMpi.c</a><a class="chip" href="pitfalls.html">Hangs and mix-ups</a><a class="chip" href="trace.html">Trapezoid trace</a></nav>
+    <div class="k3 page-body">
+<ul class="notes"><li>What it does:<ul>
 <li>Every rank except 0 builds a greeting string and sends it to rank 0</li>
-<li><span class="chip r0">rank 0</span> prints its own greeting, then receives and prints the others in rank order</li>
+<li><span class="rchip r0">rank 0</span> prints its own greeting, then receives and prints the others in rank order</li>
 <li>Textbook reference: Section 3.1 and lecture 09, slides 13 to 22</li>
 </ul>
-</li>
-</ul>
+</li></ul>
 <section class="walk" id="walk-hello" data-example="hello" aria-label="mpi_hello.c, rank by rank">
 <script type="application/json">{"example": "hello", "refs": {"own": [51], "send": [48], "recv": [54]}, "summaries": {"all": "With {p} processes, all of them run the setup lines and MPI_Finalize. The if / else decides who does what.", "zero": "Rank 0 prints its own greeting, then receives {m} message(s), one from each worker, in rank order.", "worker": "Rank {r} builds a greeting and sends it to rank 0 once. It never receives, and it never prints."}, "p": 4}</script>
 <div class="walkbar">
@@ -35,7 +31,7 @@
 </div>
 <div class="walkbody">
 <div class="codecol">
-<div class="codehead"><span class="fname">mpi_hello.c</span><label class="notes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label></div>
+<div class="codehead"><span class="fname">mpi_hello.c</span><label class="linenotes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label></div>
 <p class="codehelp">Press the <b>i</b> button on a line to read its note.</p>
 <div class="listing" role="region" aria-label="mpi_hello.c" tabindex="0">
 <div class="ln" data-line="23" data-who="all"><span class="no">23</span><code class="tx"><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span></code></div>
@@ -99,16 +95,14 @@
 </aside>
 </div>
 </section>
-<ul>
-<li class="sec">
-<p>Things to notice as you step through:</p>
+<ul class="notes"><li>
+Things to notice as you step through:
 <ul>
 <li>Pick Rank 0, then Rank 2, and compare which lines stay lit</li>
 <li>Change the number of processes and see how the loop on line 52 follows it</li>
 </ul>
-</li>
-<li class="sec">
-<p>Output with <code>mpiexec -n 4 ./mpi_hello</code>:</p>
+</li><li>
+Output with <code>mpiexec -n 4 ./mpi_hello</code>:
 <figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ mpiexec -n 4 ./mpi_hello</span>
 Greetings from process 0 of 4!
 Greetings from process 1 of 4!
@@ -119,16 +113,14 @@ Greetings from process 3 of 4!</code></pre></figure>
 <li>If rank 3 sends first, its message waits until rank 0 asks for it</li>
 <li>Lecture 09 slide 18 shows a different print on rank 0 ("Process 0 of 4 is ready to receive"); the file here does not</li>
 </ul>
-</li>
-<li class="sec">
-<p>With one process (<code>-n 1</code>):</p>
+</li><li>
+With one process (<code>-n 1</code>):
 <ul>
 <li>Only <code>Greetings from process 0 of 1!</code> is printed</li>
 <li>The loop on line 52 runs zero times because <code>comm_sz</code> is 1</li>
 </ul>
-</li>
-<li class="sec">
-<p>Things to be able to explain:</p>
+</li><li>
+Things to be able to explain:
 <ul>
 <li>Number of messages: <code>comm_sz - 1</code> sends and the same number of receives</li>
 <li>Why they must match: a missing send leaves rank 0 waiting forever, a missing receive can hang or lose the message</li>
@@ -136,12 +128,11 @@ Greetings from process 3 of 4!</code></pre></figure>
 <li>Why <code>source</code> is <code>q</code> and not a wildcard: it forces the printed order, which is the next file's contrast</li>
 <li>Textbook exercise 3.1 asks what happens with <code>strlen(greeting)</code> and with <code>MAX_STRING</code> as the send length</li>
 </ul>
-</li>
-</ul>
-<nav class="pager" aria-label="Previous and next page"><a class="prev" href="filters.html"><span>Previous</span>Sharpening and smoothing</a><a class="next" href="hello2.html"><span>Next</span>mpi_hello2.c</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+</li></ul>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
 </body>
 </html>

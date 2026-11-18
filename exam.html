@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Practice exam — CIS*3090 Midterm 2 Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%23a8378a'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%230e8570'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%2318212b'/%3E%3C/svg%3E">
+</head>
+<body data-page="exam">
+  <header id="site-header"></header>
+  <main>
+    <!-- Start -->
+    <div id="start" class="start-panel">
+      <div class="page-head">
+        <h1>Practice exam</h1>
+        <p>Multiple choice across lectures 09 to 17: code reading, small calculations you can do by hand, and a few "select all that apply". Choose an exam and a timer.</p>
+      </div>
+      <h2 style="margin-top:0">Choose an exam</h2>
+      <div class="chip-row" role="radiogroup" aria-label="Exam version" id="versions">
+        <button class="chip" type="button" role="radio" data-v="A" aria-pressed="true" aria-checked="true">Exam A: 40 new questions</button>
+        <button class="chip" type="button" role="radio" data-v="B" aria-pressed="false" aria-checked="false">Exam B: 40 drawn from the quiz bank</button>
+      </div>
+      <p class="muted" id="version-note">Exam A uses questions you won't have seen in the topic quizzes. Take it first, as your real benchmark.</p>
+      <h2>Timer</h2>
+      <div class="chip-row" role="radiogroup" aria-label="Time limit" id="timers">
+        <button class="chip" type="button" role="radio" data-m="50" aria-pressed="true" aria-checked="true">50 minutes (75 s per question)</button>
+        <button class="chip" type="button" role="radio" data-m="75" aria-pressed="false" aria-checked="false">75 minutes</button>
+        <button class="chip" type="button" role="radio" data-m="0" aria-pressed="false" aria-checked="false">No timer</button>
+      </div>
+      <p class="muted">Check the real midterm's length on the course page and pick the closer setting.</p>
+      <h2>Rules</h2>
+      <ul class="rules">
+        <li>The timer submits automatically at zero.</li>
+        <li>"Select all that apply" questions are scored all or nothing: you need exactly the right set.</li>
+        <li>Answer in any order. Flag questions to come back to them; the panel shows what's answered and flagged.</li>
+        <li>Your answers are saved in this browser as you go, so a refresh won't lose them.</li>
+        <li>When you submit you get your score, a topic breakdown and an explanation for every question.</li>
+      </ul>
+      <div class="btn-row" style="margin-top:18px">
+        <button class="btn" type="button" id="begin">Start the exam</button>
+        <button class="btn secondary" type="button" id="resume" hidden>Resume exam in progress</button>
+      </div>
+      <div id="history"></div>
+    </div>
+
+    <!-- In progress -->
+    <div id="exam" hidden>
+      <div class="exam-layout">
+        <div id="questions"></div>
+        <aside class="exam-side" id="side" aria-label="Exam progress">
+          <div class="timer" id="timer" role="timer" aria-live="off">50:00</div>
+          <div class="pace" id="pace"></div>
+          <div class="btn-row" style="margin-bottom:8px">
+            <button class="btn" type="button" id="submit">Submit exam</button>
+            <button class="btn quiet grid-toggle" type="button" id="toggle-grid" aria-expanded="false">Questions</button>
+          </div>
+          <div class="qgrid" id="grid"></div>
+          <div class="legend">
+            <span><span class="kbd" style="background:var(--ink);color:var(--paper)">12</span> answered</span>
+            <span><span class="kbd">12</span> not answered; a gold dot means flagged</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" hidden>
+      <div class="exam-layout">
+        <div>
+          <h1 id="res-title">Exam results</h1>
+          <p class="score-big" id="res-score"></p>
+          <p class="muted" id="res-sub"></p>
+          <h2>By topic</h2>
+          <div class="table-wrap"><table class="breakdown" id="by-topic"></table></div>
+          <h2>By question type</h2>
+          <div class="table-wrap"><table class="breakdown" id="by-kind"></table></div>
+          <h2>Review</h2>
+          <div class="chip-row" id="review-filter" role="group" aria-label="Show">
+            <button class="chip" type="button" data-f="missed" aria-pressed="true">Missed</button>
+            <button class="chip" type="button" data-f="flagged" aria-pressed="false">Flagged</button>
+            <button class="chip" type="button" data-f="all" aria-pressed="false">All questions</button>
+          </div>
+          <div id="review"></div>
+          <div class="btn-row" style="margin-top:20px">
+            <button class="btn" type="button" id="new-exam">Take another exam</button>
+            <a class="btn secondary" href="quiz.html">Practice weak topics</a>
+          </div>
+        </div>
+        <aside class="exam-side">
+          <div class="qgrid" id="res-grid" style="display:grid"></div>
+          <div class="legend"><span>Green = correct, red = wrong or blank. Click a number to jump to it.</span></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="data/bank.js?v=20261118a"></script>
+  <script src="data/exam.js?v=20261118a"></script>
+  <script>
+  (function () {
+    const S = window.Study;
+    const el = id => document.getElementById(id);
+    const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+    const BY_ID = {};
+    window.QUIZ_BANK.concat(window.EXAM_A).forEach(q => { BY_ID[q.id] = q; });
+
+    let version = 'A', minutes = 50, st = null, tick = null;
+
+    /* ---------- start screen ---------- */
+    function radio(host, attr, onPick) {
+      host.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        host.querySelectorAll('button').forEach(x => { x.setAttribute('aria-pressed', String(x === b)); x.setAttribute('aria-checked', String(x === b)); });
+        onPick(b.dataset[attr]);
+      }));
+    }
+    radio(el('versions'), 'v', v => {
+      version = v;
+      el('version-note').textContent = v === 'A'
+        ? 'Exam A uses questions you won\'t have seen in the topic quizzes. Take it first, as your real benchmark.'
+        : 'Exam B draws a fresh random 40 from the quiz bank each time, spread across all topics.';
+    });
+    radio(el('timers'), 'm', m => { minutes = Number(m); });
+
+    const byTopic = (a, b) => S.TOPIC_ORDER.indexOf(a.topic) - S.TOPIC_ORDER.indexOf(b.topic);
+
+        function buildExamB() {
+      const bank = window.QUIZ_BANK;
+      const picked = [];
+      S.TOPIC_ORDER.forEach(t => {
+        const pool = S.shuffle(bank.filter(q => q.topic === t));
+        picked.push.apply(picked, pool.slice(0, Math.round(40 * pool.length / bank.length)));
+      });
+      const rest = S.shuffle(bank.filter(q => picked.indexOf(q) < 0));
+      while (picked.length < 40) picked.push(rest.shift());
+      while (picked.length > 40) picked.pop();
+      return picked.sort(byTopic);
+    }
+
+    function begin() {
+      const qs = version === 'A' ? window.EXAM_A.slice() : buildExamB();
+      const orders = {};
+      qs.forEach(q => { orders[q.id] = S.optionOrder(q); });
+      st = { version: version, ids: qs.map(q => q.id), orders: orders, answers: {}, flags: {}, start: Date.now(), minutes: minutes };
+      save();
+      openExam();
+    }
+
+    function save() { S.store.set('examInProgress', st); }
+    const duration = () => st.minutes * 60 * 1000;
+    const isAnswered = id => S.answered(st.answers[id]);
+
+    function showHistory() {
+      const attempts = S.store.get('examAttempts', []);
+      const inProgress = S.store.get('examInProgress', null);
+      el('resume').hidden = !inProgress;
+      if (!attempts.length) { el('history').innerHTML = ''; return; }
+      el('history').innerHTML = '<h2>Past attempts</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Exam</th><th>Score</th><th>Time used</th></tr></thead><tbody>' +
+        attempts.slice().reverse().map(a => '<tr><td>' + new Date(a.when).toLocaleString() + '</td><td>' + a.version + '</td><td>' + a.score + ' / ' + a.total + ' (' + Math.round(100 * a.score / a.total) + '%)</td><td>' + (a.used === null ? 'Untimed' : fmtTime(a.used)) + '</td></tr>').join('') +
+        '</tbody></table></div>';
+    }
+
+    /* ---------- exam ---------- */
+    function optionButtons(q, i) {
+      const ord = st.orders[q.id], multi = S.isMulti(q), mine = st.answers[q.id];
+      const isOn = oi => multi ? Array.isArray(mine) && mine.indexOf(oi) >= 0 : mine === oi;
+      return '<div class="options" role="' + (multi ? 'group' : 'radiogroup') + '" aria-label="Question ' + (i + 1) + ' choices">' +
+        ord.map((oi, k) => '<button class="option' + (multi ? ' multi' : '') + '" type="button" role="' + (multi ? 'checkbox' : 'radio') + '" data-i="' + i + '" data-o="' + oi + '" aria-checked="' + isOn(oi) + '"><span class="letter">' + LETTERS[k] + '</span><span>' + S.md(q.options[oi]) + '</span></button>').join('') +
+        '</div>';
+    }
+
+    function openExam() {
+      el('start').hidden = true; el('results').hidden = true; el('exam').hidden = false;
+      const qs = st.ids.map(id => BY_ID[id]);
+      el('questions').innerHTML = qs.map((q, i) =>
+        '<section class="exam-q" id="q-' + i + '">' +
+        '<div class="q-meta"><span>Question ' + (i + 1) + ' of ' + qs.length + '</span><span>' + S.KIND_LABEL[q.kind] + '</span></div>' +
+        S.stemHTML(q) + optionButtons(q, i) +
+        '<div class="btn-row"><button class="btn quiet flag-btn" type="button" data-i="' + i + '" aria-pressed="' + Boolean(st.flags[q.id]) + '">' + (st.flags[q.id] ? 'Flagged' : 'Flag for review') + '</button>' +
+        '<button class="btn quiet clear-btn" type="button" data-i="' + i + '">Clear answer</button></div></section>').join('');
+
+      el('questions').querySelectorAll('.option').forEach(b => b.addEventListener('click', () => {
+        const i = Number(b.dataset.i), q = BY_ID[st.ids[i]], oi = Number(b.dataset.o);
+        if (S.isMulti(q)) {
+          const cur = Array.isArray(st.answers[q.id]) ? st.answers[q.id].slice() : [];
+          const at = cur.indexOf(oi);
+          if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+          if (cur.length) st.answers[q.id] = cur.sort(); else delete st.answers[q.id];
+          b.setAttribute('aria-checked', String(at < 0));
+        } else {
+          st.answers[q.id] = oi;
+          b.parentElement.querySelectorAll('.option').forEach(x => x.setAttribute('aria-checked', String(x === b)));
+        }
+        save(); updateGrid();
+      }));
+      el('questions').querySelectorAll('.flag-btn').forEach(b => b.addEventListener('click', () => {
+        const q = BY_ID[st.ids[Number(b.dataset.i)]];
+        st.flags[q.id] = !st.flags[q.id];
+        b.setAttribute('aria-pressed', String(st.flags[q.id]));
+        b.textContent = st.flags[q.id] ? 'Flagged' : 'Flag for review';
+        save(); updateGrid();
+      }));
+      el('questions').querySelectorAll('.clear-btn').forEach(b => b.addEventListener('click', () => {
+        const i = Number(b.dataset.i), q = BY_ID[st.ids[i]];
+        delete st.answers[q.id];
+        el('q-' + i).querySelectorAll('.option').forEach(x => x.setAttribute('aria-checked', 'false'));
+        save(); updateGrid();
+      }));
+
+      el('grid').innerHTML = st.ids.map((id, i) => '<button type="button" data-i="' + i + '">' + (i + 1) + '</button>').join('');
+      el('grid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => jump(Number(b.dataset.i))));
+      updateGrid();
+
+      clearInterval(tick);
+      if (st.minutes) { tick = setInterval(updateTimer, 1000); updateTimer(); }
+      else { el('timer').textContent = 'Untimed'; }
+      window.scrollTo(0, 0);
+    }
+
+    function jump(i) {
+      const target = el('q-' + i) || el('rq-' + i);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el('side').classList.remove('open'); el('toggle-grid').setAttribute('aria-expanded', 'false');
+    }
+
+    function updateGrid() {
+      const n = st.ids.filter(isAnswered).length;
+      el('grid').querySelectorAll('button').forEach((b, i) => {
+        const id = st.ids[i];
+        b.classList.toggle('answered', isAnswered(id));
+        b.classList.toggle('flagged', Boolean(st.flags[id]));
+        b.setAttribute('aria-label', 'Question ' + (i + 1) + (isAnswered(id) ? ', answered' : ', not answered') + (st.flags[id] ? ', flagged' : ''));
+      });
+      el('submit').textContent = 'Submit exam (' + n + '/' + st.ids.length + ')';
+      if (!st.minutes) el('pace').textContent = n + ' of ' + st.ids.length + ' answered';
+    }
+
+    function fmtTime(ms) {
+      const s = Math.max(0, Math.round(ms / 1000));
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    function updateTimer() {
+      const elapsed = Date.now() - st.start;
+      const left = duration() - elapsed;
+      el('timer').textContent = fmtTime(left);
+      el('timer').classList.toggle('low', left < 5 * 60 * 1000);
+      const per = duration() / st.ids.length;
+      const target = Math.min(st.ids.length, Math.floor(elapsed / per) + 1);
+      const n = st.ids.filter(isAnswered).length;
+      el('pace').textContent = n + ' of ' + st.ids.length + ' answered. On pace you\'d be at question ' + target + '.';
+      if (left <= 0) { clearInterval(tick); submit(true); }
+    }
+
+    function submit(auto) {
+      const blank = st.ids.filter(id => !isAnswered(id)).length;
+      if (false) return;
+      clearInterval(tick);
+      const qs = st.ids.map(id => BY_ID[id]);
+      const score = qs.filter(q => S.isCorrect(q, st.answers[q.id])).length;
+      const used = st.minutes ? Math.min(Date.now() - st.start, duration()) : null;
+      const attempts = S.store.get('examAttempts', []);
+      attempts.push({ when: Date.now(), version: st.version, score: score, total: qs.length, used: used });
+      S.store.set('examAttempts', attempts);
+      S.store.remove('examInProgress');
+      showResults(qs, score, used, auto);
+    }
+
+    /* ---------- results ---------- */
+    let reviewFilter = 'missed', lastQs = [];
+    function showResults(qs, score, used, auto) {
+      lastQs = qs;
+      el('exam').hidden = true; el('results').hidden = false;
+      const pct = Math.round(100 * score / qs.length);
+      el('res-title').textContent = 'Exam ' + st.version + ' results';
+      el('res-score').textContent = score + ' / ' + qs.length + ' (' + pct + '%)';
+      el('res-sub').textContent = (auto ? 'Time ran out. ' : '') + (used === null ? 'Untimed attempt.' : 'Time used: ' + fmtTime(used) + ' of ' + st.minutes + ':00.');
+
+      function table(keys, keyOf, label) {
+        const rows = keys.map(k => {
+          const sub = qs.filter(q => keyOf(q) === k);
+          if (!sub.length) return '';
+          const right = sub.filter(q => S.isCorrect(q, st.answers[q.id])).length;
+          const p = Math.round(100 * right / sub.length);
+          return '<tr><td>' + S.esc(label(k)) + '</td><td class="bar-cell"><div class="mini-bar"><span style="width:' + p + '%"></span></div></td><td>' + right + ' / ' + sub.length + '</td></tr>';
+        }).join('');
+        return '<thead><tr><th>Area</th><th class="bar-cell">Score</th><th>Correct</th></tr></thead><tbody>' + rows + '</tbody>';
+      }
+      el('by-topic').innerHTML = table(S.TOPIC_ORDER, q => q.topic, k => S.TOPICS[k]);
+      el('by-kind').innerHTML = table(['concept', 'scenario', 'calc', 'multi'], q => S.isMulti(q) ? 'multi' : q.kind,
+        k => k === 'multi' ? 'Select all that apply (any type)' : S.KIND_LABEL[k]);
+
+      el('res-grid').innerHTML = qs.map((q, i) => '<button type="button" data-i="' + i + '" class="' + (S.isCorrect(q, st.answers[q.id]) ? 'right' : 'miss') + '">' + (i + 1) + '</button>').join('');
+      el('res-grid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        if (reviewFilter !== 'all') setFilter('all');
+        jump(Number(b.dataset.i));
+      }));
+      renderReview();
+      window.scrollTo(0, 0);
+    }
+
+    function setFilter(f) {
+      reviewFilter = f;
+      el('review-filter').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.f === f)));
+      renderReview();
+    }
+    el('review-filter').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.f)));
+
+    function renderReview() {
+      const items = lastQs.map((q, i) => ({ q: q, i: i })).filter(o => {
+        const ok = S.isCorrect(o.q, st.answers[o.q.id]);
+        return reviewFilter === 'all' || (reviewFilter === 'missed' && !ok) || (reviewFilter === 'flagged' && st.flags[o.q.id]);
+      });
+      if (!items.length) {
+        el('review').innerHTML = '<p>' + (reviewFilter === 'missed' ? 'You missed nothing.' : 'You didn\'t flag any questions.') + '</p>';
+        return;
+      }
+      el('review').innerHTML = items.map(o => {
+        const q = o.q, ord = st.orders[q.id], mine = st.answers[q.id], ok = S.isCorrect(q, mine);
+        const chose = oi => Array.isArray(mine) ? mine.indexOf(oi) >= 0 : mine === oi;
+        return '<section class="exam-q" id="rq-' + o.i + '"><div class="q-meta"><span>Question ' + (o.i + 1) + '</span><span>' + S.TOPICS[q.topic] + '</span><span>' + S.KIND_LABEL[q.kind] + '</span></div>' +
+          S.stemHTML(q) + '<div class="options">' +
+          ord.map((oi, k) => {
+            const right = S.isRightOption(q, oi), c = chose(oi);
+            const cls = right && c ? ' correct' : right ? (S.isMulti(q) ? ' missed' : ' correct') : c ? ' wrong' : '';
+            return '<div class="option' + (S.isMulti(q) ? ' multi' : '') + cls + '"><span class="letter">' + LETTERS[k] + '</span><span>' + S.md(q.options[oi]) +
+              (q.explain ? '<span class="opt-why">' + S.md(q.explain[oi]) + '</span>' : '') + '</span></div>';
+          }).join('') +
+          '</div><div class="feedback ' + (ok ? 'ok' : 'no') + '"><strong>' + (ok ? 'Correct.' : (!S.answered(mine) ? 'Not answered.' : 'Incorrect.')) + '</strong>' + S.md(q.why) + '</div>' + S.extrasHTML(q) + '</section>';
+      }).join('');
+    }
+
+    /* ---------- wiring ---------- */
+    el('begin').addEventListener('click', () => {
+      
+      begin();
+    });
+    el('resume').addEventListener('click', () => {
+      st = S.store.get('examInProgress', null);
+      if (!st || !st.ids.every(id => BY_ID[id])) { S.store.remove('examInProgress'); showHistory(); return; }
+      if (st.minutes === undefined) st.minutes = 50;
+      if (st.minutes && Date.now() - st.start >= duration()) { openExam(); submit(true); return; }
+      openExam();
+    });
+    el('submit').addEventListener('click', () => submit(false));
+    el('toggle-grid').addEventListener('click', () => {
+      const open = el('side').classList.toggle('open');
+      el('toggle-grid').setAttribute('aria-expanded', String(open));
+    });
+    el('new-exam').addEventListener('click', () => {
+      el('results').hidden = true; el('start').hidden = false; showHistory(); window.scrollTo(0, 0);
+    });
+
+    showHistory();
+  })();
+  </script>
+</body>
+</html>

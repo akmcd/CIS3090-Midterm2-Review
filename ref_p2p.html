@@ -1,37 +1,33 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Send and receive functions | CIS*3090 midterm 2</title>
-<meta name="description" content="MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Send and receive functions — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-ref_p2p">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
-<nav class="pagelist" aria-label="MPI reference pages"><p class="gl">MPI reference</p><a href="ref_index.html">1. Find a function</a><a href="ref_start.html">2. Setup and shutdown</a><a href="ref_p2p.html" aria-current="page">3. Send and receive functions</a><a href="ref_coll.html">4. Collective functions</a><a href="ref_types.html">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav><details class="mobilenav"><summary>MPI reference: Send and receive functions</summary><nav aria-label="MPI reference pages"><a href="ref_index.html">1. Find a function</a><a href="ref_start.html">2. Setup and shutdown</a><a href="ref_p2p.html" aria-current="page">3. Send and receive functions</a><a href="ref_coll.html">4. Collective functions</a><a href="ref_types.html">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav></details>
-<main id="main">
-<h1>Send and receive functions</h1>
-<p class="lede">MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards.</p>
-<ul>
-<li class="sec">How a send finds its receive:<ul>
+<body data-page="ref">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head"><h1>Send and receive functions</h1><p>MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards.</p></div>
+    <nav class="chip-row subnav" aria-label="Pages in this part"><a class="chip" href="ref_index.html">Find a function</a><a class="chip" href="ref_start.html">Setup and shutdown</a><a class="chip" href="ref_p2p.html" aria-current="page">Send and receive</a><a class="chip" href="ref_coll.html">Collectives</a><a class="chip" href="ref_types.html">Datatypes and operators</a></nav>
+    <div class="k3 page-body">
+<ul class="notes"><li>How a send finds its receive:<ul>
 <li>A send and a receive match when the communicator, the tag, the source and the destination all agree</li>
 <li>The datatypes must agree too, and the receive count must be at least the send count</li>
 <li>Only the receiver may use wildcards, and a sender must always name a destination and a tag</li>
 <li>Messages from one sender to one receiver arrive in the order they were sent (<strong>non-overtaking</strong>)</li>
-<li>The Send and receive page explains this with a lab</li>
+<li><a href="read.html#sendrecv">Send and receive</a> on the Read page explains this with a lab</li>
 </ul>
-</li>
-</ul>
+</li></ul>
 <section class="fn" id="MPI_Send"><header class="fn-head"><h2>MPI_Send</h2><p>Sends a message to one other process.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">msg_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">msg_size</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">msg_type</span><span class="p">,</span>
 <span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">communicator</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -74,7 +70,7 @@
 </ul></div></section>
 <section class="fn" id="MPI_Recv"><header class="fn-head"><h2>MPI_Recv</h2><p>Receives one message. It waits until a matching message arrives.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Recv</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">msg_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">buf_size</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">buf_type</span><span class="p">,</span>
 <span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">communicator</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status_p</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -141,7 +137,7 @@
 <span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_SOURCE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_TAG</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
 <span class="kt">int</span><span class="w"> </span><span class="n">sender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n mpi">MPI_SOURCE</span><span class="p">;</span>
 <span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n mpi">MPI_TAG</span><span class="p">;</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Member</th>
@@ -170,7 +166,7 @@
 <li>Used in the course: <code>mpi_hello2.c</code> lines 59 to 62</li>
 </ul></div></section>
 <section class="fn" id="MPI_Get_count"><header class="fn-head"><h2>MPI_Get_count</h2><p>Tells you how many elements a received message contained.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Get_count</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n mpi">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status_p</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">count_p</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -196,19 +192,17 @@
 <li>This is the actual message length, which can be smaller than the buffer size you passed to <code>MPI_Recv</code></li>
 <li>Used in the course: <code>mpi_hello2.c</code> line 64, where a 30 character greeting reports 31 elements because the <code>'\0'</code> was sent too</li>
 </ul></div></section>
-<ul>
-<li class="sec">Wildcards (receiver only):<ul>
+<ul class="notes"><li>Wildcards (receiver only):<ul>
 <li><code>MPI_ANY_SOURCE</code>: accept a message from any sender</li>
 <li><code>MPI_ANY_TAG</code>: accept a message with any tag</li>
 <li>There is no wildcard for the communicator</li>
 <li>With <code>MPI_ANY_SOURCE</code>, the order messages are received in can change from run to run</li>
 </ul>
-</li>
-</ul>
-<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_start.html"><span>Previous</span>Setup and shutdown</a><a class="next" href="ref_coll.html"><span>Next</span>Collective functions</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+</li></ul>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
 </body>
 </html>

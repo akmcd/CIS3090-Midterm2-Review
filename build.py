@@ -4,31 +4,39 @@
     pip install -r requirements.txt
     python build.py
 
-Reads   content/<slug>.md   (or content/<slug>.html for hand-written pages)
-Writes  <slug>.html next to this file. Styles and scripts live in assets/.
-
-To add a page: create content/<slug>.md and add a line to PAGES below.
+Writes, next to this file:
+  index.html                 home page
+  read.html                  every section in READ, then the cheat sheet (content/reference.md)
+  code.html + CODE pages     the course programs with the rank lens and message timeline
+  REF pages                  the MPI function reference
+  data/short.js              short-answer prompts, from content/practice.md and practice2.md
+  redirect stubs             for page names used by the first version of the site
+quiz.html, short.html, flashcards.html and exam.html are hand-written and read the files in data/.
 
 Extras you can use inside the Markdown files
-  title: Page title                  first line of every page
+  title: / source: / lead:           first lines of a file (source and lead are shown on the Read page)
   {{walk NAME}}                      code reader from content/walk/NAME.json
-                                     (rank lens, message timeline, notes)
   {{code FILE START-END hl=1,2}}     plain listing of examples/FILE, real line numbers
   {{lab match}}  {{lab collective}}  the two interactive labs
   {{diagram memory}}                 shared vs distributed memory picture
-  {{progress}}                       got-it / missed-it score for practice questions
-  {{map}}                            list of every page with a one-line description
+  {{fnindex}}                        searchable list of the ::: fn entries on the reference pages
   [[r0]] [[rx]]                      small rank labels
-  ::: q ... --- ... :::              practice question (question, a --- line, answer)
+  ::: eg Title ... :::               amber worked example
+  ::: warn Title ... :::             red exam trap
+  ::: note Title ... :::             blue note
   ::: run Caption ... :::            real program output (a first line "$ cmd" is styled)
-  ::: warn Title ... :::             red callout
-  ::: note Title ... :::             blue callout
-Blocks may be indented to sit inside a bullet.
+  ::: q ... --- ... :::              question and answer (practice*.md, turned into short answers)
+  ::: fn NAME ... :::                MPI reference entry
+Blocks may be indented to sit inside a bullet. A table or block placed between two bullets folds with
+the subsection above it.
 """
 import html
 import json
+import math
 import pathlib
 import re
+
+from bs4 import BeautifulSoup, NavigableString
 
 import markdown
 from markdown.extensions import Extension
@@ -42,39 +50,55 @@ CONTENT = ROOT / "content"
 WALKS = CONTENT / "walk"
 EXAMPLES = ROOT / "examples"
 
-SITE_NAME = "CIS*3090 midterm 2"
+SITE_NAME = "CIS*3090 Midterm 2 Review"
+VER = "20261118a"  # bump after editing assets so browsers fetch the new files
 
-# (slug, label, group, one-line description). Order here is the order on the site.
-PAGES = [
-    ("index", "Start here", None, "Midterm 2 study site for CIS*3090: MPI, the distributed-memory case studies, performance, GPGPU with Warp and image processing."),
-    ("concepts", "Big ideas", "Learn", "Each MPI process has its own memory. A rank identifies the process, and messages move data between processes."),
-    ("method", "Reading MPI code", "Learn", "A routine for predicting the output and spotting hangs in any MPI code question."),
-    ("sendrecv", "Send and receive", "Learn", "How a send finds its receive, what the wildcards do, and when a send waits."),
-    ("collectives", "Collective communication", "Learn", "Calls that every process makes together: broadcast, reduce, scatter and gather."),
-    ("trapezoid", "The trapezoidal rule", "Learn", "The problem the course programs solve, and how each rank gets its slice."),
-    ("odd_even", "Odd-even sort with MPI", "Learn", "Lecture 12: blocks on separate ranks, compare-split with MPI_Sendrecv, and why Send then Send can deadlock."),
-    ("heat", "Heat distribution with MPI", "Learn", "Lecture 13: row bands, ghost rows, the halo exchange, Allreduce for convergence and Gatherv for output."),
-    ("performance", "Hardware and performance", "Learn", "Lecture 14: Flynn's taxonomy, UMA and NUMA, buses and crossbars, speedup, efficiency and Amdahl's law."),
-    ("gpgpu", "GPGPU and Warp", "Learn", "Lecture 15: why GPUs exist, streams and kernels, SIMT, and a first Warp kernel."),
-    ("imaging", "Image processing basics", "Learn", "Lecture 16: pixels and neighbourhoods, convolution kernels, normalization and image borders."),
-    ("filters", "Sharpening and smoothing", "Learn", "Lecture 17: high-pass sharpening, unsharp masking, mean, Gaussian and median filters."),
-    ("hello", "mpi_hello.c", "Code", "Every rank except 0 sends a greeting, and rank 0 receives and prints them in order."),
-    ("hello2", "mpi_hello2.c", "Code", "The same idea with wildcard receives and the status object."),
-    ("trap_sendrecv", "mpi_SendRec.c", "Code", "The trapezoidal rule using only MPI_Send and MPI_Recv."),
-    ("trap_bcast", "mpi_Bcast.c", "Code", "The same program using MPI_Bcast and MPI_Reduce."),
-    ("heat_code", "heatDiffusionMpi.c", "Code", "The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank."),
-    ("pitfalls", "Hangs and mix-ups", "Code", "Three small programs that go wrong, and how to see why."),
-    ("practice", "Code-reading questions", "Practice", "Write your answer first, then open the explanation and mark how you did."),
-    ("practice2", "Questions for lectures 12 to 17", "Practice", "Odd-even sort, heat diffusion, performance, Warp and image filters. Answer first, then check."),
-    ("trace", "Trapezoid trace", "Practice", "Change the inputs and see which slice of the interval each rank computes."),
-    ("ref_index", "Find a function", "MPI reference", "Look up any MPI function used in this course: what it does, its arguments, and the mistakes to avoid."),
-    ("ref_start", "Setup and shutdown", "MPI reference", "MPI_Init, MPI_Comm_size, MPI_Comm_rank and MPI_Finalize."),
-    ("ref_p2p", "Send and receive functions", "MPI reference", "MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards."),
-    ("ref_coll", "Collective functions", "MPI reference", "MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather and more."),
-    ("ref_types", "Datatypes and operators", "MPI reference", "Datatypes, reduction operators, constants and common errors."),
-    ("reference", "Cheat sheet", "MPI reference", "The most important calls and formulas on one page."),
+# Read page sections: (slug, label, group). The slug is also the quiz topic key in assets/common.js.
+READ = [
+    ("concepts", "Distributed memory and MPI", "MPI (lectures 09 to 11)"),
+    ("method", "Reading MPI code", "MPI (lectures 09 to 11)"),
+    ("sendrecv", "Send and receive", "MPI (lectures 09 to 11)"),
+    ("collectives", "Collective communication", "MPI (lectures 09 to 11)"),
+    ("trapezoid", "The trapezoidal rule", "MPI (lectures 09 to 11)"),
+    ("odd_even", "Odd-even sort with MPI", "Distributed-memory case studies (12, 13)"),
+    ("heat", "Heat distribution with MPI", "Distributed-memory case studies (12, 13)"),
+    ("performance", "Hardware and performance", "Performance (14)"),
+    ("gpgpu", "GPGPU and Warp", "GPUs and images (15 to 17)"),
+    ("imaging", "Image processing basics", "GPUs and images (15 to 17)"),
+    ("filters", "Sharpening and smoothing", "GPUs and images (15 to 17)"),
 ]
-GROUPS = ["Learn", "Code", "Practice", "MPI reference"]
+CHEAT = "reference"  # content/reference.md becomes the cheat sheet at the end of the Read page (#cheat)
+
+# Code pages: (slug, label, description)
+CODE = [
+    ("hello", "mpi_hello.c", "Every rank except 0 sends a greeting, and rank 0 receives and prints them in order."),
+    ("hello2", "mpi_hello2.c", "The same idea with wildcard receives and the status object."),
+    ("trap_sendrecv", "mpi_SendRec.c", "The trapezoidal rule using only MPI_Send and MPI_Recv."),
+    ("trap_bcast", "mpi_Bcast.c", "The same program using MPI_Bcast and MPI_Reduce."),
+    ("heat_code", "heatDiffusionMpi.c", "The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank."),
+    ("pitfalls", "Hangs and mix-ups", "Three small programs that go wrong, and how to see why."),
+    ("trace", "Trapezoid trace", "Change the inputs and see which slice of the interval each rank computes."),
+]
+
+# MPI reference pages: (slug, label, description)
+REF = [
+    ("ref_index", "Find a function", "Look up any MPI function used in this course: what it does, its arguments, and the mistakes to avoid."),
+    ("ref_start", "Setup and shutdown", "MPI_Init, MPI_Comm_size, MPI_Comm_rank, MPI_Wtime, MPI_Abort and MPI_Finalize."),
+    ("ref_p2p", "Send and receive", "MPI_Send, MPI_Recv, MPI_Ssend, MPI_Sendrecv, status and wildcards."),
+    ("ref_coll", "Collectives", "MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather, MPI_Gatherv and more."),
+    ("ref_types", "Datatypes and operators", "Datatypes, reduction operators, constants and common errors."),
+]
+
+# Question pages turned into short-answer prompts, with the Read section each question belongs to.
+SHORT_SOURCES = [
+    ("practice", ["method", "sendrecv", "sendrecv", "sendrecv", "sendrecv", "sendrecv", "sendrecv", "collectives",
+                  "collectives", "collectives", "trapezoid", "collectives", "collectives", "collectives", "trapezoid", "sendrecv"]),
+    ("practice2", ["odd_even"] * 4 + ["heat"] * 7 + ["performance"] * 4 + ["gpgpu"] * 3 + ["filters", "imaging", "imaging"] + ["filters"] * 4),
+]
+
+# Old page names from the first version of the site, kept working as redirects.
+REDIRECTS = {s: f"read.html#{s}" for s, _l, _g in READ}
+REDIRECTS.update({"reference": "read.html#cheat", "practice": "short.html", "practice2": "short.html"})
 
 CHIPS = {
     "r0": ("r0", "rank 0"),
@@ -203,7 +227,7 @@ def render_walk(name):
     title = html.escape(cfg["file"])
     has_notes = bool(cfg.get("notes"))
     toggle = (
-        '<label class="notes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label>'
+        '<label class="linenotes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label>'
         if has_notes else ""
     )
     help_ = (
@@ -304,61 +328,6 @@ MEMORY_DIAGRAM = """<figure class="diagram wide">
 </figure>"""
 
 
-HERO_ART = """<svg viewBox="0 0 420 230" role="img" aria-label="Ranks 1, 2 and 3 each send a message to rank 0.">
-<line class="lane" x1="70" y1="52" x2="70" y2="214"/><line class="lane" x1="165" y1="52" x2="165" y2="214"/>
-<line class="lane" x1="260" y1="52" x2="260" y2="214"/><line class="lane" x1="355" y1="52" x2="355" y2="214"/>
-<rect x="50" y="14" width="40" height="32" rx="8" fill="var(--blue)"/><text class="hl" x="70" y="35" text-anchor="middle">0</text>
-<rect x="145" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="165" y="35" text-anchor="middle">1</text>
-<rect x="240" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="260" y="35" text-anchor="middle">2</text>
-<rect x="335" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="355" y="35" text-anchor="middle">3</text>
-<line class="a0" x1="165" y1="90" x2="82" y2="90"/><path class="ah" d="M70 90 l13 -6 v12z"/>
-<line class="a0" x1="260" y1="140" x2="82" y2="140"/><path class="ah" d="M70 140 l13 -6 v12z"/>
-<line class="a0" x1="355" y1="190" x2="82" y2="190"/><path class="ah" d="M70 190 l13 -6 v12z"/>
-</svg>"""
-
-
-def render_home():
-    rows = []
-    for g in GROUPS:
-        items = [(s, l) for s, l, gg, _d in PAGES if gg == g]
-        first = items[0][0]
-        names = ", ".join(l for _s, l in items)
-        desc = {
-            "Learn": "MPI basics and collectives, the odd-even sort and heat diffusion case studies, performance, GPGPU with Warp, and image filters.",
-            "Code": "The MPI course programs with a rank picker and a message timeline.",
-            "Practice": "Predict outputs and find hangs, then check yourself.",
-            "MPI reference": "Look up any MPI call used in this course.",
-        }[g]
-        rows.append(
-            f'<li><a href="{first}.html"><span class="name">{html.escape(g)}</span>'
-            f'<span class="desc">{html.escape(desc)}<small>{html.escape(names)}</small></span></a></li>'
-        )
-    return (
-        '<section class="hero"><div>'
-        '<h1>Understand MPI code by following every rank</h1>'
-        '<p class="lede">Midterm 2 study site for CIS*3090. Pick a rank, see the lines it runs, and step through the messages one at a time.</p>'
-        '<div class="hero-btns"><a class="primary" href="hello.html">Follow a program</a>'
-        '<a class="secondary" href="concepts.html">Start with the big ideas</a></div></div>'
-        f'<div class="hero-art">{HERO_ART}<p>Every worker sends to rank 0, and rank 0 receives in order.</p></div></section>'
-        '<div class="home-grid"><section><h2>Study</h2>'
-        f'<ul class="studylist">{"".join(rows)}</ul></section></div>'
-    )
-
-
-def render_map():
-    out = ['<div class="map wide">']
-    for g in [None] + GROUPS:
-        items = [(s, l, d) for s, l, gg, d in PAGES if gg == g and s != "index"]
-        if not items:
-            continue
-        out.append(f'<div class="mgroup"><h2>{html.escape(g)}</h2><ul>')
-        for s, l, d in items:
-            out.append(f'<li><a href="{s}.html">{html.escape(l)}</a><span>{html.escape(d)}</span></li>')
-        out.append("</ul></div>")
-    out.append("</div>")
-    return "".join(out)
-
-
 FN_RE = re.compile(r"^::: fn (\S+)\n([^\n]*)", re.M)
 
 
@@ -366,9 +335,9 @@ def render_fnindex():
     out = ['<div class="fnindex wide"><label class="fnsearch">Search functions'
            '<input id="fnfilter" type="search" placeholder="Try Reduce, tag or status" autocomplete="off"></label>'
            '<div class="fncols">']
-    for slug, label, group, _d in PAGES:
+    for slug, label, _d in REF:
         path = CONTENT / f"{slug}.md"
-        if group != "MPI reference" or not path.exists():
+        if not path.exists():
             continue
         found = FN_RE.findall(path.read_text(encoding="utf-8"))
         if not found:
@@ -386,7 +355,7 @@ def render_fnindex():
 
 # ---------------------------------------------------------------- preprocessing
 
-BLOCK_RE = re.compile(r"^( *)::: (q|warn|note|run|fn)([^\n]*)\n(.*?)\n\1:::[ \t]*$", re.M | re.S)
+BLOCK_RE = re.compile(r"^( *)::: (q|warn|note|eg|run|fn)([^\n]*)\n(.*?)\n\1:::[ \t]*$", re.M | re.S)
 FENCE_RE = re.compile(r"^( *)```(\w*)\n(.*?)\n\1```[ \t]*$", re.M | re.S)
 
 
@@ -420,16 +389,12 @@ def preprocess(text, stash, slug=""):
             return indent + keep(MEMORY_DIAGRAM)
         if kind == "progress":
             return indent + keep('<div class="qprogress wide" aria-live="polite"></div>')
-        if kind == "map":
-            return indent + keep(render_map())
         if kind == "fnindex":
             return indent + keep(render_fnindex())
-        if kind == "home":
-            return indent + keep(render_home())
         raise SystemExit(f"unknown directive: {m.group(0)}")
 
     text = re.sub(
-        r"^( *)\{\{(walk|code|lab|diagram|progress|map|fnindex|home)([^}\n]*)\}\}[ \t]*$",
+        r"^( *)\{\{(walk|code|lab|diagram|progress|fnindex)([^}\n]*)\}\}[ \t]*$",
         directive,
         text,
         flags=re.M,
@@ -470,10 +435,11 @@ def preprocess(text, stash, slug=""):
                 f'<pre><code>{chr(10).join(lines)}</code></pre></figure>'
             )
         else:
-            default = "Watch out" if kind == "warn" else "Note"
+            default = {"warn": "Watch out", "note": "Note", "eg": "Worked example"}[kind]
+            cls = {"warn": "trap", "note": "note", "eg": "eg"}[kind]
             markup = (
-                f'<aside class="callout {kind}"><div class="ctitle">{html.escape(caption or default)}</div>'
-                f'{md_engine().convert(body.strip())}</aside>'
+                f'<div class="callout {cls}"><p class="callout-h">{html.escape(caption or default)}</p>'
+                f'{md_engine().convert(body.strip())}</div>'
             )
         return indent + keep(markup)
 
@@ -481,7 +447,7 @@ def preprocess(text, stash, slug=""):
 
     def chip(m):
         cls, label = CHIPS[m.group(1)]
-        return f'<span class="chip {cls}">{label}</span>'
+        return f'<span class="rchip {cls}">{label}</span>'
 
     return re.sub(r"\[\[(r0|r1|r2|r3|rx)\]\]", chip, text)
 
@@ -493,7 +459,7 @@ def postprocess(htmltext, stash):
         for i, markup in enumerate(stash):
             token = f"@@STASH{i}@@"
             htmltext = htmltext.replace(f"<p>{token}</p>", markup).replace(token, markup)
-    htmltext = re.sub(r"(<table>.*?</table>)", r'<div class="tablewrap">\1</div>', htmltext, flags=re.S)
+    htmltext = re.sub(r"(<table>.*?</table>)", r'<div class="table-wrap">\1</div>', htmltext, flags=re.S)
     return htmltext
 
 
@@ -506,111 +472,400 @@ def split_title(text, default):
 
 # ---------------------------------------------------------------- page shell
 
+FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E"
+           "%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E"
+           "%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E"
+           "%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E"
+           "%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E")
+
 PAGE = """<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>%%TITLE%% | %%SITE%%</title>
-<meta name="description" content="%%DESC%%">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>%%TITLE%%</title>
+  <meta name="description" content="%%DESC%%">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=%%VER%%">
+  <link rel="icon" href="%%FAVICON%%">
 </head>
-<body class="%%BODYCLASS%%">
-<a class="skip" href="#main">Skip to content</a>
-%%HEADER%%
-<div class="shell">
-%%PAGELIST%%
-<main id="main">
-%%INTRO%%
+<body data-page="%%NAV%%">
+  <header id="site-header"></header>
+  <main%%MAINCLASS%%>
 %%BODY%%
-<nav class="pager" aria-label="Previous and next page">%%PREV%%%%NEXT%%</nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+  </main>
+  <script src="assets/common.js?v=%%VER%%"></script>
+%%SCRIPTS%%
 </body>
 </html>
 """
 
 
-def group_of(slug):
-    return next((g for s, _l, g, _d in PAGES if s == slug), None)
-
-
-def header(current):
-    group = group_of(current)
-    links = ['<a href="index.html"{}>Home</a>'.format(' aria-current="true"' if current == "index" else "")]
-    for g in GROUPS:
-        first = next(s for s, _l, gg, _d in PAGES if gg == g)
-        cur = ' aria-current="true"' if g == group else ""
-        links.append(f'<a href="{first}.html"{cur}>{html.escape(g)}</a>')
+def page(title, desc, nav, body, scripts=(), main_class=""):
+    full_title = SITE_NAME if title is None else f"{title} — {SITE_NAME}"
+    tags = "\n".join(f'  <script src="{s}?v={VER}"></script>' for s in scripts)
     return (
-        '<header class="top"><div class="topin">'
-        '<a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>'
-        f'{html.escape(SITE_NAME)}</a>'
-        f'<nav class="groups" aria-label="Sections">{"".join(links)}</nav>'
-        '<button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>'
+        PAGE.replace("%%TITLE%%", html.escape(full_title))
+        .replace("%%DESC%%", html.escape(desc))
+        .replace("%%NAV%%", nav)
+        .replace("%%MAINCLASS%%", f' class="{main_class}"' if main_class else "")
+        .replace("%%VER%%", VER)
+        .replace("%%FAVICON%%", FAVICON)
+        .replace("%%SCRIPTS%%", tags)
+        .replace("%%BODY%%", body)
     )
 
 
-def pagelist(current):
-    """Short numbered list of the pages in the current group. Nothing nested."""
-    group = group_of(current)
-    if group is None:
-        return ""
-    items = [(s, l) for s, l, gg, _d in PAGES if gg == group]
-    links = "".join(
-        '<a href="{}.html"{}>{}. {}</a>'.format(s, ' aria-current="page"' if s == current else "", i, html.escape(l))
-        for i, (s, l) in enumerate(items, 1)
+def write(slug, text):
+    (ROOT / f"{slug}.html").write_text(text, encoding="utf-8")
+    print("built", f"{slug}.html")
+
+
+# ---------------------------------------------------------------- notes layout
+
+def split_meta(text):
+    """Leading 'key: value' lines (title, source, lead), then the body."""
+    meta = {}
+    lines = text.split("\n")
+    i = 0
+    while i < len(lines) and re.match(r"^(title|source|lead):\s", lines[i]):
+        k, v = lines[i].split(":", 1)
+        meta[k] = v.strip()
+        i += 1
+    return meta, "\n".join(lines[i:])
+
+
+def render_md(text, slug, layout=False):
+    """Markdown to HTML. With layout=True the result is reshaped into the notes layout first, while code
+    blocks are still placeholders (BeautifulSoup would collapse the indentation inside them)."""
+    stash = []
+    out = md_engine().convert(preprocess(text, stash, slug))
+    if layout:
+        out = notes_layout(out, stash)
+    return postprocess(out, stash)
+
+
+KEEP_TOP = {"walk", "fn"}  # blocks that stay full width instead of nesting under a subsection
+
+
+def notes_layout(fragment, stash):
+    """Turn the Markdown output into the Read-page shape: one <ul class="notes"> whose top-level items are
+    subsection labels with a nested list. Tables, figures and callouts that sit between lists are moved into
+    the subsection above them as <li class="blk">, so they fold with it."""
+    soup = BeautifulSoup(fragment, "html.parser")
+    out = []
+    cur = None
+    for el in list(soup.contents):
+        if isinstance(el, NavigableString):
+            if el.strip():
+                out.append(el.extract())
+            continue
+        if el.name == "ul":
+            if cur is None:
+                cur = soup.new_tag("ul", attrs={"class": "notes"})
+                out.append(cur)
+            for li in el.find_all("li", recursive=False):
+                cur.append(li.extract())
+            el.decompose()
+            continue
+        classes = set(el.get("class", []))
+        tok = re.fullmatch(r"\s*@@STASH(\d+)@@\s*", el.get_text()) if el.name == "p" else None
+        if tok:
+            m = re.match(r'\s*<section class="(\w+)', stash[int(tok.group(1))])
+            if m:
+                classes.add(m.group(1))
+        items = cur.find_all("li", recursive=False) if cur is not None else []
+        if classes & KEEP_TOP or not items:
+            out.append(el.extract())
+            if classes & KEEP_TOP:
+                cur = None
+            continue
+        last = items[-1]
+        sub = last.find("ul", recursive=False)
+        if sub is None:
+            sub = soup.new_tag("ul")
+            last.append(sub)
+        li = soup.new_tag("li", attrs={"class": "blk"})
+        li.append(el.extract())
+        sub.append(li)
+    # a subsection label written as a loose-list paragraph: unwrap the <p> so the label becomes the toggle text
+    for ul in [x for x in out if getattr(x, "name", None) == "ul"]:
+        for li in ul.find_all("li", recursive=False):
+            # "- Label:" followed only by an indented block (a worked example, say): give the block its own sub-list
+            paras = li.find_all("p", recursive=False)
+            if li.find("ul", recursive=False) is None and len(paras) >= 2:
+                sub = soup.new_tag("ul")
+                for para in paras[1:]:
+                    item = soup.new_tag("li", attrs={"class": "blk"})
+                    item.append(para.extract())
+                    sub.append(item)
+                li.append(sub)
+            first = next((c for c in li.contents if not (isinstance(c, NavigableString) and not c.strip())), None)
+            if getattr(first, "name", None) == "p" and li.find("ul", recursive=False):
+                first.unwrap()
+            if li.get("class"):
+                li["class"] = [c for c in li["class"] if c != "sec"] or None
+                if li["class"] is None:
+                    del li["class"]
+    return "\n".join(str(x) for x in out)
+
+
+def minutes(text):
+    words = len(re.findall(r"[A-Za-z0-9_]+", re.sub(r"```.*?```", "", text, flags=re.S)))
+    return max(5, int(math.ceil(words / 130 / 5.0)) * 5)
+
+
+def bank_counts():
+    path = ROOT / "data" / "bank.js"
+    if not path.exists():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    counts = {}
+    for t in re.findall(r'"topic"\s*:\s*"([\w-]+)"', text):
+        counts[t] = counts.get(t, 0) + 1
+    return counts
+
+
+# ---------------------------------------------------------------- pages
+
+def build_read():
+    counts = bank_counts()
+    toc, secs, group = [], [], None
+    for n, (slug, label, g) in enumerate(READ, 1):
+        meta, text = split_meta((CONTENT / f"{slug}.md").read_text(encoding="utf-8"))
+        if g != group:
+            toc.append(f'<li class="toc-h">{html.escape(g)}</li>')
+            group = g
+        toc.append(f'<li><a href="#{slug}">{n}. {html.escape(label)}</a></li>')
+        k = counts.get(slug, 0)
+        quiz = (f'<a class="btn secondary" href="quiz.html?topic={slug}&amp;all=1">Quiz this section ({k} questions)</a>'
+                if k else "")
+        secs.append(
+            f'<!-- ================= {n} ================= -->\n'
+            f'<section id="{slug}" class="k3">\n<h2>{n}. {html.escape(label)}</h2>\n'
+            f'<p class="source">{html.escape(meta.get("source", ""))} · about {minutes(text)} minutes</p>\n'
+            f'<p class="lead">{inline(meta.get("lead", ""))}</p>\n'
+            f'{render_md(text, slug, layout=True)}\n'
+            f'<p class="btn-row section-quiz">{quiz}<label class="ex-done read-done"><input type="checkbox" data-read="{slug}"> Section done</label></p>\n'
+            f'</section>'
+        )
+    meta, text = split_meta((CONTENT / f"{CHEAT}.md").read_text(encoding="utf-8"))
+    toc.append('<li class="toc-h">Reference</li><li><a href="#cheat">Cheat sheet</a></li>')
+    secs.append(
+        f'<!-- ================= cheat sheet ================= -->\n'
+        f'<section id="cheat" class="k3">\n<h2>Cheat sheet</h2>\n<p class="lead">{inline(meta.get("lead", ""))}</p>\n'
+        f'{render_md(text, CHEAT, layout=True)}\n</section>'
     )
-    label = next(l for s, l in items if s == current)
-    return (
-        f'<nav class="pagelist" aria-label="{html.escape(group)} pages"><p class="gl">{html.escape(group)}</p>{links}</nav>'
-        f'<details class="mobilenav"><summary>{html.escape(group)}: {html.escape(label)}</summary>'
-        f'<nav aria-label="{html.escape(group)} pages">{links}</nav></details>'
+    total = sum(minutes(split_meta((CONTENT / f"{s}.md").read_text(encoding="utf-8"))[1]) for s, _l, _g in READ)
+    body = f"""    <div class="page-head">
+      <h1>Read</h1>
+      <p>Lectures 09 to 17, rebuilt from the slides as {len(READ)} sections (about {round(total / 60 * 2) / 2:g} hours of reading). Each section opens with the idea in plain words, then the notes. Amber boxes are worked examples to redo by hand, red boxes are exam traps, and the blue-edged panels are labs you can play with. The full programs, with a rank picker, are on the <a href="code.html">Code</a> pages.</p>
+      <div class="btn-row notes-bar">
+        <button class="btn quiet" type="button" id="collapse-all">Collapse all subsections</button>
+        <button class="btn quiet" type="button" id="expand-all">Expand all</button>
+        <span class="muted">Click any subsection title to fold it.</span>
+      </div>
+    </div>
+
+    <div class="reading">
+      <nav class="toc" aria-label="Sections">
+        <ol>
+          {chr(10).join("          " + t for t in toc).strip()}
+        </ol>
+      </nav>
+
+      <article class="article">
+{chr(10).join(secs)}
+      </article>
+    </div>"""
+    write("read", page("Read", "Notes for every lecture from 09 to 17.", "read", body,
+                       ["assets/app.js", "assets/site.js"]))
+
+
+def subnav(items, current, all_link=None):
+    links = []
+    if all_link:
+        href, label = all_link
+        links.append(f'<a class="chip" href="{href}">{html.escape(label)}</a>')
+    for s, l, _d in items:
+        cur = ' aria-current="page"' if s == current else ""
+        links.append(f'<a class="chip" href="{s}.html"{cur}>{html.escape(l)}</a>')
+    return f'<nav class="chip-row subnav" aria-label="Pages in this part">{"".join(links)}</nav>'
+
+
+def build_group(items, nav, all_link, intro_label):
+    for slug, label, desc in items:
+        md_path, html_path = CONTENT / f"{slug}.md", CONTENT / f"{slug}.html"
+        if md_path.exists():
+            meta, text = split_meta(md_path.read_text(encoding="utf-8"))
+            title = meta.get("title", label)
+            content = render_md(text, slug, layout=True)
+        else:
+            meta, content = split_meta(html_path.read_text(encoding="utf-8"))
+            title = meta.get("title", label)
+        body = (
+            f'    <div class="page-head"><h1>{html.escape(title)}</h1><p>{inline(desc)}</p></div>\n'
+            f'    {subnav(items, slug, all_link)}\n'
+            f'    <div class="k3 page-body">\n{content}\n    </div>'
+        )
+        write(slug, page(title, desc, nav, body, ["assets/app.js", "assets/site.js"]))
+
+
+def build_code_index():
+    rows = "".join(
+        f'<li><a href="{s}.html"><span class="name">{html.escape(l)}</span><span class="desc">{inline(d)}</span></a></li>'
+        for s, l, d in CODE
     )
+    body = f"""    <div class="page-head">
+      <h1>Code</h1>
+      <p>The course programs, line by line. Pick a rank to see only the lines it runs, then press Next step to follow the messages one send or receive at a time. Press the <b>i</b> button on a line to read its note. Every output shown was produced by compiling and running the code.</p>
+    </div>
+    <ul class="code-list">{rows}</ul>
+    <h2>Trip-ups in the course zip</h2>
+    <ul class="notes plain">
+      <li><code>mpi_SendRec.c</code> is the textbook's <code>mpi_trap2.c</code>, and <code>mpi_Bcast.c</code> is <code>mpi_trap3.c</code>. The comments inside still use the old names.</li>
+      <li>The makefile builds <code>mpi_hello</code>, <code>mpi_SendRec</code> and <code>mpi_Bcast</code>, but not <code>mpi_hello2</code>.</li>
+      <li>The trapezoid programs read from the keyboard, so pipe the input in: <code>echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast</code></li>
+      <li><code>mpi_odd_even.c</code> and the Warp example <code>arrAdd.py</code> were not in the project files, so the Read page uses the code from the slides for those.</li>
+    </ul>"""
+    write("code", page("Code", "The CIS*3090 course programs with a rank picker and a message timeline.", "code", body))
+
+
+HOME_ART = """<svg viewBox="0 0 420 210" role="img" aria-label="Ranks 1, 2 and 3 each send a message to rank 0." font-family="var(--font)">
+<g stroke="var(--rule)" stroke-width="2" stroke-dasharray="3 5"><line x1="70" y1="52" x2="70" y2="200"/><line x1="165" y1="52" x2="165" y2="200"/><line x1="260" y1="52" x2="260" y2="200"/><line x1="355" y1="52" x2="355" y2="200"/></g>
+<rect x="50" y="14" width="40" height="32" rx="8" fill="var(--k-blue)"/><text x="70" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-blue)">0</text>
+<rect x="145" y="14" width="40" height="32" rx="8" fill="var(--k-orange)"/><text x="165" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-orange)">1</text>
+<rect x="240" y="14" width="40" height="32" rx="8" fill="var(--k-orange)"/><text x="260" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-orange)">2</text>
+<rect x="335" y="14" width="40" height="32" rx="8" fill="var(--k-orange)"/><text x="355" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-orange)">3</text>
+<g stroke="var(--k-orange)" stroke-width="3"><line x1="165" y1="86" x2="84" y2="86"/><line x1="260" y1="132" x2="84" y2="132"/><line x1="355" y1="178" x2="84" y2="178"/></g>
+<g fill="var(--k-orange)"><path d="M70 86 l14 -7 v14z"/><path d="M70 132 l14 -7 v14z"/><path d="M70 178 l14 -7 v14z"/></g>
+</svg>"""
+
+
+def build_home():
+    plan_rows = []
+    groups = []
+    for slug, label, g in READ:
+        if not groups or groups[-1][0] != g:
+            groups.append((g, []))
+        groups[-1][1].append((slug, label))
+    num = {s: i for i, (s, _l, _g) in enumerate(READ, 1)}
+    for g, secs in groups:
+        links = "<br>".join(f'<a href="read.html#{s}" data-plan="{s}">{num[s]}. {html.escape(l)}</a>' for s, l in secs)
+        mins = sum(minutes(split_meta((CONTENT / f"{s}.md").read_text(encoding="utf-8"))[1]) for s, _l in secs)
+        then = {
+            "MPI (lectures 09 to 11)": 'Open each program on the <a href="code.html">Code</a> pages and predict the output before reading the notes. Then take each section\'s quiz.',
+            "Distributed-memory case studies (12, 13)": 'Step through <a href="heat_code.html">heatDiffusionMpi.c</a>. Redo the odd-even phase table by hand.',
+            "Performance (14)": "Do the Amdahl and efficiency calculations without looking, then take the quiz.",
+            "GPUs and images (15 to 17)": "Redo the convolution and unsharp-mask worked examples by hand, then take each quiz.",
+        }.get(g, "Take each section's quiz.")
+        plan_rows.append(
+            f'<tr><td><strong>{html.escape(g)}</strong><br><span class="muted">about {mins} min of reading</span></td>'
+            f'<td>{links}</td><td>{then}</td></tr>'
+        )
+    plan_rows.append(
+        '<tr><td><strong>Last</strong><br><span class="muted">about 1 h 30</span></td>'
+        '<td><a href="exam.html">Practice exam A</a><br><a href="short.html">Short answers</a><br><a href="read.html#cheat">Cheat sheet</a></td>'
+        '<td>Reread the sections the exam marks as weak. Use flashcards for vocabulary that is still shaky.</td></tr>'
+    )
+    n_code = len(CODE) - 1
+    body = f"""    <section class="hero">
+      <div>
+        <h1>CIS*3090 Parallel Programming: midterm 2 review</h1>
+        <p class="when">Lectures 09 to 17: MPI and collective communication, the odd-even sort and heat distribution rebuilt for distributed memory, parallel hardware and performance, GPGPU with Nvidia Warp, and image filtering.</p>
+        <div class="btn-row">
+          <a class="btn" href="read.html" id="continue">Start reading</a>
+          <a class="btn secondary" href="exam.html">Take the practice exam</a>
+        </div>
+      </div>
+      <figure class="hero-fig" aria-label="Every worker rank sends to rank 0">{HOME_ART}<figcaption class="lanes-caption">Blue is rank 0, orange is every other rank. The code pages draw every program this way, one message at a time.</figcaption></figure>
+    </section>
+
+    <div class="home-grid">
+      <section aria-labelledby="study-h">
+        <h2 id="study-h" style="margin-top:0">Study</h2>
+        <ul class="study-list">
+          <li><a href="read.html"><span class="name">Read</span><span class="desc">{len(READ)} sections built from the lecture slides, each starting from the idea, with worked examples, two labs and a cheat sheet.</span><span class="stat" id="stat-read"></span></a></li>
+          <li><a href="code.html"><span class="name">Code</span><span class="desc">{n_code} pages that walk through the course programs rank by rank, plus a trapezoid trace.</span><span class="stat"></span></a></li>
+          <li><a href="quiz.html"><span class="name">Topic quizzes</span><span class="desc"><span id="n-quiz"></span> multiple-choice questions, one quiz per section, with an explanation after every answer.</span><span class="stat" id="stat-quiz"></span></a></li>
+          <li><a href="short.html"><span class="name">Short answers</span><span class="desc"><span id="n-short"></span> code-reading and explain-why prompts, with model answers to open once you've tried them.</span><span class="stat" id="stat-short"></span></a></li>
+          <li><a href="flashcards.html"><span class="name">Flashcards</span><span class="desc">Every definition from the lectures, by section.</span><span class="stat" id="stat-cards"></span></a></li>
+          <li><a href="exam.html"><span class="name">Practice exam</span><span class="desc"><span id="n-exam"></span> questions, timed, scored by section and by question type. Exam A uses questions that appear nowhere else.</span><span class="stat" id="stat-exam"></span></a></li>
+          <li><a href="ref_index.html"><span class="name">MPI reference</span><span class="desc">Every MPI call used in the course, with its arguments and the mistakes to avoid.</span><span class="stat"></span></a></li>
+        </ul>
+
+        <h2 id="plan-h">Suggested order</h2>
+        <div class="table-wrap"><table class="plan">
+          <thead><tr><th>Part</th><th>Read</th><th>Then</th></tr></thead>
+          <tbody>
+          {chr(10).join(plan_rows)}
+          </tbody>
+        </table></div>
+        <p class="muted">Short on time? Do these first: <a href="read.html#method">2 reading MPI code</a>, <a href="read.html#collectives">4 collectives</a>, <a href="read.html#heat">7 heat distribution</a>, <a href="read.html#performance">8 performance</a>, <a href="read.html#filters">11 sharpening and smoothing</a>.</p>
+      </section>
+
+      <aside aria-labelledby="facts-h">
+        <h2 id="facts-h" style="margin-top:0">About this site</h2>
+        <dl class="facts">
+          <dt>Coverage</dt>
+          <dd>Lectures 09 to 17 and textbook chapter 2 (2.3, 2.6.1 to 2.6.2) and chapter 3 (3.1 to 3.4).</dd>
+          <dt>Not covered here</dt>
+          <dd>The pthreads lectures (01 to 08). Lectures 12 and 13 recap the pthreads versions where they compare them.</dd>
+          <dt>Course code</dt>
+          <dd><code>mpi_hello.c</code>, <code>mpi_hello2.c</code>, <code>mpi_SendRec.c</code>, <code>mpi_Bcast.c</code> and <code>heatDiffusionMpi.c</code>, all compiled and run. <code>mpi_odd_even.c</code> and <code>arrAdd.py</code> were not in the project files, so those use the slide code.</dd>
+          <dt>How outputs were made</dt>
+          <dd>MPICH for lectures 09 to 11, Open MPI for the heat program, Warp 1.16 on the CPU for the GPU example.</dd>
+          <dt>Sources</dt>
+          <dd>The CIS*3090 slides and <em>An Introduction to Parallel Programming</em> (Pacheco and Malensek, 2nd ed.). Lecture 13 also uses Grama et al. for the neighbour computation.</dd>
+          <dt>Progress</dt>
+          <dd>Saved in this browser only. Nothing is sent anywhere.</dd>
+        </dl>
+      </aside>
+    </div>"""
+    write("index", page(None, "Reading notes, code walkthroughs, quizzes, short answers, flashcards and a practice exam for CIS*3090 midterm 2.",
+                        "home", body, ["data/flashcards.js", "data/bank.js", "data/short.js", "data/exam.js", "assets/home.js"]))
+
+
+def build_short():
+    out = []
+    for src, topics in SHORT_SOURCES:
+        text = (CONTENT / f"{src}.md").read_text(encoding="utf-8")
+        blocks = re.findall(r"^::: q\n(.*?)\n:::[ \t]*$", text, re.M | re.S)
+        if len(blocks) != len(topics):
+            raise SystemExit(f"{src}.md has {len(blocks)} questions but {len(topics)} topics are listed")
+        for i, (b, t) in enumerate(zip(blocks, topics), 1):
+            q, a = b.split("\n---\n", 1)
+            out.append({"id": f"s-{src}-{i}", "topic": t,
+                        "qhtml": render_md(q.strip(), src), "answer": render_md(a.strip(), src)})
+    js = ("/* Short-answer prompts: { id, topic, qhtml, answer }. Generated by build.py from content/practice*.md. */\n"
+          "window.SHORT_BANK = [\n" + ",\n".join("  " + json.dumps(o, ensure_ascii=False) for o in out) + "\n];\n")
+    (ROOT / "data" / "short.js").write_text(js, encoding="utf-8")
+    print("built data/short.js", len(out), "prompts")
+
+
+def build_redirects():
+    for slug, target in REDIRECTS.items():
+        (ROOT / f"{slug}.html").write_text(
+            f'<!doctype html>\n<meta charset="utf-8">\n<title>Moved</title>\n'
+            f'<meta http-equiv="refresh" content="0; url={target}">\n'
+            f'<link rel="canonical" href="{target}">\n<p>This page moved to <a href="{target}">{target}</a>.</p>\n',
+            encoding="utf-8")
+    print("built", len(REDIRECTS), "redirects")
 
 
 def main():
-    for i, (slug, label, _group, desc) in enumerate(PAGES):
-        md_path, html_path = CONTENT / f"{slug}.md", CONTENT / f"{slug}.html"
-        if md_path.exists():
-            stash = []
-            title, text = split_title(md_path.read_text(encoding="utf-8"), label)
-            body = postprocess(md_engine().convert(preprocess(text, stash, slug)), stash)
-        elif html_path.exists():
-            title, body = split_title(html_path.read_text(encoding="utf-8"), label)
-        else:
-            print(f"skip {slug}: no content file")
-            continue
-
-        prev = nxt = ""
-        if i > 0:
-            ps, pl = PAGES[i - 1][0], PAGES[i - 1][1]
-            prev = f'<a class="prev" href="{ps}.html"><span>Previous</span>{html.escape(pl)}</a>'
-        if i < len(PAGES) - 1:
-            ns, nl = PAGES[i + 1][0], PAGES[i + 1][1]
-            nxt = f'<a class="next" href="{ns}.html"><span>Next</span>{html.escape(nl)}</a>'
-
-        intro = "" if slug == "index" else f'<h1>{html.escape(title)}</h1>\n<p class="lede">{html.escape(desc)}</p>'
-        page = (
-            PAGE.replace("%%INTRO%%", intro)
-            .replace("%%TITLE%%", html.escape(title))
-            .replace("%%SITE%%", html.escape(SITE_NAME))
-            .replace("%%DESC%%", html.escape(desc))
-            .replace("%%BODYCLASS%%", f"page-{slug}" + (" home" if slug == "index" else ""))
-            .replace("%%HEADER%%", header(slug))
-            .replace("%%PAGELIST%%", pagelist(slug))
-            .replace("%%BODY%%", body)
-            .replace("%%PREV%%", prev)
-            .replace("%%NEXT%%", nxt)
-        )
-        (ROOT / f"{slug}.html").write_text(page, encoding="utf-8")
-        print("built", f"{slug}.html")
+    import subprocess
+    import sys
+    subprocess.run([sys.executable, str(CONTENT / "data_src" / "make_data.py")], check=True)
+    build_short()
+    build_home()
+    build_read()
+    build_code_index()
+    build_group(CODE, "code", ("code.html", "All code"), "Code")
+    build_group(REF, "ref", None, "MPI reference")
+    build_redirects()
 
 
 if __name__ == "__main__":

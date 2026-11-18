@@ -1,4 +1,6 @@
 title: Cheat sheet
+source: Every section
+lead: Every call and formula from the sections above on one page.
 
 - Setup and shutdown:
 

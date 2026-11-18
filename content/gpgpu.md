@@ -1,4 +1,6 @@
 title: GPGPU and Warp
+source: Lecture 15
+lead: A GPU has thousands of simple cores that run the same instruction in lockstep. You hand it a stream of data and a small kernel function, and it runs the kernel once per element.
 
 - What lecture 15 is about:
     - Why GPUs exist, how their hardware differs from a CPU, and the stream programming model

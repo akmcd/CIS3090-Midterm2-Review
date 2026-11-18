@@ -1,4 +1,6 @@
 title: Heat distribution with MPI
+source: Lecture 13
+lead: The heat plate from the pthreads unit, split into row bands, one per rank. Each rank keeps copies of the rows just outside its band and refreshes them with a message every iteration.
 
 - What lecture 13 is about:
     - The heat diffusion case study from the pthreads unit, rewritten for distributed memory
@@ -47,6 +49,10 @@ title: Heat distribution with MPI
     - Conversion: `global_row = row_start - 1 + local_row`
     - `is_fixed(i, j)` asks about the plate, so it must be given the global row
     - Getting this off by one shifts the hot block or a whole band, and the lecture names it the likely culprit when output is wrong
+
+    ::: warn Exam trap
+    - Rank 2 owns global rows 9 to 11, but in its own array they are local rows 1 to 3. `is_fixed` must be given 9, 10, 11, not 1, 2, 3
+    :::
 
 - The decomposition (mapping):
 
@@ -148,12 +154,15 @@ title: Heat distribution with MPI
     - Step 5: Every `FRAME_STRIDE` iterations, `MPI_Gatherv` to rank 0, and rank 0 writes the frame
     - Step 6: Every rank decides for itself whether to stop, on identical data
 
-- Worked example (16 x 16 grid, 6 x 6 hot block, 4 ranks):
+- Worked example:
+
+    ::: eg 16 x 16 grid, 6 x 6 hot block, 4 ranks, iteration 10
     - The full grid exists only in our heads, and on rank 0 when a frame is written. No rank holds it
     - Rank 2 owns global rows 9 to 11. Its top ghost copies global row 8 (rank 1) and its bottom ghost copies global row 12 (rank 3)
     - At the start of iteration 10 both ghosts still hold last iteration's copies, which are now stale
     - After the exchange the ghosts are fresh and the three owned rows are untouched: the exchange only writes ghosts
     - Only now may rank 2 compute, which is why the exchange comes first in the loop
+    :::
 
 ::: note Why there are no barriers
 - Hazard 1 (reading a row mid-write) is gone: data only crosses a rank boundary when it is sent, and `MPI_Sendrecv` does not return until it has landed

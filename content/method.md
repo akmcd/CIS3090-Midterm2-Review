@@ -1,4 +1,6 @@
 title: Reading MPI code
+source: Built for the code questions on lectures 09 to 11
+lead: Most MPI exam questions ask what a program prints or whether it hangs. One short routine answers nearly all of them: work out who runs which lines, then pair every send with a receive.
 
 - Why a routine helps:
     - Every code question is the same question in different clothes: what does each rank do, and do the messages line up?
@@ -24,7 +26,7 @@ title: Reading MPI code
     - The datatypes must agree too, and the receive count must be at least the send count
     - Collectives match by the order they are made, so check that every rank has the same sequence
     - Every send needs exactly one receive, and every receive needs exactly one send
-    - The Send and receive page has a lab for this step
+    - Section 3, Send and receive, has a lab for this step
 
 - Step 5, ask whether anything waits forever:
     - A receive with no matching send waits forever
@@ -49,7 +51,7 @@ title: Reading MPI code
     - Step 3: rank 1 has `Send to 0, tag 5`, rank 0 has `Recv from 1, tag 7`
     - Step 4: the source and destination agree, but the tags (5 and 7) do not
     - Step 5: rank 0 waits forever, so the program hangs
-    - The Hangs and mix-ups page shows this exact program
+    - [Hangs and mix-ups](pitfalls.html) on the Code pages runs this exact program
 
 - Takeaway:
     - Split by rank, list each rank's calls, match them, then look for waits

@@ -1,4 +1,6 @@
 title: Sharpening, blurring and denoising
+source: Lecture 17
+lead: Smoothing filters average neighbours to remove noise but blur edges. Sharpening does the opposite and makes noise worse. The median filter removes isolated spikes and keeps edges.
 
 - What lecture 17 is about:
     - The fundamental filters: sharpening (high-pass, unsharp masking) and smoothing (mean, Gaussian, median)
@@ -47,12 +49,15 @@ title: Sharpening, blurring and denoising
     - `k` is a scaling constant. Reasonable values are 0.2 to 0.7, larger means sharper
     - With k > 1 it is called a **high-boost** filter
 
-- Unsharp masking with numbers (a 1D edge):
+- Unsharp masking with numbers:
+
+    ::: eg A 1D edge, blurred with a 3-wide mean, k = 0.5
     - Input row: `10 10 10 10 50 50 50 50`
-    - Blur with a 3-wide mean (edges repeated): `10 10 10 23.3 36.7 50 50 50`
+    - Blur (edges repeated): `10 10 10 23.3 36.7 50 50 50`
     - Edge image g = input - blur: `0 0 0 -13.3 13.3 0 0 0`
-    - Result with k = 0.5: `10 10 10 3.3 56.7 50 50 50`
+    - Result f + 0.5 g: `10 10 10 3.3 56.7 50 50 50`
     - The dark side of the edge dips below 10 and the bright side rises above 50: that is **overshoot**
+    :::
 
 - Limits of unsharp masking:
     - **noise sensitivity**: it emphasizes high frequencies, and noise is high frequency
@@ -82,6 +87,10 @@ title: Sharpening, blurring and denoising
     - With sigma^2 = 1 the kernel is 7 x 7. Normalized and multiplied by 1000 its centre row is `2 22 97 159 97 22 2`, and its centre is 159
     - Other common values: sigma^2 = 2/3 and sigma^2 = 2
     - Compared with a mean filter of similar size, edges blur less, because far-away pixels count less
+
+::: warn Exam trap
+- The median filter is not a convolution. No set of weights picks the middle value for every neighbourhood, so it has no kernel matrix
+:::
 
 - Rank (order-statistic) filters:
     - Non-linear filters: list the neighbourhood's values, sort them, and pick the value at a chosen position

@@ -1,10 +1,12 @@
 title: Odd-even sort with MPI
+source: Lecture 12
+lead: The odd-even sort from the pthreads unit, with each block on its own rank. Getting a partner's block now takes a message, and the obvious send-then-receive version can deadlock.
 
 - What lecture 12 is about:
     - The same odd-even transposition sort from the pthreads unit, rewritten for distributed memory
     - Same decomposition, same phases. The one new question: how does a rank get its partner's block when it cannot read that memory?
     - Answer: it receives it in an MPI message, so communication is no longer free
-    - The course file `mpi_odd_even.c` is not in the project files yet, so this page uses the code shown on the slides
+    - The course file `mpi_odd_even.c` is not in the project files yet, so this section uses the code shown on the slides
 
 - The serial algorithm (review):
     - **odd-even transposition sort**: a bubble sort variant split into phases

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizzes — CIS*3090 Midterm 2 Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%23a8378a'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%230e8570'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%2318212b'/%3E%3C/svg%3E">
+</head>
+<body data-page="quiz">
+  <header id="site-header"></header>
+  <main>
+    <div id="picker">
+      <div class="page-head">
+        <h1>Topic quizzes</h1>
+        <p>One quiz per section of the reading, <span id="n-total"></span> questions in all. You see whether each answer is right, and why, before moving on. Choices are shuffled every time.</p>
+      </div>
+      <div class="btn-row" style="margin-bottom:18px">
+        <label class="inline">Length
+          <select id="length">
+            <option value="10">10 questions</option>
+            <option value="all">Every question in the topic</option>
+          </select>
+        </label>
+      </div>
+      <ul class="topic-picker" id="topic-list"></ul>
+    </div>
+
+    <div id="runner" hidden>
+      <div class="qcard">
+        <div class="progress-line" aria-hidden="true"><span id="bar"></span></div>
+        <div class="q-meta"><span id="q-pos"></span><span id="q-topic"></span><span id="q-kind"></span></div>
+        <div id="stem"></div>
+        <div class="options" id="options" role="group" aria-label="Answer choices"></div>
+        <div id="feedback"></div>
+        <div class="btn-row">
+          <button class="btn" type="button" id="check" hidden>Check answer</button>
+          <button class="btn" type="button" id="next" hidden>Next question</button>
+          <button class="btn quiet" type="button" id="quit">End quiz</button>
+        </div>
+        <p class="muted" style="margin-top:14px;font-size:0.9rem">Keys: a choice's letter or number to choose, <span class="kbd">Enter</span> to check or go on.</p>
+      </div>
+    </div>
+
+    <div id="results" hidden>
+      <div class="qcard">
+        <h1 id="r-title">Quiz complete</h1>
+        <p class="score-big" id="r-score"></p>
+        <p class="muted" id="r-sub"></p>
+        <div class="btn-row" style="margin:18px 0 30px">
+          <button class="btn" type="button" id="retry-missed">Retry the ones I missed</button>
+          <button class="btn secondary" type="button" id="again">New quiz on this topic</button>
+          <button class="btn quiet" type="button" id="back">All topics</button>
+          <a class="btn quiet" id="to-read" href="read.html">Reread this section</a>
+        </div>
+        <div id="review"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="data/bank.js?v=20261118a"></script>
+  <script>
+  (function () {
+    const S = window.Study;
+    const BANK = window.QUIZ_BANK;
+    const el = id => document.getElementById(id);
+    const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+
+    let topic = null, list = [], idx = 0, order = [], answered = false, picked = new Set(), results = [];
+
+    function bestMap() { return S.store.get('quizBest', {}); }
+
+    function buildPicker() {
+      const best = bestMap();
+      const rows = S.TOPIC_ORDER.map(t => {
+        const n = BANK.filter(q => q.topic === t).length;
+        const b = best[t];
+        return '<li><button type="button" data-topic="' + t + '"><span class="t-name">' + S.esc(S.TOPICS[t]) + '</span>' +
+          '<span class="t-count">' + n + ' questions</span>' +
+          '<span class="t-best">' + (b ? 'Best ' + b.pct + '%' : 'Not tried') + '</span></button></li>';
+      });
+      const bm = best.mixed;
+      rows.push('<li><button type="button" data-topic="mixed"><span class="t-name">Mixed: every topic</span>' +
+        '<span class="t-count">' + BANK.length + ' questions</span>' +
+        '<span class="t-best">' + (bm ? 'Best ' + bm.pct + '%' : 'Not tried') + '</span></button></li>');
+      el('topic-list').innerHTML = rows.join('');
+      el('topic-list').querySelectorAll('button').forEach(b => b.addEventListener('click', () => start(b.dataset.topic)));
+    }
+
+    function start(t, questions) {
+      topic = t;
+      if (questions) list = questions;
+      else {
+        const pool = t === 'mixed' ? BANK : BANK.filter(q => q.topic === t);
+        const len = el('length').value === 'all' ? pool.length : Math.min(t === 'mixed' ? 20 : 10, pool.length);
+        list = S.shuffle(pool).slice(0, len);
+      }
+      idx = 0; results = [];
+      el('picker').hidden = true; el('results').hidden = true; el('runner').hidden = false;
+      show();
+      window.scrollTo(0, 0);
+    }
+
+    function show() {
+      const q = list[idx];
+      order = S.optionOrder(q);
+      answered = false; picked = new Set();
+      el('bar').style.width = (100 * idx / list.length) + '%';
+      el('q-pos').textContent = 'Question ' + (idx + 1) + ' of ' + list.length;
+      el('q-topic').textContent = S.TOPICS[q.topic];
+      el('q-kind').textContent = S.KIND_LABEL[q.kind];
+      el('stem').innerHTML = S.stemHTML(q);
+      const multi = S.isMulti(q);
+      el('options').setAttribute('role', multi ? 'group' : 'radiogroup');
+      el('options').innerHTML = order.map((oi, k) =>
+        '<button class="option' + (multi ? ' multi' : '') + '" type="button" role="' + (multi ? 'checkbox' : 'radio') + '" aria-checked="false" data-k="' + k + '"><span class="letter">' + LETTERS[k] + '</span><span>' + S.md(q.options[oi]) + '</span></button>').join('');
+      el('options').querySelectorAll('.option').forEach(b => b.addEventListener('click', () => choose(Number(b.dataset.k))));
+      el('feedback').innerHTML = '';
+      el('next').hidden = true;
+      el('check').hidden = !multi;
+      el('check').disabled = true;
+    }
+
+    function choose(k) {
+      if (answered || k >= order.length) return;
+      const q = list[idx];
+      if (!S.isMulti(q)) { picked = new Set([k]); answer(); return; }
+      if (picked.has(k)) picked.delete(k); else picked.add(k);
+      el('options').querySelectorAll('.option').forEach((b, j) => b.setAttribute('aria-checked', String(picked.has(j))));
+      el('check').disabled = picked.size === 0;
+    }
+
+    function answer() {
+      if (answered || !picked.size) return;
+      answered = true;
+      const q = list[idx], multi = S.isMulti(q);
+      const chosen = multi ? Array.from(picked).map(k => order[k]) : order[Array.from(picked)[0]];
+      const ok = S.isCorrect(q, chosen);
+      results.push({ q: q, chosen: chosen, ok: ok });
+      const btns = el('options').querySelectorAll('.option');
+      btns.forEach((b, j) => {
+        b.disabled = true;
+        const right = S.isRightOption(q, order[j]);
+        if (right && picked.has(j)) b.classList.add('correct');
+        else if (right) b.classList.add(multi ? 'missed' : 'correct');
+        else if (picked.has(j)) b.classList.add('wrong');
+        if (q.explain) b.lastElementChild.insertAdjacentHTML('beforeend', '<span class="opt-why">' + S.md(q.explain[order[j]]) + '</span>');
+      });
+      const letters = order.map((oi, j) => S.isRightOption(q, oi) ? LETTERS[j] : null).filter(Boolean);
+      const head = ok ? 'Correct.' : multi
+        ? 'Not quite. The correct set is ' + letters.join(', ') + '.'
+        : 'Not quite. The answer is ' + letters[0] + '.';
+      el('feedback').innerHTML = '<div class="feedback ' + (ok ? 'ok' : 'no') + '" role="status"><strong>' + head + '</strong>' + S.md(q.why) + '</div>' + S.extrasHTML(q);
+      el('check').hidden = true;
+      el('next').hidden = false;
+      el('next').textContent = idx === list.length - 1 ? 'See results' : 'Next question';
+      el('next').focus();
+    }
+
+    function next() {
+      if (!answered) return;
+      if (idx < list.length - 1) { idx++; show(); window.scrollTo(0, 0); }
+      else finish();
+    }
+
+    function finish() {
+      el('runner').hidden = true; el('results').hidden = false;
+      const score = results.filter(r => r.ok).length;
+      const pct = Math.round(100 * score / results.length);
+      el('r-score').textContent = score + ' / ' + results.length;
+      el('r-title').textContent = (topic === 'mixed' ? 'Mixed quiz' : S.TOPICS[topic]) + ' complete';
+      el('to-read').hidden = topic === 'mixed'; el('to-read').href = 'read.html#' + topic;
+      el('r-sub').textContent = pct + '%' + (pct >= 80 ? '. Solid. Move on to the next section.' : '. Reread this section, then retry the ones you missed.');
+      const best = bestMap();
+      if (!best[topic] || pct > best[topic].pct) { best[topic] = { score: score, total: results.length, pct: pct }; S.store.set('quizBest', best); }
+      const missed = results.filter(r => !r.ok);
+      el('retry-missed').hidden = missed.length === 0;
+      el('review').innerHTML = missed.length
+        ? '<h2>Review what you missed</h2>' + missed.map(r =>
+            '<div class="exam-q">' + S.stemHTML(r.q) +
+            '<p><strong>Your answer:</strong><br>' + S.answerText(r.q, r.chosen) + '</p><p><strong>Correct:</strong><br>' + S.answerText(r.q, r.q.answer) + '</p>' +
+            (r.q.explain ? '<ul class="why-list">' + r.q.options.map((o, i) => '<li>' + S.md(o) + ': ' + S.md(r.q.explain[i]) + '</li>').join('') + '</ul>' : '') +
+            '<div class="feedback ok">' + S.md(r.q.why) + '</div>' + S.extrasHTML(r.q) + '</div>').join('')
+        : '<p>No misses. Nice work.</p>';
+      window.scrollTo(0, 0);
+    }
+
+    el('check').addEventListener('click', answer);
+    el('next').addEventListener('click', next);
+    el('quit').addEventListener('click', () => { if (results.length) finish(); else back(); });
+    function back() { el('runner').hidden = true; el('results').hidden = true; el('picker').hidden = false; buildPicker(); window.scrollTo(0, 0); }
+    el('back').addEventListener('click', back);
+    el('again').addEventListener('click', () => start(topic));
+    el('retry-missed').addEventListener('click', () => start(topic, S.shuffle(results.filter(r => !r.ok).map(r => r.q))));
+
+    document.addEventListener('keydown', e => {
+      if (el('runner').hidden) return;
+      if (e.target.closest && e.target.closest('select, input')) return;
+      const key = e.key.toUpperCase();
+      const k = LETTERS.indexOf(key) >= 0 ? LETTERS.indexOf(key) : ['1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(e.key);
+      if (k >= 0 && !answered) { e.preventDefault(); choose(k); }
+      else if (e.key === 'Enter') {
+        if (!answered && picked.size) { e.preventDefault(); answer(); }
+        else if (answered && document.activeElement !== el('next')) { e.preventDefault(); next(); }
+      }
+    });
+
+    el('n-total').textContent = BANK.length;
+    buildPicker();
+    const params = new URLSearchParams(window.location.search);
+    const want = params.get('topic');
+    if (want && (want === 'mixed' || S.TOPICS[want])) {
+      if (params.get('all')) el('length').value = 'all';
+      start(want);
+    }
+  })();
+  </script>
+</body>
+</html>

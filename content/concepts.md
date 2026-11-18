@@ -1,4 +1,6 @@
 title: Big ideas
+source: Lecture 09 · textbook 3.1
+lead: MPI runs one program as several processes, each with its own private memory. Nothing is shared, so data only moves when one process sends a message and another receives it.
 
 - Shared memory versus distributed memory:
     - **shared memory**: all threads see the same variables (pthreads works this way)

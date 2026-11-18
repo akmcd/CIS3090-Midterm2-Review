@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Short answers — CIS*3090 Midterm 2 Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%23a8378a'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%230e8570'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%2318212b'/%3E%3C/svg%3E">
+</head>
+<body data-page="short">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head">
+      <h1>Short answers</h1>
+      <p>Code-reading and explain-why prompts for lectures 09 to 17. Write or say your answer first, then open the model answer and check you hit the same points. Wording does not need to match. Answers marked "run" were checked by compiling and running the code.</p>
+    </div>
+
+    <div class="review-bar">
+      <div><strong id="done-count">0</strong> <span class="muted">prompts done</span>
+        <div class="fc-progress" aria-hidden="true"><span id="done-bar"></span></div></div>
+      <div class="btn-row">
+        <a class="btn" href="exam.html">Take the practice exam</a>
+        <a class="btn secondary" href="read.html#cheat">Cheat sheet</a>
+      </div>
+    </div>
+    <p class="muted review-note">Model answers are written from the lecture slides and the course code. Aim for two to four sentences each.</p>
+
+    <div class="reading">
+      <nav class="toc" aria-label="Parts"><ol id="toc"></ol></nav>
+      <article class="article k3" id="list"></article>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="data/short.js?v=20261118a"></script>
+  <script>
+  (function () {
+    const S = window.Study;
+    const R = window.SHORT_BANK;
+    const PARTS = [{"id":"p1","title":"MPI (lectures 09 to 11)","topics":["concepts","method","sendrecv","collectives","trapezoid"]},{"id":"p2","title":"Distributed-memory case studies (12, 13)","topics":["odd_even","heat"]},{"id":"p3","title":"Performance (14)","topics":["performance"]},{"id":"p4","title":"GPUs and images (15 to 17)","topics":["gpgpu","imaging","filters"]}];
+
+    document.getElementById('toc').innerHTML = PARTS.map(p => '<li><a href="#' + p.id + '">' + S.esc(p.title) + '</a></li>').join('');
+    let n = 0;
+    document.getElementById('list').innerHTML = PARTS.map(p =>
+      '<section id="' + p.id + '"><h2>' + S.esc(p.title) + '</h2>' +
+      R.filter(r => p.topics.indexOf(r.topic) >= 0).map(r => {
+        n++;
+        return '<div class="ex" data-ex="' + r.id + '">' +
+          '<div class="ex-head"><span class="ex-num">' + n + '</span>' + (r.qhtml ? '<div class="ex-topic ex-q">' + r.qhtml + '</div>' : '<span class="ex-topic">' + S.md(r.q) + '</span>') +
+          '<label class="ex-done"><input type="checkbox"> Done</label></div>' +
+          '<details><summary>Show model answer</summary>' + r.answer +
+          '<p class="muted"><a href="read.html#' + r.topic + '">Reread: ' + S.esc(S.TOPICS[r.topic]) + '</a></p>' +
+          '</details></div>';
+      }).join('') + '</section>').join('');
+
+    const exs = Array.from(document.querySelectorAll('.ex'));
+    let done = new Set(S.store.get('shortDone', []));
+    function update() {
+      exs.forEach(ex => { const on = done.has(ex.dataset.ex); ex.classList.toggle('is-done', on); ex.querySelector('.ex-done input').checked = on; });
+      const k = exs.filter(ex => done.has(ex.dataset.ex)).length;
+      document.getElementById('done-count').textContent = k + ' of ' + exs.length;
+      document.getElementById('done-bar').style.width = (100 * k / exs.length) + '%';
+    }
+    exs.forEach(ex => ex.querySelector('.ex-done input').addEventListener('change', e => {
+      if (e.target.checked) done.add(ex.dataset.ex); else done.delete(ex.dataset.ex);
+      S.store.set('shortDone', Array.from(done)); update();
+    }));
+    update();
+  })();
+  </script>
+</body>
+</html>

@@ -1,33 +1,29 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>heatDiffusionMpi.c | CIS*3090 midterm 2</title>
-<meta name="description" content="The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>heatDiffusionMpi.c — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-heat_code">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html">Learn</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
-<nav class="pagelist" aria-label="Code pages"><p class="gl">Code</p><a href="hello.html">1. mpi_hello.c</a><a href="hello2.html">2. mpi_hello2.c</a><a href="trap_sendrecv.html">3. mpi_SendRec.c</a><a href="trap_bcast.html">4. mpi_Bcast.c</a><a href="heat_code.html" aria-current="page">5. heatDiffusionMpi.c</a><a href="pitfalls.html">6. Hangs and mix-ups</a></nav><details class="mobilenav"><summary>Code: heatDiffusionMpi.c</summary><nav aria-label="Code pages"><a href="hello.html">1. mpi_hello.c</a><a href="hello2.html">2. mpi_hello2.c</a><a href="trap_sendrecv.html">3. mpi_SendRec.c</a><a href="trap_bcast.html">4. mpi_Bcast.c</a><a href="heat_code.html" aria-current="page">5. heatDiffusionMpi.c</a><a href="pitfalls.html">6. Hangs and mix-ups</a></nav></details>
-<main id="main">
-<h1>heatDiffusionMpi.c</h1>
-<p class="lede">The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank.</p>
-<ul>
-<li class="sec">How to read this program:<ul>
+<body data-page="code">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head"><h1>heatDiffusionMpi.c</h1><p>The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank.</p></div>
+    <nav class="chip-row subnav" aria-label="Pages in this part"><a class="chip" href="code.html">All code</a><a class="chip" href="hello.html">mpi_hello.c</a><a class="chip" href="hello2.html">mpi_hello2.c</a><a class="chip" href="trap_sendrecv.html">mpi_SendRec.c</a><a class="chip" href="trap_bcast.html">mpi_Bcast.c</a><a class="chip" href="heat_code.html" aria-current="page">heatDiffusionMpi.c</a><a class="chip" href="pitfalls.html">Hangs and mix-ups</a><a class="chip" href="trace.html">Trapezoid trace</a></nav>
+    <div class="k3 page-body">
+<ul class="notes"><li>How to read this program:<ul>
 <li>Pick a rank to see what it runs. Almost every line is run by every rank: only the frame write is rank 0 only</li>
 <li>Press Next step to follow one iteration: the halo exchange, the Allreduce and the Gatherv</li>
 <li>Change the number of processes and watch how many rows cross between ranks</li>
 <li>The rank lens cannot show it, but the partners differ: rank 0 and the last rank talk to <code>MPI_PROC_NULL</code> on one side</li>
 </ul>
-</li>
-</ul>
+</li></ul>
 <section class="walk" id="walk-heat" data-example="heat" aria-label="heatDiffusionMpi.c, rank by rank">
 <script type="application/json">{"example": "heat", "refs": {"up": [164, 165, 166], "down": [167, 168, 169], "compute": [175, 176, 178, 182, 183, 186], "allreduce": [194], "swap": [199, 200, 201], "gatherv": [208, 209, 210], "write": [212, 213], "done": [219, 220, 224]}, "summaries": {"all": "Every rank runs the same loop: refresh both ghost rows, compute its own rows, Allreduce the largest change, sometimes Gatherv a frame to rank 0, then decide to stop.", "zero": "Rank 0 owns the top band. Its up-exchange is with MPI_PROC_NULL, so only the down-exchange moves data. It also receives the Gatherv and writes the frames.", "worker": "Rank {r} swaps rows with rank {r} - 1 above it and with the rank below it (MPI_PROC_NULL if it is the last rank), computes its band, and joins the Allreduce and Gatherv."}, "p": 4}</script>
 <div class="walkbar">
@@ -36,7 +32,7 @@
 </div>
 <div class="walkbody">
 <div class="codecol">
-<div class="codehead"><span class="fname">heatDiffusionMpi.c</span><label class="notes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label></div>
+<div class="codehead"><span class="fname">heatDiffusionMpi.c</span><label class="linenotes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label></div>
 <p class="codehelp">Press the <b>i</b> button on a line to read its note.</p>
 <div class="listing" role="region" aria-label="heatDiffusionMpi.c" tabindex="0">
 <div class="ln" data-line="101" data-who="all"><span class="no">101</span><code class="tx"><span class="w">    </span><span class="c1">// row-strip decomposition over updatable rows [1, n-2]</span></code></div>
@@ -181,9 +177,8 @@
 </aside>
 </div>
 </section>
-<ul>
-<li class="sec">
-<p>Things to notice:</p>
+<ul class="notes"><li>
+Things to notice:
 <ul>
 <li>Lines 164 and 167 are the whole halo exchange. There is no <code>if</code> around them, because <code>MPI_PROC_NULL</code> handles the ends</li>
 <li>The exchange is the first thing in the loop, so the ghost rows are fresh before any cell reads them</li>
@@ -191,21 +186,16 @@
 <li>The <code>if</code> on line 207 is evaluated identically on every rank, so <code>MPI_Gatherv</code> is always called by everyone</li>
 <li>Line 211 is the only rank branch inside the loop</li>
 </ul>
-</li>
-<li class="sec">
-<p>Trip-ups in the course file:</p>
+</li><li>
+Trip-ups in the course file:
 <ul>
 <li>The comment at the top says "Shared-memory (Pthreads) implementation". It was copied from the pthreads file, this one is MPI</li>
 <li>The build line in the comment puts <code>-lm</code> before the source file. On Ubuntu with gcc that link fails ("DSO missing from command line", tested with MPICH and Open MPI), so use the order from the slides: <code>... heatDiffusionMpi.c -lm</code></li>
 <li>The variable names are camelCase (<code>myRows</code>, <code>rowStart</code>), the slides use snake_case (<code>my_rows</code>, <code>row_start</code>). Same variables</li>
 <li><code>textFrames</code> writes <code>roundf(9 * value)</code>, which is how the slides get the 0 to 9 grids</li>
-</ul>
-</li>
-</ul>
-<figure class="run"><figcaption>Real run on 4 ranks, the slides&#x27; toy grid (Open MPI)</figcaption><pre><code><span class="cmd">$ mpirun -np 4 ./heatDiffusionMpi 16 6 1e-4 50000 1 frames txt</span>
+<li class="blk"><figure class="run"><figcaption>Real run on 4 ranks, the slides&#x27; toy grid (Open MPI)</figcaption><pre><code><span class="cmd">$ mpirun -np 4 ./heatDiffusionMpi 16 6 1e-4 50000 1 frames txt</span>
 N=16 ranks=4 K=6 eps=0.0001 -&gt; 69 iterations, 0.006 sec, 70 frames -&gt; frames/
-compute=0.000 comm=0.000 allreduce=0.000 output=0.006</code></pre></figure>
-<figure class="run"><figcaption>Frame 9 (the grid as iteration 10 begins, slide 37)</figcaption><pre><code>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+compute=0.000 comm=0.000 allreduce=0.000 output=0.006</code></pre></figure></li><li class="blk"><figure class="run"><figcaption>Frame 9 (the grid as iteration 10 begins, slide 37)</figcaption><pre><code>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0
 0 0 0 0 1 1 1 2 2 1 1 1 0 0 0 0
 0 0 0 1 2 3 3 3 3 3 3 2 1 0 0 0
@@ -220,11 +210,8 @@ compute=0.000 comm=0.000 allreduce=0.000 output=0.006</code></pre></figure>
 0 0 0 1 2 3 3 3 3 3 3 2 1 0 0 0
 0 0 0 0 1 1 1 2 2 1 1 1 0 0 0 0
 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></pre></figure>
-<ul>
-<li>The decomposition helper (lines 339 to 350):</li>
-</ul>
-<figure class="code"><figcaption>heatDiffusionMpi.c, lines 339 to 350</figcaption><div class="listing static"><div class="ln" data-line="339" data-who="all"><span class="no">339</span><code class="tx"><span class="kt">void</span><span class="w"> </span><span class="nf">buildDecompositionTables</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">commSz</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">updatableRows</span><span class="p">,</span></code></div>
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></pre></figure></li></ul>
+</li><li>The decomposition helper (lines 339 to 350):<ul><li class="blk"><figure class="code"><figcaption>heatDiffusionMpi.c, lines 339 to 350</figcaption><div class="listing static"><div class="ln" data-line="339" data-who="all"><span class="no">339</span><code class="tx"><span class="kt">void</span><span class="w"> </span><span class="nf">buildDecompositionTables</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">commSz</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">updatableRows</span><span class="p">,</span></code></div>
 <div class="ln" data-line="340" data-who="all"><span class="no">340</span><code class="tx"><span class="w">                               </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">rowStartTbl</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">rowCountTbl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
 <div class="ln mark" data-line="341" data-who="all"><span class="no">341</span><code class="tx"><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">updatableRows</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">commSz</span><span class="p">;</span></code></div>
 <div class="ln mark" data-line="342" data-who="all"><span class="no">342</span><code class="tx"><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">rem</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">updatableRows</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">commSz</span><span class="p">;</span></code></div>
@@ -235,19 +222,16 @@ compute=0.000 comm=0.000 allreduce=0.000 output=0.006</code></pre></figure>
 <div class="ln" data-line="347" data-who="all"><span class="no">347</span><code class="tx"><span class="w">        </span><span class="n">rowCountTbl</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rowsForR</span><span class="p">;</span></code></div>
 <div class="ln" data-line="348" data-who="all"><span class="no">348</span><code class="tx"><span class="w">        </span><span class="n">row</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">rowsForR</span><span class="p">;</span></code></div>
 <div class="ln" data-line="349" data-who="all"><span class="no">349</span><code class="tx"><span class="w">    </span><span class="p">}</span></code></div>
-<div class="ln" data-line="350" data-who="all"><span class="no">350</span><code class="tx"><span class="p">}</span></code></div></div></figure>
-<ul>
-<li class="sec">Reading the helper:<ul>
+<div class="ln" data-line="350" data-who="all"><span class="no">350</span><code class="tx"><span class="p">}</span></code></div></div></figure></li></ul></li><li>Reading the helper:<ul>
 <li><code>base</code> and <code>rem</code> are computed once, then each rank r gets <code>base</code> rows plus one if <code>r &lt; rem</code></li>
 <li><code>row</code> starts at 1, because global row 0 is the fixed top edge</li>
 <li>Every rank fills the table for every rank, not just its own entry</li>
 </ul>
-</li>
-</ul>
-<nav class="pager" aria-label="Previous and next page"><a class="prev" href="trap_bcast.html"><span>Previous</span>mpi_Bcast.c</a><a class="next" href="pitfalls.html"><span>Next</span>Hangs and mix-ups</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+</li></ul>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
 </body>
 </html>

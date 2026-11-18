@@ -1,38 +1,34 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Collective functions | CIS*3090 midterm 2</title>
-<meta name="description" content="MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather and more.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collective functions — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather, MPI_Gatherv and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-ref_coll">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
-<nav class="pagelist" aria-label="MPI reference pages"><p class="gl">MPI reference</p><a href="ref_index.html">1. Find a function</a><a href="ref_start.html">2. Setup and shutdown</a><a href="ref_p2p.html">3. Send and receive functions</a><a href="ref_coll.html" aria-current="page">4. Collective functions</a><a href="ref_types.html">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav><details class="mobilenav"><summary>MPI reference: Collective functions</summary><nav aria-label="MPI reference pages"><a href="ref_index.html">1. Find a function</a><a href="ref_start.html">2. Setup and shutdown</a><a href="ref_p2p.html">3. Send and receive functions</a><a href="ref_coll.html" aria-current="page">4. Collective functions</a><a href="ref_types.html">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav></details>
-<main id="main">
-<h1>Collective functions</h1>
-<p class="lede">MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather and more.</p>
-<ul>
-<li class="sec">What makes a call collective:<ul>
+<body data-page="ref">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head"><h1>Collective functions</h1><p>MPI_Bcast, MPI_Reduce, MPI_Allreduce, MPI_Scatter, MPI_Gather, MPI_Gatherv and more.</p></div>
+    <nav class="chip-row subnav" aria-label="Pages in this part"><a class="chip" href="ref_index.html">Find a function</a><a class="chip" href="ref_start.html">Setup and shutdown</a><a class="chip" href="ref_p2p.html">Send and receive</a><a class="chip" href="ref_coll.html" aria-current="page">Collectives</a><a class="chip" href="ref_types.html">Datatypes and operators</a></nav>
+    <div class="k3 page-body">
+<ul class="notes"><li>What makes a call collective:<ul>
 <li>Every process in the communicator must make the call</li>
 <li>The arguments must be compatible on every process, for example the same root rank</li>
 <li>There are no tags, so calls match by communicator and by the order they are made</li>
 <li>Output arguments must not be the same variable as input arguments (aliasing is illegal)</li>
 <li>Matching a collective on one process with a <code>MPI_Recv</code> on another is an error</li>
-<li>The Collective communication page explains this with a lab</li>
+<li><a href="read.html#collectives">Collective communication</a> on the Read page explains this with a lab</li>
 </ul>
-</li>
-</ul>
+</li></ul>
 <section class="fn" id="MPI_Bcast"><header class="fn-head"><h2>MPI_Bcast</h2><p>Copies data from one process to every other process.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Bcast</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
 <span class="w">              </span><span class="kt">int</span><span class="w"> </span><span class="n">source_proc</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -69,7 +65,7 @@
 </ul></div></section>
 <section class="fn" id="MPI_Reduce"><header class="fn-head"><h2>MPI_Reduce</h2><p>Combines one value from every process into a single result on one process.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Reduce</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">input_data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">output_data_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span>
 <span class="w">               </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Op</span><span class="w"> </span><span class="n">operator</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -124,7 +120,7 @@
 <section class="fn" id="MPI_Scatter"><header class="fn-head"><h2>MPI_Scatter</h2><p>Splits an array on one process and gives each process a different chunk.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Scatter</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span>
 <span class="w">                </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span>
 <span class="w">                </span><span class="kt">int</span><span class="w"> </span><span class="n">src_proc</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -171,7 +167,7 @@
 <section class="fn" id="MPI_Gatherv"><header class="fn-head"><h2>MPI_Gatherv</h2><p>Like <code>MPI_Gather</code>, but each process may send a different number of elements.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Gatherv</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span>
 <span class="w">                </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_counts</span><span class="p">[],</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">displs</span><span class="p">[],</span>
 <span class="w">                </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">dest_proc</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -212,10 +208,10 @@
 <li>It is mostly used for timing and for ordering output while debugging</li>
 <li><code>heatDiffusionMpi.c</code> line 155 uses it once, just before starting the clock, so all ranks start timing together</li>
 </ul></div></section>
-<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_p2p.html"><span>Previous</span>Send and receive functions</a><a class="next" href="ref_types.html"><span>Next</span>Datatypes and operators</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
 </body>
 </html>

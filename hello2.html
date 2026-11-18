@@ -1,32 +1,28 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mpi_hello2.c | CIS*3090 midterm 2</title>
-<meta name="description" content="The same idea with wildcard receives and the status object.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mpi_hello2.c — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="The same idea with wildcard receives and the status object.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-hello2">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html">Learn</a><a href="hello.html" aria-current="true">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
-<nav class="pagelist" aria-label="Code pages"><p class="gl">Code</p><a href="hello.html">1. mpi_hello.c</a><a href="hello2.html" aria-current="page">2. mpi_hello2.c</a><a href="trap_sendrecv.html">3. mpi_SendRec.c</a><a href="trap_bcast.html">4. mpi_Bcast.c</a><a href="heat_code.html">5. heatDiffusionMpi.c</a><a href="pitfalls.html">6. Hangs and mix-ups</a></nav><details class="mobilenav"><summary>Code: mpi_hello2.c</summary><nav aria-label="Code pages"><a href="hello.html">1. mpi_hello.c</a><a href="hello2.html" aria-current="page">2. mpi_hello2.c</a><a href="trap_sendrecv.html">3. mpi_SendRec.c</a><a href="trap_bcast.html">4. mpi_Bcast.c</a><a href="heat_code.html">5. heatDiffusionMpi.c</a><a href="pitfalls.html">6. Hangs and mix-ups</a></nav></details>
-<main id="main">
-<h1>mpi_hello2.c</h1>
-<p class="lede">The same idea with wildcard receives and the status object.</p>
-<ul>
-<li class="sec">What changed from mpi_hello.c:<ul>
+<body data-page="code">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head"><h1>mpi_hello2.c</h1><p>The same idea with wildcard receives and the status object.</p></div>
+    <nav class="chip-row subnav" aria-label="Pages in this part"><a class="chip" href="code.html">All code</a><a class="chip" href="hello.html">mpi_hello.c</a><a class="chip" href="hello2.html" aria-current="page">mpi_hello2.c</a><a class="chip" href="trap_sendrecv.html">mpi_SendRec.c</a><a class="chip" href="trap_bcast.html">mpi_Bcast.c</a><a class="chip" href="heat_code.html">heatDiffusionMpi.c</a><a class="chip" href="pitfalls.html">Hangs and mix-ups</a><a class="chip" href="trace.html">Trapezoid trace</a></nav>
+    <div class="k3 page-body">
+<ul class="notes"><li>What changed from mpi_hello.c:<ul>
 <li>Each sender picks a random tag</li>
-<li><span class="chip r0">rank 0</span> receives with wildcards, then asks the <code>status</code> object who sent it, which tag it had, and how many elements arrived</li>
+<li><span class="rchip r0">rank 0</span> receives with wildcards, then asks the <code>status</code> object who sent it, which tag it had, and how many elements arrived</li>
 <li>Textbook reference: 3.1.9 and 3.1.10 (message matching and the status argument)</li>
 </ul>
-</li>
-</ul>
+</li></ul>
 <section class="walk" id="walk-hello2" data-example="hello2" aria-label="mpi_hello2.c, rank by rank">
 <script type="application/json">{"example": "hello2", "refs": {"own": [56], "send": [53], "recv": [60], "status": [61, 62, 64]}, "summaries": {"all": "Same shape as mpi_hello.c. The difference is how rank 0 receives.", "zero": "Rank 0 prints its own greeting, then makes {m} wildcard receive(s). Whichever worker's message arrives first is handled first.", "worker": "Rank {r} sends one greeting to rank 0 using a tag taken from rand() % 50."}, "p": 4}</script>
 <div class="walkbar">
@@ -35,7 +31,7 @@
 </div>
 <div class="walkbody">
 <div class="codecol">
-<div class="codehead"><span class="fname">mpi_hello2.c</span><label class="notes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label></div>
+<div class="codehead"><span class="fname">mpi_hello2.c</span><label class="linenotes-toggle"><input type="checkbox" class="allnotes"> Show all line notes</label></div>
 <p class="codehelp">Press the <b>i</b> button on a line to read its note.</p>
 <div class="listing" role="region" aria-label="mpi_hello2.c" tabindex="0">
 <div class="ln" data-line="23" data-who="all"><span class="no">23</span><code class="tx"><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span></code></div>
@@ -112,16 +108,14 @@
 </aside>
 </div>
 </section>
-<ul>
-<li class="sec">
-<p>Things to notice as you step through:</p>
+<ul class="notes"><li>
+Things to notice as you step through:
 <ul>
 <li>Step through with 4 processes, then press Shuffle arrival order and step again</li>
 <li>Notice that the code is the same but the order of the messages is not</li>
 </ul>
-</li>
-<li class="sec">
-<p>Output with <code>mpiexec -n 4 ./mpi_hello2</code> (one real run):</p>
+</li><li>
+Output with <code>mpiexec -n 4 ./mpi_hello2</code> (one real run):
 <figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ mpiexec -n 4 ./mpi_hello2</span>
 Greetings from process 0 of 4!
 Received a message from process 1 with tag 33: 31 elements
@@ -135,35 +129,31 @@ Greetings from process 3 of 4!</code></pre></figure>
 <li>The order of the three "Received" blocks can change between runs, because <code>MPI_ANY_SOURCE</code> takes whoever arrives first</li>
 <li>Each block is one receive, so the info line and the greeting always stay together</li>
 </ul>
-</li>
-<li class="sec">
-<p>Why the count is 31:</p>
+</li><li>
+Why the count is 31:
 <ul>
 <li>The text is "Greetings from process 1 of 4!" which is 30 characters</li>
 <li>Plus the <code>'\0'</code> sent by <code>strlen(greeting)+1</code> makes 31 elements</li>
 <li>For rank 10 of 12 the text is 32 characters, so the count would be 33</li>
 </ul>
-</li>
-<li class="sec">
-<p>Why this program needs <code>status</code>:</p>
+</li><li>
+Why this program needs <code>status</code>:
 <ul>
 <li>With wildcards, the receiver does not know who sent the message, which tag it had, or how long it was</li>
 <li><strong>status</strong> is how it finds out</li>
 <li>Count is not a field of the status, because it depends on the datatype, so <code>MPI_Get_count</code> computes it</li>
 </ul>
-</li>
-<li class="sec">
-<p>Notes:</p>
+</li><li>
+Notes:
 <ul>
 <li>The comment at the top of the file still says <code>mpi_hello.c</code>, and the makefile does not build this program</li>
 <li>Compile it yourself with <code>mpicc -std=c99 -Wall -o mpi_hello2 mpi_hello2.c</code></li>
 </ul>
-</li>
-</ul>
-<nav class="pager" aria-label="Previous and next page"><a class="prev" href="hello.html"><span>Previous</span>mpi_hello.c</a><a class="next" href="trap_sendrecv.html"><span>Next</span>mpi_SendRec.c</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+</li></ul>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
 </body>
 </html>

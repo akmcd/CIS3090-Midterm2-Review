@@ -1,4 +1,6 @@
 title: Parallel hardware and performance
+source: Lecture 14 · textbook 2.3, 2.6.1 to 2.6.2
+lead: A map of parallel hardware, then the numbers that say whether parallelism paid off: speedup, efficiency, and Amdahl's law, which caps speedup by the part that stays serial.
 
 - What lecture 14 is about:
     - Part 1: a map of parallel hardware, so you can name what kind of machine you are on
@@ -66,6 +68,11 @@ title: Parallel hardware and performance
 | E | 1 | 0.95 | 0.9 | 0.81 | 0.675 |
 
 - Reading the efficiency table:
+
+    ::: warn Exam trap
+    - Speedup going up does not mean efficiency goes up. Here S keeps rising while E keeps falling
+    :::
+
     - S keeps rising but E keeps falling
     - Each extra processor helps, but less than the one before
     - Example: 6.5 / 8 = 0.8125, which the lecture rounds to 0.81
@@ -83,14 +90,16 @@ title: Parallel hardware and performance
     - As p grows without limit, `parallel_fraction / p` goes to 0, so S approaches `1 / serial_fraction`
 
 - Amdahl worked example (lecture):
-    - `T_serial = 20` s and 90% can be parallelized perfectly
+
+    ::: eg 90% parallel, T_serial = 20 s
     - Parallel part: `0.9 x 20 / p = 18 / p` s. Serial part: `0.1 x 20 = 2` s, whatever p is
     - `T_parallel = 18/p + 2`, so `S = 20 / (18/p + 2) = 1 / (0.9/p + 0.1)`
 
-| p | 1 | 2 | 4 | 8 | 16 |
-|---|---|---|---|---|---|
-| S | 1 | 1.82 | 3.08 | 4.71 | 6.4 |
-| E | 1 | 0.91 | 0.77 | 0.59 | 0.40 |
+    | p | 1 | 2 | 4 | 8 | 16 |
+    |---|---|---|---|---|---|
+    | S | 1 | 1.82 | 3.08 | 4.71 | 6.4 |
+    | E | 1 | 0.91 | 0.77 | 0.59 | 0.40 |
+    :::
 
 - About that table:
     - The lecture shows 3.07 and 4.7, it cuts the decimals off. 1 / (0.225 + 0.1) = 3.077, so 3.08 when rounded
@@ -116,6 +125,9 @@ title: Parallel hardware and performance
 :::
 
 - Quick calculation drill:
+
+    ::: eg Try these by hand first
     - 80% parallel, p = 8: `1 / (0.8/8 + 0.2) = 1 / 0.3 = 3.33`, E = 3.33 / 8 = 0.42
     - 80% parallel, p as large as you like: `1 / 0.2 = 5`
     - Measured `T_serial = 12` s, `T_parallel = 4` s on 4 cores: S = 3, E = 0.75
+    :::

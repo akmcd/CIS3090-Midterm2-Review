@@ -1,0 +1,2171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Read — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="Notes for every lecture from 09 to 17.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
+</head>
+<body data-page="read">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head">
+      <h1>Read</h1>
+      <p>Lectures 09 to 17, rebuilt from the slides as 11 sections (about 2 hours of reading). Each section opens with the idea in plain words, then the notes. Amber boxes are worked examples to redo by hand, red boxes are exam traps, and the blue-edged panels are labs you can play with. The full programs, with a rank picker, are on the <a href="code.html">Code</a> pages.</p>
+      <div class="btn-row notes-bar">
+        <button class="btn quiet" type="button" id="collapse-all">Collapse all subsections</button>
+        <button class="btn quiet" type="button" id="expand-all">Expand all</button>
+        <span class="muted">Click any subsection title to fold it.</span>
+      </div>
+    </div>
+
+    <div class="reading">
+      <nav class="toc" aria-label="Sections">
+        <ol>
+          <li class="toc-h">MPI (lectures 09 to 11)</li>
+          <li><a href="#concepts">1. Distributed memory and MPI</a></li>
+          <li><a href="#method">2. Reading MPI code</a></li>
+          <li><a href="#sendrecv">3. Send and receive</a></li>
+          <li><a href="#collectives">4. Collective communication</a></li>
+          <li><a href="#trapezoid">5. The trapezoidal rule</a></li>
+          <li class="toc-h">Distributed-memory case studies (12, 13)</li>
+          <li><a href="#odd_even">6. Odd-even sort with MPI</a></li>
+          <li><a href="#heat">7. Heat distribution with MPI</a></li>
+          <li class="toc-h">Performance (14)</li>
+          <li><a href="#performance">8. Hardware and performance</a></li>
+          <li class="toc-h">GPUs and images (15 to 17)</li>
+          <li><a href="#gpgpu">9. GPGPU and Warp</a></li>
+          <li><a href="#imaging">10. Image processing basics</a></li>
+          <li><a href="#filters">11. Sharpening and smoothing</a></li>
+          <li class="toc-h">Reference</li><li><a href="#cheat">Cheat sheet</a></li>
+        </ol>
+      </nav>
+
+      <article class="article">
+<!-- ================= 1 ================= -->
+<section id="concepts" class="k3">
+<h2>1. Distributed memory and MPI</h2>
+<p class="source">Lecture 09 · textbook 3.1 · about 5 minutes</p>
+<p class="lead">MPI runs one program as several processes, each with its own private memory. Nothing is shared, so data only moves when one process sends a message and another receives it.</p>
+<ul class="notes"><li>Shared memory versus distributed memory:<ul>
+<li><strong>shared memory</strong>: all threads see the same variables (pthreads works this way)</li>
+<li><strong>distributed memory</strong>: each process has its own private memory, and processes talk over a network</li>
+<li>MPI is built for distributed memory</li>
+<li>The same MPI program also runs on one machine with several cores</li>
+<li>MPI hides whether two processes share a machine or not</li>
+<li class="blk"><figure class="diagram wide">
+<svg viewBox="0 0 660 210" role="img" aria-label="Left: four threads reach one shared memory over a bus. Right: four MPI processes each have their own memory and talk over a network.">
+<text class="dg-title" x="150" y="18" text-anchor="middle">Shared memory (pthreads)</text>
+<g class="dg-line"><path d="M42 62V104M114 62V104M186 62V104M258 62V104M150 126V152"/></g>
+<g><rect class="dg-0" x="14" y="34" width="56" height="28" rx="6"/><text x="42" y="53" text-anchor="middle">thread 0</text>
+<rect class="dg-1" x="86" y="34" width="56" height="28" rx="6"/><text x="114" y="53" text-anchor="middle">thread 1</text>
+<rect class="dg-1" x="158" y="34" width="56" height="28" rx="6"/><text x="186" y="53" text-anchor="middle">thread 2</text>
+<rect class="dg-1" x="230" y="34" width="56" height="28" rx="6"/><text x="258" y="53" text-anchor="middle">thread 3</text></g>
+<rect class="dg-bar" x="14" y="104" width="272" height="22" rx="5"/><text x="150" y="119" text-anchor="middle">bus</text>
+<rect class="dg-mem" x="70" y="152" width="160" height="40" rx="6"/><text x="150" y="176" text-anchor="middle">one memory, seen by all</text>
+<text class="dg-title" x="500" y="18" text-anchor="middle">Distributed memory (MPI)</text>
+<g class="dg-line"><path d="M368 96V140M432 96V140M496 96V140M560 96V140"/><path d="M368 62V70M432 62V70M496 62V70M560 62V70"/></g>
+<g><rect class="dg-0" x="340" y="34" width="56" height="28" rx="6"/><text x="368" y="53" text-anchor="middle">rank 0</text>
+<rect class="dg-1" x="404" y="34" width="56" height="28" rx="6"/><text x="432" y="53" text-anchor="middle">rank 1</text>
+<rect class="dg-1" x="468" y="34" width="56" height="28" rx="6"/><text x="496" y="53" text-anchor="middle">rank 2</text>
+<rect class="dg-1" x="532" y="34" width="56" height="28" rx="6"/><text x="560" y="53" text-anchor="middle">rank 3</text></g>
+<g><rect class="dg-mem" x="340" y="70" width="56" height="26" rx="6"/><text x="368" y="87" text-anchor="middle">memory</text>
+<rect class="dg-mem" x="404" y="70" width="56" height="26" rx="6"/><text x="432" y="87" text-anchor="middle">memory</text>
+<rect class="dg-mem" x="468" y="70" width="56" height="26" rx="6"/><text x="496" y="87" text-anchor="middle">memory</text>
+<rect class="dg-mem" x="532" y="70" width="56" height="26" rx="6"/><text x="560" y="87" text-anchor="middle">memory</text></g>
+<rect class="dg-bar" x="340" y="140" width="248" height="22" rx="5"/><text x="464" y="155" text-anchor="middle">network</text>
+<text class="dg-note" x="464" y="188" text-anchor="middle">Data moves only when a process sends a message.</text>
+</svg>
+<figcaption>Lecture 09, slides 3 and 4. Threads share variables; MPI processes do not.</figcaption>
+</figure></li></ul>
+</li><li>
+Why communication cost shapes everything:
+<ul>
+<li>Sending data over a network takes time, while threads share data almost instantly</li>
+<li>So MPI pays off when each process computes for a long time between messages</li>
+<li>It fits <strong>data-parallel</strong> problems, where every process does the same work on a different piece of data</li>
+<li>Lecture 09's example is a render farm: each machine renders its own animation frame</li>
+</ul>
+</li><li>
+MPI compared with pthreads (lecture 09):
+<ul>
+<li>pthreads: shared memory, works with threads, built for concurrency, so you do all the parallel computation work by hand</li>
+<li>MPI: distributed memory, works with processes, designed with parallel computation in mind</li>
+</ul>
+</li><li>
+SPMD:
+<ul>
+<li><strong>SPMD</strong> (single program, multiple data): every process runs the same executable</li>
+<li>Different processes do different things by branching on their rank</li>
+<li>The classic shape is <code>if (my_rank != 0) { send } else { receive }</code></li>
+<li>The textbook (3.1.5) points to the if-else in the hello program as what makes it SPMD</li>
+</ul>
+</li><li>
+The calls every MPI program uses:
+<ul>
+<li><code>MPI_Init(NULL, NULL)</code>: starts MPI, must come before any other MPI call</li>
+<li><code>NULL, NULL</code> is fine when the program does not use <code>argc</code> and <code>argv</code></li>
+<li><code>MPI_Comm_size(MPI_COMM_WORLD, &amp;comm_sz)</code>: stores how many processes there are</li>
+<li><code>MPI_Comm_rank(MPI_COMM_WORLD, &amp;my_rank)</code>: stores which process this is, from 0 to <code>comm_sz - 1</code></li>
+<li><code>MPI_Finalize()</code>: shuts MPI down, no MPI calls are allowed after it</li>
+</ul>
+</li><li>
+Two words to know:
+<ul>
+<li><strong>communicator</strong>: a group of processes that can send messages to each other</li>
+<li><code>MPI_COMM_WORLD</code> is the communicator holding every process that <code>mpiexec</code> started</li>
+<li><strong>rank</strong>: a process's number inside a communicator, like a process id that does not depend on the system</li>
+<li>Lecture 09 compares a communicator to a radio channel that processes listen on</li>
+<li>Several communicators let different groups talk without picking up each other's messages</li>
+</ul>
+</li><li>
+Compile and run:
+<ul>
+<li><code>mpicc</code> is a wrapper around the C compiler that adds the MPI library</li>
+<li><code>mpiexec -n 4 ./prog</code> starts 4 processes of <code>prog</code></li>
+<li>Write programs that work for any number of processes, because you do not know the number in advance</li>
+</ul>
+</li><li>
+Naming rule from the textbook (3.1.2):
+<ul>
+<li>Everything MPI defines starts with <code>MPI_</code></li>
+<li>Function names and types have a capital letter right after the underscore</li>
+<li>Constants and macros are all capitals, like <code>MPI_COMM_WORLD</code></li>
+</ul>
+</li><li>
+Input and output:
+<ul>
+<li>Most implementations let only rank 0 read from stdin</li>
+<li>So rank 0 calls <code>scanf</code>, then sends the values to everyone else</li>
+<li>Every process can write to stdout, but the order is nondeterministic and lines can interleave</li>
+<li><strong>nondeterministic</strong>: the result can differ from one run to the next</li>
+<li>To get ordered output, have the other ranks send their text to rank 0, which prints in rank order</li>
+<li><code>mpi_hello.c</code> does exactly this</li>
+<li>Debug prints should include the rank</li>
+</ul>
+</li><li>
+Error codes:
+<ul>
+<li>Most MPI functions return an <code>int</code>, and <code>MPI_SUCCESS</code> means it worked</li>
+<li>The course examples ignore the return values to keep code short</li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=concepts&amp;all=1">Quiz this section (9 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="concepts"> Section done</label></p>
+</section>
+<!-- ================= 2 ================= -->
+<section id="method" class="k3">
+<h2>2. Reading MPI code</h2>
+<p class="source">Built for the code questions on lectures 09 to 11 · about 5 minutes</p>
+<p class="lead">Most MPI exam questions ask what a program prints or whether it hangs. One short routine answers nearly all of them: work out who runs which lines, then pair every send with a receive.</p>
+<ul class="notes"><li>
+Why a routine helps:
+<ul>
+<li>Every code question is the same question in different clothes: what does each rank do, and do the messages line up?</li>
+<li>Doing the same steps in the same order stops you from reading the code top to bottom as if one process ran it</li>
+</ul>
+</li><li>
+Step 1, fix the number of processes:
+<ul>
+<li>Use the number in the question, or pick a small one like 3 or 4</li>
+<li>Write down every rank: 0, 1, 2, and so on</li>
+<li>If the question says "for any number of processes", check p = 1 and p = 2 as well</li>
+</ul>
+</li><li>
+Step 2, split the code by rank:
+<ul>
+<li>Find every <code>if (my_rank ...)</code> and decide which ranks take each branch</li>
+<li>Lines outside any branch run on every rank</li>
+<li>On the code pages, picking a rank in the lens does this for you, so use it to check your own answer</li>
+</ul>
+</li><li>
+Step 3, list the communication each rank makes:
+<ul>
+<li>For each rank, write its calls in order: <code>Send to 0, tag 0</code> or <code>Recv from 1, tag 0</code></li>
+<li>Loops count: a loop <code>for (q = 1; q &lt; comm_sz; q++)</code> on rank 0 is <code>comm_sz - 1</code> calls</li>
+<li>A collective is one call on every rank, so it goes on every rank's list</li>
+</ul>
+</li><li>
+Step 4, match them up:
+<ul>
+<li>A send and a receive match when the communicator, the tag, the source and the destination all agree</li>
+<li>The datatypes must agree too, and the receive count must be at least the send count</li>
+<li>Collectives match by the order they are made, so check that every rank has the same sequence</li>
+<li>Every send needs exactly one receive, and every receive needs exactly one send</li>
+<li>Section 3, Send and receive, has a lab for this step</li>
+</ul>
+</li><li>
+Step 5, ask whether anything waits forever:
+<ul>
+<li>A receive with no matching send waits forever</li>
+<li>Two ranks that both do a blocking send first and then a receive can wait on each other</li>
+<li>A collective that one rank skips leaves the others waiting</li>
+<li><strong>deadlock</strong>: a set of processes each waiting for something only another waiting process could provide</li>
+</ul>
+</li><li>
+Step 6, predict the output:
+<ul>
+<li>Only print statements produce output, so find which ranks reach each <code>printf</code></li>
+<li>If just one rank prints, the order is fixed</li>
+<li>If several ranks print, the order can change from run to run, so say "any order"</li>
+<li>If rank 0 prints what it received in a loop, the order follows the loop (the source it asks for)</li>
+</ul>
+</li><li>
+Try the routine on this program:
+<figure class="snippet"><pre><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>Step 2: rank 1 runs the send, rank 0 runs the receive, and any other rank runs nothing</li>
+<li>Step 3: rank 1 has <code>Send to 0, tag 5</code>, rank 0 has <code>Recv from 1, tag 7</code></li>
+<li>Step 4: the source and destination agree, but the tags (5 and 7) do not</li>
+<li>Step 5: rank 0 waits forever, so the program hangs</li>
+<li><a href="pitfalls.html">Hangs and mix-ups</a> on the Code pages runs this exact program</li>
+</ul>
+</li><li>
+Takeaway:
+<ul>
+<li>Split by rank, list each rank's calls, match them, then look for waits</li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=method&amp;all=1">Quiz this section (7 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="method"> Section done</label></p>
+</section>
+<!-- ================= 3 ================= -->
+<section id="sendrecv" class="k3">
+<h2>3. Send and receive</h2>
+<p class="source">Lecture 09 · textbook 3.1 · about 10 minutes</p>
+<p class="lead">A message only arrives when a send and a receive agree on the communicator, the tag, and who is talking to whom. When they do not, the receiver waits forever.</p>
+<ul class="notes"><li>
+<strong>Point-to-point communication</strong>: one process sends, exactly one process receives
+<ul>
+<li>The two functions are <code>MPI_Send</code> and <code>MPI_Recv</code></li>
+</ul>
+</li><li>
+MPI_Send:
+<ul>
+<li>
+<p>Signature:</p>
+<figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+</li>
+<li>
+<p><code>buf</code>, <code>count</code>, <code>datatype</code> describe the data: where it is, how many elements, what type</p>
+</li>
+<li><code>count</code> is a number of elements, not bytes</li>
+<li><code>dest</code>, <code>tag</code>, <code>comm</code> describe where it goes</li>
+<li><code>tag</code> is a non-negative int that lets a receiver tell kinds of messages apart</li>
+<li>The textbook's example: tag 0 for messages to print, tag 1 for messages used in a computation</li>
+<li><code>MPI_Send(greeting, strlen(greeting)+1, MPI_CHAR, 0, 0, MPI_COMM_WORLD)</code> sends a string to rank 0</li>
+<li>The <code>+1</code> sends the terminating <code>'\0'</code> too</li>
+</ul>
+</li><li>
+MPI_Recv:
+<ul>
+<li>
+<p>Signature:</p>
+<figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Recv</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span>
+<span class="w">             </span><span class="kt">int</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Status</span><span class="o">*</span><span class="w"> </span><span class="n">status</span><span class="p">);</span></code></pre></figure>
+</li>
+<li>
+<p>The first six arguments mirror <code>MPI_Send</code></p>
+</li>
+<li>Here <code>count</code> is how many elements the buffer can hold, not how many arrived</li>
+<li><code>status</code> receives details about the message, or pass <code>MPI_STATUS_IGNORE</code></li>
+<li>The receiver must already know the type, and an upper limit on the size</li>
+</ul>
+</li><li>
+Message matching:
+<ul>
+<li>A send from process q to process r is received by r's <code>MPI_Recv</code> when all of these hold</li>
+<li>Both use the same communicator</li>
+<li>The tags are equal</li>
+<li>r's <code>source</code> is q, and q's <code>dest</code> is r</li>
+<li>The buffers are compatible: same datatype, and the receive count is at least the send count (the textbook's rule of thumb)</li>
+</ul>
+</li><li>
+Try the matching rules:
+<ul>
+<li>Change one thing at a time and see which check fails</li>
+<li>The presets reproduce programs in <code>examples/extras/</code></li>
+<li class="blk"><section class="lab" id="matchlab" aria-label="Send and receive matching lab">
+<div class="labcols">
+<fieldset class="side send"><legend>Rank 1 sends</legend>
+<label>destination<select id="m-dest"><option value="0">rank 0</option><option value="2">rank 2</option><option value="3">rank 3</option></select></label>
+<label>tag<input id="m-stag" type="number" min="0" value="0"></label>
+<label>communicator<select id="m-scomm"><option value="world">MPI_COMM_WORLD</option><option value="other">another communicator</option></select></label>
+<label>datatype<select id="m-stype"><option>MPI_INT</option><option>MPI_DOUBLE</option><option>MPI_CHAR</option></select></label>
+<label>count<input id="m-scount" type="number" min="1" value="1"></label>
+</fieldset>
+<fieldset class="side recv"><legend>Rank 0 receives</legend>
+<label>source<select id="m-src"><option value="1">rank 1</option><option value="2">rank 2</option><option value="any">MPI_ANY_SOURCE</option></select></label>
+<label>tag<input id="m-rtag" type="number" min="0" value="0"></label>
+<label class="chk"><input id="m-anytag" type="checkbox"> use MPI_ANY_TAG</label>
+<label>communicator<select id="m-rcomm"><option value="world">MPI_COMM_WORLD</option><option value="other">another communicator</option></select></label>
+<label>datatype<select id="m-rtype"><option>MPI_INT</option><option>MPI_DOUBLE</option><option>MPI_CHAR</option></select></label>
+<label>count (buffer size)<input id="m-rcount" type="number" min="1" value="1"></label>
+</fieldset>
+</div>
+<pre class="calls" id="m-calls" aria-label="The two calls"></pre>
+<div class="verdict" id="m-verdict" aria-live="polite"></div>
+<ul class="checks" id="m-checks"></ul>
+<div class="presets" role="group" aria-label="Examples">
+<button type="button" data-preset="ok">Everything matches</button>
+<button type="button" data-preset="tag">Different tags (tag_mismatch.c)</button>
+<button type="button" data-preset="small">Buffer too small (recv_small.c)</button>
+<button type="button" data-preset="wild">Wildcards</button>
+</div>
+</section></li></ul>
+</li><li>
+Wildcards (receiver only):
+<ul>
+<li><code>MPI_ANY_SOURCE</code>: accept a message from any sender</li>
+<li><code>MPI_ANY_TAG</code>: accept any tag</li>
+<li>Use <code>MPI_ANY_SOURCE</code> when you do not know which process will finish first</li>
+<li>A sender can never use a wildcard, it must name a rank and a non-negative tag</li>
+<li>The textbook calls this a "push" mechanism, not a "pull"</li>
+<li>There is no wildcard for the communicator</li>
+</ul>
+</li><li>
+Finding out what a wildcard receive got:
+<ul>
+<li><code>status.MPI_SOURCE</code>: the sender's rank</li>
+<li><code>status.MPI_TAG</code>: the tag</li>
+<li><code>MPI_Get_count(&amp;status, MPI_CHAR, &amp;count)</code>: how many elements arrived</li>
+<li>The count is not a struct member because it depends on the datatype, and computing it costs a little</li>
+</ul>
+</li><li>
+Does a send wait?:
+<ul>
+<li><code>MPI_Recv</code> always blocks until a matching message has arrived</li>
+<li><strong>blocking</strong>: the call does not return until it can</li>
+<li><code>MPI_Send</code> depends on the implementation: it may copy the message into a system buffer and return at once, or wait until the receiver is ready</li>
+<li>Implementations usually pick a cutoff size, small messages are buffered and large ones block</li>
+<li>When <code>MPI_Send</code> returns, you only know your send buffer is safe to reuse, not that the message arrived</li>
+<li>Lecture 09 slide 29 calls <code>MPI_Send</code> synchronous, but slide 34 and the textbook say it may buffer or block, so the buffer-or-block answer is the safe one</li>
+<li><code>MPI_Isend</code> and <code>MPI_Irecv</code> are non-blocking versions, and the course does not use them</li>
+</ul>
+</li><li>
+Message order:
+<ul>
+<li>MPI messages are <strong>non-overtaking</strong>: two messages from the same sender to the same receiver arrive in the order they were sent</li>
+<li>Messages from different senders have no guaranteed order</li>
+<li>This is why <code>Get_input</code> can send <code>a</code>, <code>b</code>, <code>n</code> with the same tag and still have them arrive in order</li>
+</ul>
+</li><li>
+Classic pitfalls (all likely exam material):
+<ul>
+<li>A receive with no matching send hangs forever</li>
+<li>A tag or rank mismatch makes the receive hang, or match the wrong send</li>
+<li>A blocking send with no matching receive can hang</li>
+<li>A buffered send with no matching receive loses the message</li>
+<li>The number of sends must equal the number of receives</li>
+<li><code>tag_mismatch.c</code> in <code>examples/extras/</code> shows the hang, and it really does hang when run</li>
+</ul>
+</li><li>
+Checking and fixing an unsafe program:
+<ul>
+<li><strong>unsafe</strong>: it only works if the system happens to buffer the messages</li>
+<li>Test by replacing every <code>MPI_Send</code> with <code>MPI_Ssend</code>, which always waits until the receive has started</li>
+<li>If the program still finishes, it is safe</li>
+<li>Fix one way: even ranks send first and odd ranks receive first</li>
+<li>Fix another way: use <code>MPI_Sendrecv</code>, which schedules the send and receive so they cannot deadlock</li>
+<li><code>head_to_head.c</code> in <code>examples/extras/</code> has two ranks that each <code>MPI_Ssend</code> before receiving, and it hangs</li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=sendrecv&amp;all=1">Quiz this section (9 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="sendrecv"> Section done</label></p>
+</section>
+<!-- ================= 4 ================= -->
+<section id="collectives" class="k3">
+<h2>4. Collective communication</h2>
+<p class="source">Lecture 10 · textbook 3.4 · about 10 minutes</p>
+<p class="lead">A collective is a call that every process in the communicator makes together. MPI decides how the data moves, usually as a tree, which beats rank 0 doing all the work itself.</p>
+<ul class="notes"><li>
+Two kinds of communication:
+<ul>
+<li><strong>point-to-point</strong>: two processes, using <code>MPI_Send</code> and <code>MPI_Recv</code></li>
+<li><strong>collective</strong>: every process in a communicator takes part</li>
+<li>Lecture 10 groups them by shape: 1-to-N (broadcast), N-to-1 (reduction), N-to-N (all-reduce)</li>
+</ul>
+</li><li>
+Rules that differ from point-to-point (textbook 3.4.3):
+<ul>
+<li>Every process in the communicator must call the same collective function</li>
+<li>Matching a <code>MPI_Reduce</code> on one process with a <code>MPI_Recv</code> on another is erroneous and likely hangs or crashes</li>
+<li>The arguments must be compatible on every process, for example the same destination rank</li>
+<li>The output argument is only used on the destination process, but every process must still pass something (<code>NULL</code> is fine)</li>
+<li>There are no tags, calls match by communicator and by the <strong>order</strong> the calls are made</li>
+<li>Never use the same variable as both input and output: <code>MPI_Reduce(&amp;x, &amp;x, ...)</code> is illegal because MPI forbids aliasing an output argument</li>
+</ul>
+</li><li>
+Why order matters (textbook Table 3.3):
+<ul>
+<li>Every process calls <code>MPI_Reduce</code> with <code>MPI_SUM</code> and destination 0</li>
+<li>Rank 1 reduces <code>c</code> first then <code>a</code>, the other ranks reduce <code>a</code> first then <code>c</code></li>
+<li>With <code>a = 1</code> and <code>c = 2</code> everywhere, the first call combines <code>c</code> from rank 1 with <code>a</code> from the others</li>
+<li>So <code>b</code> ends up as 1 + 2 + 1 = 4 and <code>d</code> as 2 + 1 + 2 = 5 on three processes</li>
+<li>Variable names never matter for matching, only call order does</li>
+<li><code>reduce_order.c</code> in <code>examples/extras/</code> prints <code>b = 4, d = 5</code></li>
+</ul>
+</li><li>
+Why collectives exist (the tree idea):
+<ul>
+<li>A loop where rank 0 receives from everyone makes rank 0 do p - 1 receives one after another</li>
+<li>A <strong>tree-structured</strong> sum lets pairs of processes combine at the same time</li>
+<li>With 8 processes, ranks 1, 3, 5, 7 send to 0, 2, 4, 6 in round one</li>
+<li>Then ranks 2 and 6 send to 0 and 4, and finally rank 4 sends to 0</li>
+<li>That is 3 rounds, which is log2 of 8</li>
+<li>MPI implementers tune the tree to the hardware, so you do not have to</li>
+<li>Lecture 10's picture is an example, a real implementation may shape the tree differently</li>
+</ul>
+</li><li>
+Try the collectives:
+<ul>
+<li>Pick a collective and a number of processes and see what each rank holds before and after the call</li>
+<li>Move the root rank to see that it does not have to be 0</li>
+<li class="blk"><section class="lab" id="colllab" aria-label="Collective communication lab">
+<div class="labbar">
+<label>collective<select id="c-op"><option value="bcast">MPI_Bcast</option><option value="reduce" selected>MPI_Reduce (MPI_SUM)</option><option value="allreduce">MPI_Allreduce (MPI_SUM)</option><option value="scatter">MPI_Scatter</option><option value="gather">MPI_Gather</option></select></label>
+<label>processes<select id="c-p"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+<label id="c-root-wrap">root rank<select id="c-root"></select></label>
+</div>
+<pre class="calls" id="c-call" aria-label="The call every rank makes"></pre>
+<div class="cards" id="c-cards"></div>
+<div id="c-rounds"></div>
+</section></li></ul>
+</li><li>
+MPI_Reduce:
+<ul>
+<li>
+<p>Signature:</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span><span class="w"> </span><span class="n">output_data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">operator</span><span class="p">,</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+</li>
+<li>
+<p>Every process contributes <code>input_data</code>, and the combined result lands in <code>output_data</code> on <code>dest_process</code></p>
+</li>
+<li>With <code>count</code> greater than 1 it combines arrays element by element, for example adding vectors</li>
+<li>The operator says how to combine: <code>MPI_SUM</code>, <code>MPI_PROD</code>, <code>MPI_MIN</code>, <code>MPI_MAX</code>, and logical or bitwise AND, OR, XOR</li>
+<li><code>MPI_MAXLOC</code> and <code>MPI_MINLOC</code> also return where the extreme value was</li>
+<li>
+<p>Used in the trapezoid program:</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_int</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">total_int</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></pre></figure>
+</li>
+<li>
+<p>This one call replaces the whole loop of receives on rank 0</p>
+</li>
+<li>After it, <code>total_int</code> only holds the answer on rank 0</li>
+</ul>
+</li><li>
+MPI_Allreduce:
+<ul>
+<li>
+<p>Same arguments as <code>MPI_Reduce</code> but with no <code>dest_process</code></p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Allreduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmpVal</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+</li>
+<li>
+<p>Every process receives the combined result</p>
+</li>
+<li>The lecture calls it a <strong>butterfly reduce</strong> and draws it as a tree sum followed by the same tree run backwards</li>
+<li>The textbook shows two ways to build it: reverse the tree, or have processes exchange partial results in pairs (a true butterfly)</li>
+<li>Use it when every process needs the total for its next step</li>
+<li><code>allreduce_demo.c</code> on 4 processes: rank 0 to 3 each contribute rank + 1, and every rank prints an Allreduce total of 10</li>
+</ul>
+</li><li>
+MPI_Bcast:
+<ul>
+<li>
+<p>Signature:</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Bcast</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+</li>
+<li>
+<p>The process with rank <code>source</code> sends, every other process receives into the same argument</p>
+</li>
+<li>So <code>data</code> is an input on the source and an output everywhere else</li>
+<li>It is the reverse of a tree sum, so it is also fast</li>
+<li>In <code>Get_input</code>, only rank 0 calls <code>scanf</code>, but all ranks call <code>MPI_Bcast</code></li>
+<li>The three <code>MPI_Bcast</code> calls sit outside the <code>if (my_rank == 0)</code> block on purpose</li>
+</ul>
+</li><li>
+MPI_Scatter and MPI_Gather (lecture 10):
+<ul>
+<li><strong>Scatter</strong> splits an array on one process and gives each process a different chunk</li>
+<li><strong>Gather</strong> is the reverse: it collects one chunk from every process into one array on a destination process</li>
+<li>
+<p>Signatures:</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Scatter</span><span class="p">(</span><span class="n">send_data</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv_data</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">src_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Gather</span><span class="p">(</span><span class="n">send_data</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv_data</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest_process</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+</li>
+<li>
+<p><code>send_count</code> in Scatter is the number of elements sent to <strong>each</strong> process, not the length of the whole array</p>
+</li>
+<li>The lecture says those arguments "describe the full array", but passing the total makes MPI abort with "Message truncated" (tested in <code>scatter_total.c</code>)</li>
+<li>The send buffer only matters on the source, but every process supplies a receive buffer</li>
+<li>Gather puts rank 0's chunk first, then rank 1's, and so on</li>
+<li><code>scatter_gather.c</code>: scatter 1..8, multiply by 10, gather, and rank 0 prints <code>10 20 30 40 50 60 70 80</code></li>
+<li>The lecture says both will be used in the odd-even sort that comes next</li>
+</ul>
+</li><li>
+Other collectives in the textbook summary:
+<ul>
+<li><code>MPI_Allgather</code>: like Gather but every process gets the whole array</li>
+<li><code>MPI_Barrier</code>: no process returns until every process in the communicator has started the call</li>
+<li>Scatter hands out the first n/p elements to process 0, the next n/p to process 1, and so on</li>
+<li>That is a <strong>block</strong> distribution, and the textbook also describes <strong>cyclic</strong> (round robin) and <strong>block-cyclic</strong></li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=collectives&amp;all=1">Quiz this section (10 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="collectives"> Section done</label></p>
+</section>
+<!-- ================= 5 ================= -->
+<section id="trapezoid" class="k3">
+<h2>5. The trapezoidal rule</h2>
+<p class="source">Lecture 11 · textbook 3.2 to 3.4 · about 5 minutes</p>
+<p class="lead">The course&#x27;s running example: estimate an integral by adding up thin trapezoids. Each rank adds up its own slice of the interval, and the partial sums are combined on rank 0.</p>
+<ul class="notes"><li>
+The goal:
+<ul>
+<li>Estimate the area under a curve f(x) between x = a and x = b</li>
+<li>Split the interval into n equal strips and replace each strip's curve with a straight line, which makes a trapezoid</li>
+<li>The course function is <code>f(x) = x*x</code>, and the true area from 0 to 3 is exactly 9</li>
+</ul>
+</li><li>
+The maths:
+<ul>
+<li><strong>h</strong> is the width of every trapezoid: <code>h = (b - a) / n</code></li>
+<li>Area of one trapezoid: <code>(h / 2) * (f(x_i) + f(x_i+1))</code></li>
+<li>Whole estimate: <code>h * [ f(a)/2 + f(x_1) + ... + f(x_n-1) + f(b)/2 ]</code></li>
+<li>The middle points are counted twice (once for each neighbouring trapezoid), and the two end points once, which is why those two are halved</li>
+<li>On a convex curve each trapezoid overestimates, on a concave curve it underestimates</li>
+<li>As the trapezoids get narrower, the errors average out</li>
+</ul>
+</li><li>
+The serial code (this is <code>Trap</code> in every course version):
+<figure class="code"><figcaption>mpi_SendRec.c, lines 141 to 157</figcaption><div class="listing static"><div class="ln" data-line="141" data-who="all"><span class="no">141</span><code class="tx"><span class="kt">double</span><span class="w"> </span><span class="nf">Trap</span><span class="p">(</span></code></div>
+<div class="ln" data-line="142" data-who="all"><span class="no">142</span><code class="tx"><span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">left_endpt</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span></code></div>
+<div class="ln" data-line="143" data-who="all"><span class="no">143</span><code class="tx"><span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">right_endpt</span><span class="w"> </span><span class="cm">/* in */</span><span class="p">,</span></code></div>
+<div class="ln" data-line="144" data-who="all"><span class="no">144</span><code class="tx"><span class="w">      </span><span class="kt">int</span><span class="w">    </span><span class="n">trap_count</span><span class="w">  </span><span class="cm">/* in */</span><span class="p">,</span></code></div>
+<div class="ln" data-line="145" data-who="all"><span class="no">145</span><code class="tx"><span class="w">      </span><span class="kt">double</span><span class="w"> </span><span class="n">base_len</span><span class="w">    </span><span class="cm">/* in */</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln" data-line="146" data-who="all"><span class="no">146</span><code class="tx"><span class="w">   </span><span class="kt">double</span><span class="w"> </span><span class="n">estimate</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">;</span></code></div>
+<div class="ln" data-line="147" data-who="all"><span class="no">147</span><code class="tx"><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span></code></div>
+<div class="ln" data-line="148" data-who="all"><span class="no">148</span><code class="tx">&#8203;</code></div>
+<div class="ln" data-line="149" data-who="all"><span class="no">149</span><code class="tx"><span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">left_endpt</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">right_endpt</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span><span class="p">;</span></code></div>
+<div class="ln" data-line="150" data-who="all"><span class="no">150</span><code class="tx"><span class="w">   </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">trap_count</span><span class="mi">-1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></code></div>
+<div class="ln" data-line="151" data-who="all"><span class="no">151</span><code class="tx"><span class="w">      </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">left_endpt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span></code></div>
+<div class="ln" data-line="152" data-who="all"><span class="no">152</span><code class="tx"><span class="w">      </span><span class="n">estimate</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">);</span></code></div>
+<div class="ln" data-line="153" data-who="all"><span class="no">153</span><code class="tx"><span class="w">   </span><span class="p">}</span></code></div>
+<div class="ln" data-line="154" data-who="all"><span class="no">154</span><code class="tx"><span class="w">   </span><span class="n">estimate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">estimate</span><span class="o">*</span><span class="n">base_len</span><span class="p">;</span></code></div>
+<div class="ln" data-line="155" data-who="all"><span class="no">155</span><code class="tx">&#8203;</code></div>
+<div class="ln" data-line="156" data-who="all"><span class="no">156</span><code class="tx"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="n">estimate</span><span class="p">;</span></code></div>
+<div class="ln" data-line="157" data-who="all"><span class="no">157</span><code class="tx"><span class="p">}</span><span class="w"> </span><span class="cm">/*  Trap  */</span></code></div></div></figure>
+<ul>
+<li>Line 149: start with the two halved end points</li>
+<li>Lines 150 to 153: add <code>f(x)</code> for each middle point</li>
+<li>Line 154: multiply by <code>h</code> once at the end</li>
+</ul>
+</li><li>
+Designing the parallel version (lecture 11 follows these four steps):
+<ul>
+<li><strong>Partition</strong>: give each process one slice of the interval</li>
+<li><strong>Communicate</strong>: everyone needs <code>a</code>, <code>b</code>, <code>n</code>, and the partial results must be added together</li>
+<li><strong>Aggregate</strong>: <span class="rchip r0">rank 0</span> also does the input, the summing and the output</li>
+<li><strong>Map</strong>: <span class="rchip r0">rank 0</span> sums, <span class="rchip rx">other ranks</span> compute a slice and send the result to rank 0</li>
+</ul>
+</li><li>
+Each rank's slice:
+<ul>
+<li><code>h = (b-a)/n</code> is the same on every rank</li>
+<li><code>local_n = n/comm_sz</code> is the number of trapezoids per rank</li>
+<li><code>local_a = a + my_rank*local_n*h</code> is where this rank's slice starts</li>
+<li><code>local_b = local_a + local_n*h</code> is where it ends</li>
+<li>Each rank calls <code>Trap(local_a, local_b, local_n, h)</code> on its own slice</li>
+<li>Example: a = 0, b = 3, n = 1024 on 4 ranks gives local_n = 256, so <span class="rchip rx">rank 2</span> covers 1.5 to 2.25</li>
+<li>The <a href="trace.html">Trapezoid trace</a> lets you try other numbers</li>
+</ul>
+</li><li>
+The assumption that is easy to forget:
+<ul>
+<li>The code assumes <code>n</code> divides evenly by <code>comm_sz</code></li>
+<li>Integer division truncates, so leftover trapezoids are never computed</li>
+<li>With n = 1024 on 3 ranks, <code>local_n</code> is 341 and only 1023 trapezoids are covered</li>
+<li>The program then prints 8.9737 instead of about 9.0000 (checked by running it)</li>
+<li>The slides say they assume even division to keep examples short</li>
+<li>Textbook exercise 3.2 asks you to fix it</li>
+</ul>
+</li><li>
+The three versions in the course:
+<ul>
+<li><strong>Program 3.2</strong>, the textbook's first version: a = 0, b = 3, n = 1024 hard-coded, results summed with a loop of Send and Recv</li>
+<li><strong>mpi_trap2</strong>, shipped here as <code>mpi_SendRec.c</code>: keyboard input sent to each rank with <code>MPI_Send</code>, results summed with a loop of <code>MPI_Recv</code></li>
+<li><strong>mpi_trap3</strong>, shipped here as <code>mpi_Bcast.c</code>: <code>MPI_Bcast</code> for the input and <code>MPI_Reduce</code> for the sum</li>
+<li><code>mpi_trap4</code> uses MPI derived datatypes, which lecture 11 says have not been covered</li>
+</ul>
+</li><li>
+What changes between versions 2 and 3:
+<ul>
+<li>Input: three <code>MPI_Send</code> calls per other rank become three <code>MPI_Bcast</code> calls</li>
+<li>Sum: an if/else with a loop becomes one <code>MPI_Reduce</code></li>
+<li>The maths and the <code>Trap</code> function do not change</li>
+<li>Result for a = 0, b = 3, n = 1024 on 4 ranks is <code>9.000004291534424e+00</code> in both</li>
+<li>It is a little above 9 because x squared is convex, so every trapezoid overestimates</li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=trapezoid&amp;all=1">Quiz this section (6 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="trapezoid"> Section done</label></p>
+</section>
+<!-- ================= 6 ================= -->
+<section id="odd_even" class="k3">
+<h2>6. Odd-even sort with MPI</h2>
+<p class="source">Lecture 12 · about 10 minutes</p>
+<p class="lead">The odd-even sort from the pthreads unit, with each block on its own rank. Getting a partner&#x27;s block now takes a message, and the obvious send-then-receive version can deadlock.</p>
+<ul class="notes"><li>
+What lecture 12 is about:
+<ul>
+<li>The same odd-even transposition sort from the pthreads unit, rewritten for distributed memory</li>
+<li>Same decomposition, same phases. The one new question: how does a rank get its partner's block when it cannot read that memory?</li>
+<li>Answer: it receives it in an MPI message, so communication is no longer free</li>
+<li>The course file <code>mpi_odd_even.c</code> is not in the project files yet, so this section uses the code shown on the slides</li>
+</ul>
+</li><li>
+The serial algorithm (review):
+<ul>
+<li><strong>odd-even transposition sort</strong>: a bubble sort variant split into phases</li>
+<li><strong>even phase</strong>: compare-swap the pairs (a[0], a[1]), (a[2], a[3]), ...</li>
+<li><strong>odd phase</strong>: compare-swap the pairs (a[1], a[2]), (a[3], a[4]), ...</li>
+<li><strong>compare-swap</strong>: if the left value is bigger, swap the two</li>
+<li>A list of n elements is sorted after at most n phases</li>
+<li>Slide example: 5 9 4 3, then 5 9 3 4, then 5 3 9 4, then 3 5 4 9, then 3 4 5 9 (4 phases)</li>
+</ul>
+</li><li>
+Foster's methodology, one step at a time:
+<ul>
+<li><strong>Partitioning</strong>: the smallest task is one compare-swap on a neighbouring pair</li>
+<li>Inside one phase the pairs do not overlap, so all compare-swaps can run at once</li>
+<li>Across phases it is serial: phase j must finish before phase j + 1 starts</li>
+<li><strong>Communication</strong>: each compare-swap needs both values of its pair</li>
+<li>In pthreads that was just a read of shared memory</li>
+<li>In MPI it is a real message: send your block, receive your partner's block</li>
+<li>This is the step that cannot be copied from the pthreads version</li>
+<li><strong>Agglomeration</strong>: group n/p contiguous elements into one block per rank</li>
+<li>Inside a block, sorting is a local <code>qsort()</code></li>
+<li>Between blocks, a compare-swap of two numbers becomes a <strong>compare-split</strong> of two sorted blocks</li>
+<li><strong>compare-split</strong>: merge the two sorted blocks, the lower rank keeps the low half and the higher rank keeps the high half</li>
+<li><strong>Mapping</strong>: block r goes to rank r, so neighbouring blocks stay on neighbouring ranks</li>
+<li>The example code requires <code>global_n</code> to divide evenly by p</li>
+</ul>
+</li><li>
+Who is your partner?:
+<ul>
+<li>It depends on your rank's parity and the phase's parity</li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Even rank</th>
+<th>Odd rank</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Even phase</td>
+<td>rank + 1</td>
+<td>rank - 1</td>
+</tr>
+<tr>
+<td>Odd phase</td>
+<td>rank - 1</td>
+<td>rank + 1</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+</li><li>
+Reading the partner table:
+<ul>
+<li>Even phase with 4 ranks: pairs (0,1) and (2,3), everyone works</li>
+<li>Odd phase with 4 ranks: only pair (1,2), ranks 0 and 3 are idle</li>
+<li>If the computed partner is below 0 or at least p, that rank skips the phase: no message, no merge</li>
+<li>The code stores this as <code>even_partner</code> and <code>odd_partner</code>, using a negative value for "no partner"</li>
+</ul>
+</li><li>
+Worked example from the slides (16 numbers, 4 ranks):
+<ul>
+<li>Start: <code>33 36 27 15 | 43 35 36 42 | 49 21 12 27 | 40 9 18 6</code></li>
+<li>Each rank sorts its own block first, with no communication</li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Rank 0</th>
+<th>Rank 1</th>
+<th>Rank 2</th>
+<th>Rank 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>After local qsort</td>
+<td>15 27 33 36</td>
+<td>35 36 42 43</td>
+<td>12 21 27 49</td>
+<td>6 9 18 40</td>
+</tr>
+<tr>
+<td>Phase 0 (even): (0,1), (2,3)</td>
+<td>15 27 33 35</td>
+<td>36 36 42 43</td>
+<td>6 9 12 18</td>
+<td>21 27 40 49</td>
+</tr>
+<tr>
+<td>Phase 1 (odd): (1,2)</td>
+<td>15 27 33 35 (idle)</td>
+<td>6 9 12 18</td>
+<td>36 36 42 43</td>
+<td>21 27 40 49 (idle)</td>
+</tr>
+<tr>
+<td>Phase 2 (even): (0,1), (2,3)</td>
+<td>6 9 12 15</td>
+<td>18 27 33 35</td>
+<td>21 27 36 36</td>
+<td>40 42 43 49</td>
+</tr>
+<tr>
+<td>Phase 3 (odd): (1,2)</td>
+<td>6 9 12 15 (idle)</td>
+<td>18 21 27 27</td>
+<td>33 35 36 36</td>
+<td>40 42 43 49 (idle)</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+</li><li>
+What the table shows:
+<ul>
+<li>With p ranks, at most p phases are needed, here 4</li>
+<li>Phase 0, pair (0,1): merge to <code>15 27 33 35 36 36 42 43</code>, rank 0 keeps <code>15 27 33 35</code>, rank 1 keeps <code>36 36 42 43</code></li>
+<li>Read the final row left to right and the whole list is sorted</li>
+</ul>
+</li><li>
+The exchange, from the slides:
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Sendrecv</span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">even_partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="n">temp_B</span><span class="p">,</span><span class="w">  </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">even_partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">Merge_keep_high</span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">temp_B</span><span class="p">,</span><span class="w"> </span><span class="n">temp_C</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">);</span>
+<span class="k">else</span><span class="w">                  </span><span class="n">Merge_keep_low</span><span class="w"> </span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">temp_B</span><span class="p">,</span><span class="w"> </span><span class="n">temp_C</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li><code>local_A</code> is my block, <code>temp_B</code> receives the partner's block, <code>temp_C</code> is scratch space for the merge</li>
+<li>One call sends and receives at the same time, in both directions</li>
+<li>In an even phase, odd ranks are the higher member of their pair, so they keep the high half</li>
+<li>The lecture renamed the book's <code>Merge_low</code> and <code>Merge_high</code> to <code>Merge_keep_low</code> and <code>Merge_keep_high</code></li>
+<li class="blk"><div class="callout note"><p class="callout-h">Why there are no barriers</p><ul>
+<li>In pthreads, a fast thread could overwrite its block while a slow partner was still reading it, so each phase needed two barriers that every thread had to hit</li>
+<li>In MPI each rank's memory is private, so there is nothing for a fast rank to overwrite</li>
+<li><code>MPI_Sendrecv</code> only synchronizes the two ranks in the pair. It is not a group-wide wait</li>
+<li>An idle rank makes no call at all and moves straight on</li>
+<li>Synchronization is a side effect of the communication call</li>
+</ul></div></li></ul>
+</li><li>
+Phases can get out of step:
+<ul>
+<li>Nothing forces all ranks to be in the same phase</li>
+<li>Example: rank 3 finishes phase 0, has no partner in phase 1, starts phase 2 and blocks sending to rank 2</li>
+<li>Meanwhile rank 2 may still be finishing its phase 0 merge</li>
+<li>That is correct: rank 3 simply waits inside <code>MPI_Sendrecv</code> until rank 2 arrives</li>
+</ul>
+</li><li>
+Why not plain MPI_Send then MPI_Recv?:
+<ul>
+<li>If both ranks in a pair run <code>MPI_Send</code> then <code>MPI_Recv</code>, it often works</li>
+<li>Whether <code>MPI_Send</code> blocks is up to the implementation, and usually depends on message size</li>
+<li>Small messages are buffered, so the send returns before any receive is posted</li>
+<li>Large messages are not buffered, so each send waits for a receive that never starts: a <strong>deadlock</strong></li>
+<li>So small test data passes every time and large data hangs. The bug is latent, not absent</li>
+<li><strong>deadlock</strong>: two or more processes each waiting on the other, so none can continue</li>
+</ul>
+</li><li>
+Forcing the deadlock with MPI_Ssend:
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Ssend</span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Recv</span><span class="w"> </span><span class="p">(</span><span class="n">temp_B</span><span class="p">,</span><span class="w">  </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li><code>MPI_Ssend</code> never returns until the matching receive has started</li>
+<li>Both ranks block in <code>MPI_Ssend</code>, so neither reaches its <code>MPI_Recv</code></li>
+<li>Changing only the even-phase branch is enough: every pair deadlocks in phase 0</li>
+<li><code>make run-lock</code> runs this version. Each rank prints "sending to ... and waiting", then it hangs</li>
+<li>See Hangs and mix-ups for the same pattern with two ranks (<code>head_to_head.c</code>)</li>
+</ul>
+</li><li>
+Running the course program:
+<ul>
+<li>Build: <code>mpicc -g -Wall -o mpi_odd_even mpi_odd_even.c</code></li>
+<li>Run: <code>mpiexec -n &lt;p&gt; mpi_odd_even &lt;g|i&gt; &lt;global_n&gt;</code></li>
+<li><code>g</code> generates a random list on each rank, <code>i</code> makes rank 0 read the list from stdin and scatter it</li>
+<li>Rank 0 gathers and prints the sorted list. The lecture moved the hidden <code>MPI_Gather</code> out of <code>Print_global_list</code> into <code>main</code></li>
+<li><code>mpi_odd_even_trace.c</code> builds with <code>-DTRACE</code>, <code>-DSLOW_RANK=k</code> and <code>-DSTEP</code> to show each send, receive and keep</li>
+<li>The trace lines are printed out of order, so sort them: <code>... | grep '^\[' | sort -s -k2,2n</code></li>
+</ul>
+</li><li>
+Lecture 12 review questions:
+<ul>
+<li>Should the local sort be timed? Yes if you are timing the whole sort: it is real work every rank must do. Leave out input generation and printing</li>
+<li>Where does the MPI version's running time differ from pthreads? In the exchange: every phase now moves n/p elements over the network, which pthreads got for free</li>
+<li>Where is the serial fraction now? Mostly in the input scatter and the final gather and print on rank 0, plus idle ranks in odd phases</li>
+<li>These three answers are this site's suggestions, the lecture leaves them open</li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=odd_even&amp;all=1">Quiz this section (8 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="odd_even"> Section done</label></p>
+</section>
+<!-- ================= 7 ================= -->
+<section id="heat" class="k3">
+<h2>7. Heat distribution with MPI</h2>
+<p class="source">Lecture 13 · about 15 minutes</p>
+<p class="lead">The heat plate from the pthreads unit, split into row bands, one per rank. Each rank keeps copies of the rows just outside its band and refreshes them with a message every iteration.</p>
+<ul class="notes"><li>
+What lecture 13 is about:
+<ul>
+<li>The heat diffusion case study from the pthreads unit, rewritten for distributed memory</li>
+<li>A rank only sees its own memory, so reading a neighbour's row now means receiving a message</li>
+<li>Everything else (the plate, the averaging rule, the stopping rule) is the same</li>
+</ul>
+</li><li>
+The problem (review):
+<ul>
+<li>A square plate, cold on all four edges, with a hot block held fixed in the centre</li>
+<li>Each interior cell's next value is the average of its 4 neighbours (up, down, left, right) from the previous step</li>
+<li><strong>fixed cells</strong>: the cold edges and the hot block. They never update</li>
+<li>Repeat until the largest change anywhere on the plate drops below <code>EPSILON</code></li>
+<li>Orientation used in the lecture: row 0 is the top, row N - 1 the bottom, so row i + 1 is "down"</li>
+</ul>
+</li><li>
+The pthreads version it replaces:
+<ul>
+<li>Each thread owns a contiguous band of rows and reads any row of the shared grid directly</li>
+<li>Two barriers per iteration: after everyone writes, and after thread 0 computes the global max, swaps and decides</li>
+<li>Hazard 1: a thread reading a neighbour's row while it is being written</li>
+<li>Hazard 2: threads racing past thread 0's stop decision</li>
+<li>Keep both in mind, MPI removes them in a different way</li>
+</ul>
+</li><li>
+Foster's methodology again:
+<ul>
+<li><strong>Partitioning</strong>: unchanged. One cell's update is the smallest task. Within an iteration all cells are independent, across iterations they are strictly ordered</li>
+<li><strong>Communication</strong>: the step that changes. A rank needs the row just above and just below its band, and another rank owns those rows</li>
+<li>So every rank, every iteration: two rows in, two rows out</li>
+<li><strong>Agglomeration</strong>: still one contiguous band of rows per rank, but now the band also stores copies of the two rows outside it</li>
+<li><strong>Mapping</strong>: same arithmetic as pthreads, plus a new job: the tables must let rank 0 put the whole grid back together for output</li>
+</ul>
+</li><li>
+Ghost rows:
+<ul>
+<li><strong>ghost row</strong> (also called a halo row): a local copy of a row owned by a neighbouring rank</li>
+<li>A rank with <code>my_rows</code> rows allocates <code>(my_rows + 2) x N</code> doubles, the 2 extra rows are the ghosts</li>
+<li>The rank stores and reads its ghost rows but never computes them</li>
+<li><strong>halo exchange</strong>: refreshing the ghost rows from the neighbours once per iteration, before computing</li>
+</ul>
+</li><li>
+Local array layout on one rank:
+<ul><li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Local row</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>top ghost: copy of the last row of the rank above</td>
+</tr>
+<tr>
+<td>1</td>
+<td>first owned row</td>
+</tr>
+<tr>
+<td>...</td>
+<td>owned rows</td>
+</tr>
+<tr>
+<td><code>my_rows</code></td>
+<td>last owned row</td>
+</tr>
+<tr>
+<td><code>my_rows + 1</code></td>
+<td>bottom ghost: copy of the first row of the rank below</td>
+</tr>
+</tbody>
+</table></div></li></ul></li><li>
+Local rows are not global rows:
+<ul>
+<li>Every rank's array starts at local row 0, so local row 1 is only global row 1 on rank 0</li>
+<li>Conversion: <code>global_row = row_start - 1 + local_row</code></li>
+<li><code>is_fixed(i, j)</code> asks about the plate, so it must be given the global row</li>
+<li>Getting this off by one shifts the hot block or a whole band, and the lecture names it the likely culprit when output is wrong</li>
+</ul>
+<div class="callout trap"><p class="callout-h">Exam trap</p><ul>
+<li>Rank 2 owns global rows 9 to 11, but in its own array they are local rows 1 to 3. <code>is_fixed</code> must be given 9, 10, 11, not 1, 2, 3</li>
+</ul></div>
+</li><li>
+The decomposition (mapping):
+<figure class="snippet"><pre><code><span class="n">updatable_rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w">               </span><span class="cm">/* rows 0 and N-1 are fixed, nobody owns them */</span>
+<span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">updatable_rows</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span>
+<span class="n">rem</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">updatable_rows</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span>
+<span class="n">row_count</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">base</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">rem</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w">   </span><span class="cm">/* the first rem ranks get one extra row */</span>
+<span class="n">row_start</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">row_count</span><span class="p">[</span><span class="mi">0</span><span class="w"> </span><span class="p">..</span><span class="w"> </span><span class="n">r</span><span class="mi">-1</span><span class="p">];</span></code></pre></figure>
+<ul>
+<li>Every rank builds both arrays for all ranks: it tells a rank its own range, and lets rank 0 reassemble the grid</li>
+</ul>
+</li><li>
+Example: 16 rows on 4 ranks:
+<ul>
+<li><code>updatable_rows = 14</code>, <code>base = 3</code>, <code>rem = 2</code></li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>row_start</th>
+<th>row_count</th>
+<th>Global rows owned</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>4</td>
+<td>1 to 4</td>
+</tr>
+<tr>
+<td>1</td>
+<td>5</td>
+<td>4</td>
+<td>5 to 8</td>
+</tr>
+<tr>
+<td>2</td>
+<td>9</td>
+<td>3</td>
+<td>9 to 11</td>
+</tr>
+<tr>
+<td>3</td>
+<td>12</td>
+<td>3</td>
+<td>12 to 14</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+</li><li>
+Exchange topology:
+<ul>
+<li>Each interior rank does two exchanges: one with the rank above, one with the rank below</li>
+<li>Rank r's down-exchange is matched by rank r + 1's up-exchange</li>
+<li>Rank 0 has no rank above, the last rank has no rank below</li>
+</ul>
+</li><li>
+The halo exchange, two calls per iteration:
+<figure class="snippet"><pre><code><span class="cm">/* up-exchange: send my first owned row, receive into my top ghost */</span>
+<span class="n mpi">MPI_Sendrecv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cur</span><span class="p">[</span><span class="n">IDX</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)],</span><span class="w">           </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">up_neighbour</span><span class="p">,</span><span class="w">   </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="o">&amp;</span><span class="n">cur</span><span class="p">[</span><span class="n">IDX</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)],</span><span class="w">           </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">up_neighbour</span><span class="p">,</span><span class="w">   </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span>
+<span class="cm">/* down-exchange: send my last owned row, receive into my bottom ghost */</span>
+<span class="n mpi">MPI_Sendrecv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cur</span><span class="p">[</span><span class="n">IDX</span><span class="p">(</span><span class="n">my_rows</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)],</span><span class="w">     </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">down_neighbour</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="o">&amp;</span><span class="n">cur</span><span class="p">[</span><span class="n">IDX</span><span class="p">(</span><span class="n">my_rows</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)],</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">down_neighbour</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_STATUS_IGNORE</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li><code>IDX(i, j)</code> is <code>i * N + j</code>, so <code>&amp;cur[IDX(1, 0)]</code> is the start of local row 1</li>
+<li>Example with 4 ranks: rank 1's local row 1 (global 5) lands in rank 0's local row 5, its bottom ghost</li>
+<li>And rank 0's local row 4 (global 4) lands in rank 1's local row 0, its top ghost</li>
+<li><code>MPI_Sendrecv</code> posts its receive as part of the call, so no rank is stuck mid-send</li>
+<li>It does not return until the incoming row has arrived, so a rank cannot compute with a half-updated ghost</li>
+</ul>
+</li><li>
+The ends: MPI_PROC_NULL:
+<figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="n">up_neighbour</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">           </span><span class="o">?</span><span class="w"> </span><span class="n mpi">MPI_PROC_NULL</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">my_rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">down_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">comm_sz</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n mpi">MPI_PROC_NULL</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">my_rank</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span></code></pre></figure>
+<ul>
+<li><strong>MPI_PROC_NULL</strong>: MPI's name for "nobody". A send or receive with it finishes at once and does nothing</li>
+<li>Rank 0's top ghost and the last rank's bottom ghost are left alone, and they already hold the cold edge</li>
+<li>So every rank makes the same two calls, with no <code>if</code> for the boundary ranks</li>
+</ul>
+</li><li>
+Convergence check: one call:
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Allreduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_max</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">global_max</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_MAX</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>Each rank finds the largest change in its own band, <code>MPI_MAX</code> combines them, and every rank receives the result</li>
+<li>No rank leaves the call until every rank has entered it, so it also acts as the barrier</li>
+<li>Every rank then tests <code>global_max &lt; EPSILON || iteration &gt;= MAX_ITERS - 1</code> on the same number, so all stop together</li>
+<li>Barrier, thread 0's reduction loop, barrier: three pthreads constructs become one line</li>
+</ul>
+</li><li>
+Frame output: MPI_Gatherv:
+<ul>
+<li>To write a frame, rank 0 needs every rank's band: that is a gather</li>
+<li><code>MPI_Gather</code> needs the same count from every rank, but the bands can differ in size (4, 4, 3, 3 above)</li>
+<li><strong>MPI_Gatherv</strong>: "v" for varying. It takes a count per rank and a displacement per rank saying where that rank's data lands</li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>row_start</th>
+<th>row_count</th>
+<th>recv_counts</th>
+<th>displs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>4</td>
+<td>64</td>
+<td>16</td>
+</tr>
+<tr>
+<td>1</td>
+<td>5</td>
+<td>4</td>
+<td>64</td>
+<td>80</td>
+</tr>
+<tr>
+<td>2</td>
+<td>9</td>
+<td>3</td>
+<td>48</td>
+<td>144</td>
+</tr>
+<tr>
+<td>3</td>
+<td>12</td>
+<td>3</td>
+<td>48</td>
+<td>192</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+<figure class="snippet"><pre><code><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">comm_sz</span><span class="p">;</span><span class="w"> </span><span class="n">r</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">recv_counts</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">row_count</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w">   </span><span class="cm">/* how many values rank r sends */</span>
+<span class="w">    </span><span class="n">displs</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">row_start</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w">   </span><span class="cm">/* where they start in the full grid */</span>
+<span class="p">}</span></code></pre></figure>
+</li><li>
+What the Gatherv table shows:
+<ul>
+<li>The total is 224 = 14 x 16. The grid has 256 cells, the missing 32 are rows 0 and 15</li>
+<li>Those edge rows are never sent, so rank 0's full grid must already hold them: <code>calloc</code> sets them to 0.0 once</li>
+<li>Only rank 0 uses the receive arguments, but every rank must call <code>MPI_Gatherv</code></li>
+</ul>
+</li><li>
+The loop, end to end:
+<ul>
+<li>Step 1: Halo exchange: two <code>MPI_Sendrecv</code> calls refresh both ghost rows of <code>cur</code></li>
+<li>Step 2: Compute: for each owned row, convert to the global row, copy fixed cells, average the rest into <code>next</code>, track <code>local_max</code></li>
+<li>Step 3: <code>MPI_Allreduce</code> with <code>MPI_MAX</code> gives every rank <code>global_max</code></li>
+<li>Step 4: Swap <code>cur</code> and <code>next</code></li>
+<li>Step 5: Every <code>FRAME_STRIDE</code> iterations, <code>MPI_Gatherv</code> to rank 0, and rank 0 writes the frame</li>
+<li>Step 6: Every rank decides for itself whether to stop, on identical data</li>
+</ul>
+</li><li>
+Worked example:
+<div class="callout eg"><p class="callout-h">16 x 16 grid, 6 x 6 hot block, 4 ranks, iteration 10</p><ul>
+<li>The full grid exists only in our heads, and on rank 0 when a frame is written. No rank holds it</li>
+<li>Rank 2 owns global rows 9 to 11. Its top ghost copies global row 8 (rank 1) and its bottom ghost copies global row 12 (rank 3)</li>
+<li>At the start of iteration 10 both ghosts still hold last iteration's copies, which are now stale</li>
+<li>After the exchange the ghosts are fresh and the three owned rows are untouched: the exchange only writes ghosts</li>
+<li>Only now may rank 2 compute, which is why the exchange comes first in the loop</li>
+</ul></div>
+<ul><li class="blk"><div class="callout note"><p class="callout-h">Why there are no barriers</p><ul>
+<li>Hazard 1 (reading a row mid-write) is gone: data only crosses a rank boundary when it is sent, and <code>MPI_Sendrecv</code> does not return until it has landed</li>
+<li>Hazard 2 (racing past the stop decision) is gone: <code>MPI_Allreduce</code> releases nobody until everyone has arrived, and gives them all the same number</li>
+<li>MPI does not need less synchronization. The synchronization is inside the calls that move the data</li>
+<li>In pthreads the data moved for free and you paid separately in barriers. In MPI you pay once, in the call that does both</li>
+</ul></div></li></ul></li><li>
+Summary of what changed from pthreads:
+<ul>
+<li>A free read became a message: two ghost rows per rank, two <code>MPI_Sendrecv</code> calls per iteration</li>
+<li>An implicit mapping became an explicit one: someone has to know every rank's slice to reassemble the grid</li>
+<li>Barrier, reduction, barrier became one <code>MPI_Allreduce</code></li>
+<li>Two hazards disappeared, because process isolation removed both the free read and the race</li>
+<li>The lecture's moral: the memory model decides which problems you have and how you solve them</li>
+</ul>
+</li><li>
+Things the lecture suggests trying (checked on this site with Open MPI):
+<ul>
+<li>Run on 1, 3, 4 and 14 ranks: the text frames are byte-identical, because each frame depends only on the previous one and MAX does not depend on order</li>
+<li>Move the exchange to after the compute phase: it still converges, but on 4 ranks it took 89 iterations instead of 69 and the frames are wrong. On 1 rank it is still right, because there are no ghosts between ranks</li>
+<li><code>-np 15</code> on the 16 x 16 grid: only 14 rows can be updated, so the program prints "comm_sz must be between 1 and N-2" and calls <code>MPI_Abort</code></li>
+<li>Make one rank quit early: the others hang forever at the next collective, which is why the code uses <code>MPI_Abort</code> instead of <code>return</code></li>
+<li>Delete one of the two <code>MPI_Sendrecv</code> calls: the slides say a seam appears, but in this file every pair then has an unmatched call, so on 4 ranks it hung before writing a single frame. See the practice questions</li>
+</ul>
+</li><li>
+Timing the program:
+<ul>
+<li>Four <code>MPI_Wtime</code> accumulators per rank: compute, comm (the two Sendrecvs), reduce (the Allreduce), output (Gatherv and file write)</li>
+<li><code>MPI_Barrier</code> before the clock starts, because ranks leave <code>MPI_Init</code> at different times. It is the only barrier in the file</li>
+<li>At the end, <code>MPI_Reduce</code> with <code>MPI_MAX</code> to rank 0: Reduce because only rank 0 prints, MAX because the run ends when the slowest rank does</li>
+<li>The four maxima can come from four different ranks, so they do not add up to the elapsed time</li>
+</ul>
+</li><li>
+Reading the numbers (lecture run, 514 x 514, 4 ranks, 2221 iterations):
+<ul>
+<li><code>compute=0.196 comm=0.466 allreduce=0.074 output=0.443</code></li>
+<li>It looks like communication costs 0.466 s, but a row is only 514 x 8 bytes, about 4 KB</li>
+<li>comm and reduce time are mostly <strong>waiting</strong>: a rank that arrives at Sendrecv or Allreduce first sits there with the clock running</li>
+<li>So they measure load imbalance, not bytes moved</li>
+<li>Sources of imbalance: some ranks get one extra row, ranks holding the hot block do less arithmetic (fixed cells are cheap), and rank 0 writes the frames while others wait for it next iteration</li>
+<li>100 microseconds of skew per iteration over 2200 iterations is about a fifth of a second</li>
+</ul>
+</li><li>
+Build and run:
+<ul>
+<li><code>mpicc -O2 -Wall -o heatDiffusionMpi heatDiffusionMpi.c -lm</code></li>
+<li><code>mpirun -np 4 ./heatDiffusionMpi 16 6 1e-4 50000 1 frames txt</code></li>
+<li>Arguments in order: N, K (hot block size), epsilon, max iterations, frame stride, output folder, format (<code>pgm</code> or <code>txt</code>)</li>
+<li><code>python3 heat_diffusion_stitch.py frames heat_diffusion.gif 80</code> turns the frames into a GIF</li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=heat&amp;all=1">Quiz this section (9 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="heat"> Section done</label></p>
+</section>
+<!-- ================= 8 ================= -->
+<section id="performance" class="k3">
+<h2>8. Hardware and performance</h2>
+<p class="source">Lecture 14 · textbook 2.3, 2.6.1 to 2.6.2 · about 10 minutes</p>
+<p class="lead">A map of parallel hardware, then the numbers that say whether parallelism paid off: speedup, efficiency, and Amdahl&#x27;s law, which caps speedup by the part that stays serial.</p>
+<ul class="notes"><li>
+What lecture 14 is about:
+<ul>
+<li>Part 1: a map of parallel hardware, so you can name what kind of machine you are on</li>
+<li>Part 2: speedup, efficiency, overhead and Amdahl's law. This is where the exam calculations come from</li>
+<li>Textbook: section 2.3 (part 1) and sections 2.6.1 to 2.6.2 (part 2)</li>
+</ul>
+</li><li>
+Flynn's taxonomy:
+<ul>
+<li>Classifies a machine by how many instruction streams and data streams it runs at once</li>
+<li><strong>SISD</strong> (single instruction, single data): the serial von Neumann machine, one core</li>
+<li><strong>SIMD</strong> (single instruction, multiple data): one control unit drives many ALUs, all doing the same instruction on different data</li>
+<li><strong>MISD</strong> (multiple instruction, single data): almost no real systems</li>
+<li><strong>MIMD</strong> (multiple instruction, multiple data): independent cores, each with its own ALU, running asynchronously at their own pace</li>
+<li><strong>ALU</strong> (arithmetic logic unit): the part of a core that does the arithmetic</li>
+</ul>
+</li><li>
+SIMD in more detail:
+<ul>
+<li>With m ALUs, arithmetic can run up to m times faster</li>
+<li>Traditional SIMD ALUs are synchronized and tied to the controller, they cannot store their own instructions</li>
+<li>Good for simple loops over large arrays (data parallelism), not much else</li>
+<li><strong>vector processor</strong>: an example of SIMD. Vector registers hold 4 to 256 elements, and one operation applies to all of them</li>
+<li>Vector pros: fast and easy, compilers vectorize loops well, high memory bandwidth because every loaded element is used</li>
+<li>Vector cons: poor with irregular data structures (anything that is not an array), and hard to scale since longer vectors stop helping</li>
+<li>Lecture 15 adds SIMT, the GPU's version of this idea</li>
+</ul>
+</li><li>
+MIMD comes in two memory models:
+<ul>
+<li><strong>shared memory</strong>: all cores see one memory over an interconnect (pthreads)</li>
+<li><strong>distributed memory</strong>: each core has its own memory, and they talk over a network (MPI)</li>
+</ul>
+</li><li>
+Shared memory: UMA and NUMA:
+<ul>
+<li><strong>UMA</strong> (uniform memory access): one big memory, every core has the same access time. Easier to program</li>
+<li><strong>NUMA</strong> (nonuniform memory access): each chip has its own local memory. Local access is fast, reaching another chip's memory is slower</li>
+<li>NUMA exists because it allows much more total memory than UMA</li>
+</ul>
+</li><li>
+Distributed memory systems:
+<ul>
+<li><strong>cluster</strong>: a collection of computers (nodes) on a commodity network such as Ethernet</li>
+<li>Each node is usually a shared-memory machine, so a cluster is a <strong>hybrid</strong> system</li>
+<li><strong>grid</strong>: many clusters spread over a large geographic area, often <strong>heterogeneous</strong> (different hardware and operating systems)</li>
+</ul>
+</li><li>
+Shared-memory interconnects:
+<ul>
+<li><strong>bus</strong>: one set of shared wires. Cheap and flexible, but more processors means more waiting for memory</li>
+<li><strong>crossbar switch</strong>: switches pick one of many paths, so different CPUs can reach different memory modules at the same time</li>
+<li>The only crossbar conflict is two processors wanting the same memory module</li>
+<li>A crossbar is faster than a bus but expensive</li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Bus</th>
+<th>Crossbar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Paths</td>
+<td>one, shared</td>
+<td>many, chosen by switches</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>low</td>
+<td>high</td>
+</tr>
+<tr>
+<td>As processors are added</td>
+<td>more waiting</td>
+<td>still parallel, unless two want the same module</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+</li><li>
+Speedup:
+<ul>
+<li><strong>speedup</strong>: <code>S = T_serial / T_parallel</code></li>
+<li>Speedup depends less on input size than run time does, so it is the easier number to compare</li>
+<li><strong>linear speedup</strong>: <code>S = p</code>. The best case, with p cores running p times faster</li>
+<li>It rarely happens. Thread management, critical sections, mutex calls, network I/O and file I/O all slow a parallel program</li>
+<li>These overheads grow as threads or processes are added</li>
+</ul>
+</li><li>
+Efficiency:
+<ul>
+<li><strong>efficiency</strong>: <code>E = S / p = T_serial / (p x T_parallel)</code></li>
+<li>How much useful speedup each core contributes, or the fraction of time each core spends on the actual problem</li>
+<li>Lecture example:</li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>p</th>
+<th>1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>16</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S</td>
+<td>1</td>
+<td>1.9</td>
+<td>3.6</td>
+<td>6.5</td>
+<td>10.8</td>
+</tr>
+<tr>
+<td>E</td>
+<td>1</td>
+<td>0.95</td>
+<td>0.9</td>
+<td>0.81</td>
+<td>0.675</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+</li><li>
+Reading the efficiency table:
+<div class="callout trap"><p class="callout-h">Exam trap</p><ul>
+<li>Speedup going up does not mean efficiency goes up. Here S keeps rising while E keeps falling</li>
+</ul></div>
+<ul>
+<li>S keeps rising but E keeps falling</li>
+<li>Each extra processor helps, but less than the one before</li>
+<li>Example: 6.5 / 8 = 0.8125, which the lecture rounds to 0.81</li>
+</ul>
+</li><li>
+Overhead:
+<ul>
+<li>Real parallel time: <code>T_parallel = T_serial / p + T_overhead</code></li>
+<li>The ideal case is the first term alone</li>
+<li>When the problem grows, overhead usually grows more slowly than <code>T_serial</code></li>
+<li>Then both speedup and efficiency go up, because overhead is a smaller share of the work</li>
+<li>This is why bigger problems parallelize better</li>
+</ul>
+</li><li>
+Amdahl's law:
+<ul>
+<li>Even with zero overhead, the part of the program that cannot be parallelized caps the speedup</li>
+<li><code>S = 1 / (parallel_fraction / p + serial_fraction)</code>, where the two fractions add up to 1</li>
+<li>As p grows without limit, <code>parallel_fraction / p</code> goes to 0, so S approaches <code>1 / serial_fraction</code></li>
+</ul>
+</li><li>
+Amdahl worked example (lecture):
+
+<ul><li class="blk"><div class="callout eg"><p class="callout-h">90% parallel, T_serial = 20 s</p><ul>
+<li>Parallel part: <code>0.9 x 20 / p = 18 / p</code> s. Serial part: <code>0.1 x 20 = 2</code> s, whatever p is</li>
+<li><code>T_parallel = 18/p + 2</code>, so <code>S = 20 / (18/p + 2) = 1 / (0.9/p + 0.1)</code></li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>p</th>
+<th>1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>16</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S</td>
+<td>1</td>
+<td>1.82</td>
+<td>3.08</td>
+<td>4.71</td>
+<td>6.4</td>
+</tr>
+<tr>
+<td>E</td>
+<td>1</td>
+<td>0.91</td>
+<td>0.77</td>
+<td>0.59</td>
+<td>0.40</td>
+</tr>
+</tbody>
+</table></div></div></li></ul></li><li>
+About that table:
+<ul>
+<li>The lecture shows 3.07 and 4.7, it cuts the decimals off. 1 / (0.225 + 0.1) = 3.077, so 3.08 when rounded</li>
+<li>Even at p = 16 the speedup is only 6.4, and the limit is 10</li>
+</ul>
+</li><li>
+The speedup ceiling:
+<ul><li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Parallel fraction</th>
+<th>50%</th>
+<th>90%</th>
+<th>95%</th>
+<th>99%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serial fraction</td>
+<td>0.5</td>
+<td>0.1</td>
+<td>0.05</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>Max speedup (1 / serial)</td>
+<td>2</td>
+<td>10</td>
+<td>20</td>
+<td>100</td>
+</tr>
+</tbody>
+</table></div></li></ul></li><li>Using Amdahl's law in practice:<ul>
+<li>Time the serial part over several trial runs and work out what fraction of the run it is</li>
+<li>That gives the maximum useful number of cores, so you can decide what hardware or cloud capacity is worth buying</li>
+<li>With a parallel fraction of 1 and serial fraction of 0, S = p: linear speedup</li>
+<li class="blk"><div class="callout note"><p class="callout-h">Super-linear speedup</p><ul>
+<li>The lecture says Amdahl's law shows super-linear speedup (S &gt; p) will not happen "as a result of parallelization"</li>
+<li>That is true of the formula: S can never exceed p in it</li>
+<li>In real runs S &gt; p is sometimes measured for other reasons, for example the data fits in the combined caches of many cores but not one</li>
+<li>So read the claim as "parallelism alone cannot give you more than p"</li>
+</ul></div></li></ul>
+</li><li>
+Quick calculation drill:
+
+<ul><li class="blk"><div class="callout eg"><p class="callout-h">Try these by hand first</p><ul>
+<li>80% parallel, p = 8: <code>1 / (0.8/8 + 0.2) = 1 / 0.3 = 3.33</code>, E = 3.33 / 8 = 0.42</li>
+<li>80% parallel, p as large as you like: <code>1 / 0.2 = 5</code></li>
+<li>Measured <code>T_serial = 12</code> s, <code>T_parallel = 4</code> s on 4 cores: S = 3, E = 0.75</li>
+</ul></div></li></ul></li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=performance&amp;all=1">Quiz this section (9 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="performance"> Section done</label></p>
+</section>
+<!-- ================= 9 ================= -->
+<section id="gpgpu" class="k3">
+<h2>9. GPGPU and Warp</h2>
+<p class="source">Lecture 15 · about 15 minutes</p>
+<p class="lead">A GPU has thousands of simple cores that run the same instruction in lockstep. You hand it a stream of data and a small kernel function, and it runs the kernel once per element.</p>
+<ul class="notes"><li>
+What lecture 15 is about:
+<ul>
+<li>Why GPUs exist, how their hardware differs from a CPU, and the stream programming model</li>
+<li>How to write a first GPU kernel with Nvidia Warp</li>
+<li><strong>GPU</strong> (graphics processing unit): a processor with thousands of simple cores, built for graphics</li>
+<li><strong>GPGPU</strong> (general-purpose computing on GPUs): using that hardware for other work</li>
+</ul>
+</li><li>
+Why GPUs exist:
+<ul>
+<li>A game at 1920 x 1080 has about 2 million pixels per frame</li>
+<li>At 60 frames per second that is about 120 million pixel colours per second</li>
+<li>Each pixel needs several matrix and vector operations, and each of those takes dozens of CPU instructions</li>
+<li>No CPU keeps up with that for a modern game, so dedicated hardware was built</li>
+<li>3D rendering is all coordinates and vectors (3 or 4 components) and transformation matrices: rotation, translation, scaling, projection</li>
+<li>The same operation on huge amounts of data: it "feels a bit SIMD-y"</li>
+</ul>
+</li><li>
+What GPUs give up:
+<ul>
+<li>They are optimized for one thing: basic matrix and vector arithmetic</li>
+<li>They skip complex branch logic and cache management, and spend most transistors on processing units</li>
+<li>CPUs have about 2 to 96 cores (over 250 at the top end). GPUs have hundreds to thousands, over 10,000 on high-end cards</li>
+<li>More cores means more pixels at once, so higher resolution or higher frame rate</li>
+</ul>
+</li><li>
+What GPGPU is used for:
+<ul>
+<li>Physics simulations: objects are points (vectors), forces are vectors and matrices</li>
+<li>Machine learning: training adjusts network weights, which can be written as vector operations. GPGPU largely enabled the ML boom of the last 15 to 20 years</li>
+<li>Image processing: pixels are points, and many image operations are matrices (lectures 16 and 17)</li>
+<li>Also robotics, audio and video, science and finance</li>
+</ul>
+</li><li>
+The stream programming model:
+<ul>
+<li><strong>stream</strong>: an ordered set of data of one type, expected to have thousands of elements or more</li>
+<li>It can be simple (floats) or complex (points, triangles, matrices)</li>
+<li>Operations on streams: copy them, index into them with another stream, and run <strong>kernels</strong> on them</li>
+<li><strong>kernel</strong>: a small function applied to entire streams. It takes one or more streams in and produces one or more streams out</li>
+<li>The word comes from mathematics, and image processing uses it for a filter matrix (lecture 16)</li>
+</ul>
+</li><li>
+Kinds of kernel operation:
+<ul>
+<li><strong>map</strong>: evaluate a function on every element, the most common use</li>
+<li><strong>expansion</strong>: more than one output element per input element</li>
+<li><strong>reduction</strong>: several elements combine into one output element</li>
+<li><strong>filter</strong>: only some input elements are output</li>
+<li>Each step of a rendering pipeline can be one or more kernels, and several can be fused into one</li>
+</ul>
+</li><li>
+The rule that makes kernels parallel:
+<ul>
+<li>A kernel's outputs depend only on its inputs</li>
+<li>Inside a kernel you may read any element of the input arrays and write one output</li>
+<li>Your output may not depend on another thread's output</li>
+<li>So everything a kernel needs is known when it is written, and each element can run on its own core</li>
+<li>This is why a kernel that reads like a serial loop body can run on data-parallel hardware</li>
+</ul>
+</li><li>
+The GPGPU pattern:
+<ul>
+<li>Arrange the problem so the input is a stream</li>
+<li>Write one or more kernels that operate on it. Several kernels run in sequence, only one is applied to a stream at a time</li>
+<li>Load the data and the kernel, and run</li>
+</ul>
+</li><li>
+SIMD against SIMT:
+<ul>
+<li><strong>SIMD</strong>: one thread with very wide registers. One fetch and decode, one register file, several execution lanes</li>
+<li><strong>SIMT</strong> (single instruction, multiple threads): many threads running in lockstep. One program counter, but each thread has its own register file</li>
+<li>Multi-core CPU: multiple independent threads. x86 SSE vector unit: one thread with a wide data path. GPU: multiple lockstep threads</li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Threads</th>
+<th>Program counters</th>
+<th>Register files</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multi-core CPU (MIMD)</td>
+<td>many, independent</td>
+<td>one each</td>
+<td>one each</td>
+</tr>
+<tr>
+<td>Vector unit (SIMD)</td>
+<td>one</td>
+<td>one</td>
+<td>one, very wide</td>
+</tr>
+<tr>
+<td>GPU (SIMT)</td>
+<td>many, in lockstep</td>
+<td>one per group</td>
+<td>one per thread</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+</li><li>GPU hardware hierarchy:<ul>
+<li><strong>shading unit</strong>: a small, simple unit that runs floating-point operations. Nvidia calls them CUDA cores</li>
+<li>A shading unit often runs more than one SIMT thread</li>
+<li><strong>compute unit</strong>: a group of shading units, usually dozens and up to 128 or more</li>
+<li>A GPU is many compute units</li>
+<li class="blk"><div class="callout trap"><p class="callout-h">Branch divergence</p><ul>
+<li>Threads in a lockstep group share one instruction stream</li>
+<li>If they take different branches of an <code>if</code>, the group runs both paths and masks off the threads that should not be active</li>
+<li>So divergent code costs the time of both branches added together</li>
+<li>Best practice: one flat data buffer, one kernel, uniform work on every element</li>
+</ul></div></li></ul>
+</li><li>
+Homogeneous against heterogeneous computing:
+<ul>
+<li><strong>homogeneous</strong>: every execution unit is the same type. Pthreads and MPI both run on CPU cores</li>
+<li>MPI nodes can differ a little, but the code must run on all of them: Intel with AMD is fine (both x86), Intel with ARM is not</li>
+<li><strong>heterogeneous</strong>: different kinds of processor work together. GPGPU is the example</li>
+<li><strong>host</strong>: the CPU side. It starts the program, loads the data stream and the compiled kernels, sends both to the GPU, runs the kernels and copies the results back</li>
+</ul>
+</li><li>
+The new cost: copying to the GPU:
+<ul>
+<li>Once data is on the GPU, kernels get direct memory access, like threads (and data races are possible)</li>
+<li>But on most systems the CPU and GPU have separate memories, like distributed memory</li>
+<li>Moving data to the GPU is a copy over the bus, and it is expensive</li>
+<li>For small problems the copy can dominate, so a naive GPU port can be slower than the CPU version</li>
+</ul>
+</li><li>
+GPGPU libraries:
+<ul>
+<li><strong>CUDA</strong>: Nvidia's proprietary platform. Only runs on Nvidia GPUs, and is the industry favourite</li>
+<li><strong>OpenCL</strong>: an open standard that runs on many platforms. Used where Nvidia hardware is not guaranteed, but declining</li>
+<li>In both, the CPU code is C and the kernel is written in a separate kernel language</li>
+<li><strong>Nvidia Warp</strong>: the course's choice. Free, open source, and both the CPU code and the kernel are Python</li>
+</ul>
+</li><li>
+Why Warp:
+<ul>
+<li>Warp converts the Python to C++ and CUDA and compiles it at run time (just-in-time, JIT)</li>
+<li>The same code runs on an Nvidia GPU in parallel, or on the CPU as a single serial thread</li>
+<li>The course Docker container uses <code>device = "cpu"</code>, so you learn the model without the speedup</li>
+<li>It hides compute units and the communication between them: you only deal with streams and kernels</li>
+<li>The course pins Warp 1.16 (the newest release is past 1.20)</li>
+</ul>
+</li><li>
+The five CPU-side steps:
+<ul>
+<li>Step 1: Load or create the data, for example as a NumPy array</li>
+<li>Step 2: Convert it to a Warp array with <code>wp.array()</code></li>
+<li>Step 3: Create an output Warp array filled with zeros with <code>wp.zeros()</code></li>
+<li>Step 4: Launch the kernel with <code>wp.launch()</code></li>
+<li>Step 5: Convert the output back with <code>.numpy()</code></li>
+</ul>
+</li><li>
+Example: adding two arrays (Z = X + Y):
+<ul>
+<li>The course's <code>arrAdd.py</code> is not in the project files, so this is the program put together from the slide code (slides 38 to 43)</li>
+<li>It is saved in <code>examples/extras/arrAdd.py</code></li>
+<li class="blk"><figure class="run"><figcaption>Real run with Warp 1.16.0 on the CPU</figcaption><pre><code><span class="cmd">$ python3 arrAdd.py</span>
+Module __main__ 00c7d99 load on device &#x27;cpu&#x27; took 3905.18 ms  (compiled)
+[ 3.  5.  7.  9. 11. 13. 15. 17. 19. 21. 23. 25.]</code></pre></figure></li></ul>
+<figure class="snippet"><pre><code>import numpy as np
+import warp as wp
+
+device = &quot;cpu&quot;
+
+@wp.kernel
+def addArrays(x: wp.array(dtype=float),
+              y: wp.array(dtype=float),
+              z: wp.array(dtype=float)):
+    tid = wp.tid()              # this thread&#x27;s index
+    z[tid] = x[tid] + y[tid]    # one element per thread
+
+hostX = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], dtype=np.float32)
+hostY = np.array([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], dtype=np.float32)
+
+x = wp.array(hostX, dtype=float, device=device)
+y = wp.array(hostY, dtype=float, device=device)
+z = wp.zeros(len(hostX), dtype=float, device=device)
+
+wp.launch(kernel=addArrays, dim=len(z), inputs=[x, y], outputs=[z], device=device)
+print(z.numpy())</code></pre></figure>
+</li><li>
+Reading the example line by line:
+<ul>
+<li><code>@wp.kernel</code> marks the function as a GPU kernel</li>
+<li>Warp is statically typed, so every parameter needs a type: <code>wp.array(dtype=float)</code></li>
+<li>A kernel returns nothing. It writes its results into an output array that is passed in, here <code>z</code></li>
+<li>You write the body for <strong>one</strong> element. Warp launches one thread per element</li>
+<li><code>wp.tid()</code> gives the thread's index, the way <code>my_rank</code> does in MPI or the thread id in pthreads</li>
+<li><code>np.float32</code> is used on the host because 32-bit floats are what the GPU works with</li>
+<li><code>dim=len(z)</code> launches 12 threads, one per element</li>
+<li>The slides describe <code>wp.launch</code> as taking 4 arguments, but the example also passes <code>outputs=[z]</code></li>
+<li>The first run takes seconds because Warp is compiling the kernel. Later runs reuse the compiled module</li>
+</ul>
+</li><li>
+Warp calls used so far:
+<ul><li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Call</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@wp.kernel</code></td>
+<td>marks a Python function as a kernel</td>
+</tr>
+<tr>
+<td><code>wp.array(data, dtype=float, device=device)</code></td>
+<td>copies a NumPy array into a Warp array</td>
+</tr>
+<tr>
+<td><code>wp.zeros(n, dtype=float, device=device)</code></td>
+<td>makes a Warp array of n zeros for output</td>
+</tr>
+<tr>
+<td><code>wp.tid()</code></td>
+<td>inside a kernel: this thread's index</td>
+</tr>
+<tr>
+<td><code>wp.launch(kernel=..., dim=..., inputs=[...], outputs=[...], device=...)</code></td>
+<td>runs the kernel on <code>dim</code> threads</td>
+</tr>
+<tr>
+<td><code>arr.numpy()</code></td>
+<td>copies a Warp array back to a NumPy array</td>
+</tr>
+</tbody>
+</table></div></li></ul></li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=gpgpu&amp;all=1">Quiz this section (9 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="gpgpu"> Section done</label></p>
+</section>
+<!-- ================= 10 ================= -->
+<section id="imaging" class="k3">
+<h2>10. Image processing basics</h2>
+<p class="source">Lecture 16 · about 10 minutes</p>
+<p class="lead">An image is a matrix of numbers. Most filters compute each new pixel as a weighted sum of its neighbours, which is called convolution, and the image borders need special handling.</p>
+<ul class="notes"><li>
+What lecture 16 is about:
+<ul>
+<li>The image-processing ideas needed for A3: how images are stored, neighbourhoods, convolution and kernels, and what to do at the borders</li>
+<li>Images are loaded with PIL (the Python Imaging Library) as a matrix of pixel values, which can be passed to Warp as a stream</li>
+</ul>
+</li><li>
+How images are stored:
+<ul>
+<li><strong>greyscale image</strong>: one matrix of intensities, one number per pixel</li>
+<li><strong>colour image</strong>: three matrices (red, green, blue), or one matrix of 3-value vectors</li>
+<li><strong>RGBA</strong>: adds a fourth channel, <strong>alpha</strong>, for transparency</li>
+<li>The examples use greyscale because one matrix is simpler</li>
+<li>To process a colour image, run the same algorithm on each channel separately</li>
+</ul>
+</li><li>
+Filtering:
+<ul>
+<li><strong>filtering</strong>: removing "impurities" from an image, such as noise. Also called image restoration or enhancement</li>
+<li>It covers noise removal, sharpening and contrast enhancement</li>
+<li>The word is also used loosely for effects such as a sepia tone</li>
+</ul>
+</li><li>
+Neighbourhoods:
+<ul>
+<li>A pixel's new value is computed from its old value and the pixels around it, its <strong>neighbourhood</strong></li>
+<li><strong>4-neighbours</strong> of (x, y): (x+1, y), (x-1, y), (x, y+1), (x, y-1)</li>
+<li><strong>8-neighbours</strong>: the 4-neighbours plus the 4 diagonals (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)</li>
+<li>On the border of the image, some neighbours fall outside it</li>
+<li>
+<p>The 3 x 3 neighbourhood of (x, y):</p>
+<figure class="snippet"><pre><code>x-1,y-1   x-1,y   x-1,y+1
+x,y-1     x,y     x,y+1
+x+1,y-1   x+1,y   x+1,y+1</code></pre></figure>
+</li>
+</ul>
+</li><li>
+Convolution:
+<ul>
+<li><strong>convolution</strong>: the new value at a pixel is a weighted sum of the intensities in the neighbourhood around it</li>
+<li>The weights come from a <strong>convolution kernel</strong>, also called a <strong>mask</strong> or <strong>filter</strong>: a small matrix the same size as the neighbourhood</li>
+<li>A neighbourhood centred on a pixel must have odd dimensions: 3 x 3, 5 x 5, ...</li>
+<li>Formula for a 3 x 3 kernel: <code>g(x, y) = sum over i, j in -1..1 of w(i, j) * f(x + i, y + j)</code></li>
+<li><code>f</code> is the input image, <code>g</code> the output image, <code>w</code> the kernel</li>
+</ul>
+</li><li>
+The convolution process, step by step:
+<ul>
+<li>Step 1: Place the centre of the kernel over a pixel P in the input image</li>
+<li>Step 2: Multiply each pixel in the k x k neighbourhood by the kernel coefficient on top of it</li>
+<li>Step 3: Add up all the products</li>
+<li>Step 4: Write the (normalized) sum into position P of the <strong>output</strong> image</li>
+<li>Always read from the input and write to a separate output, so later pixels still see the original values</li>
+</ul>
+</li><li>
+Worked example:
+
+<ul><li class="blk"><div class="callout eg"><p class="callout-h">3 x 3 mean filter on the lecture&#x27;s neighbourhood</p><ul>
+<li>Kernel: every coefficient is 1/9</li>
+<li>
+<p>Neighbourhood, centred on 249:</p>
+<figure class="snippet"><pre><code>131  134  193
+251  249  221
+220  206  230</code></pre></figure>
+</li>
+<li>
+<p>Sum: 131 + 134 + 193 + 251 + 249 + 221 + 220 + 206 + 230 = 1835</p>
+</li>
+<li>1835 / 9 = 203.9, which rounds to <strong>204</strong></li>
+<li>The centre pixel 249 becomes 204 in the output</li>
+</ul></div></li></ul></li><li>
+Kinds of kernel:
+<ul>
+<li><strong>omnidirectional</strong>: responds the same whichever direction the intensity changes in</li>
+<li><strong>uniform</strong>: all coefficients have the same weight (the mean filter)</li>
+<li><strong>nonuniform</strong>: coefficients have different weights (pyramid, cone, Gaussian)</li>
+</ul>
+</li><li>
+Normalization:
+<ul>
+<li>Kernels are usually <strong>normalized</strong>: each coefficient is divided by the sum of all coefficients</li>
+<li>The factor is often written outside the matrix, for example 1/9 in front of a matrix of 1s</li>
+<li>In code the coefficients are often already divided</li>
+<li>Why: a region of constant intensity should keep the same value after filtering</li>
+<li>And it avoids bias: the original and filtered images should have the same total brightness</li>
+<li>Sharpening kernels whose coefficients sum to 0 are the exception (lecture 17)</li>
+</ul>
+</li><li>
+Kernel shapes from the lecture:
+<ul><li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>Size</th>
+<th>Divide by</th>
+<th>Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rectangular (box)</td>
+<td>5 x 5 of 1s</td>
+<td>25</td>
+<td>uniform smoothing</td>
+</tr>
+<tr>
+<td>circular (pill-box)</td>
+<td>5 x 5, corners 0</td>
+<td>21</td>
+<td>uniform, roughly round</td>
+</tr>
+<tr>
+<td>pyramidal</td>
+<td>5 x 5, 1 2 3 2 1 pattern, centre 9</td>
+<td>81</td>
+<td>weight falls off linearly from the centre</td>
+</tr>
+<tr>
+<td>cone</td>
+<td>5 x 5, centre 5</td>
+<td>27</td>
+<td>weight falls off with distance, round</td>
+</tr>
+</tbody>
+</table></div></li></ul></li><li>Image borders:<ul>
+<li>Near the border, part of the kernel would sit outside the image, so normal convolution is impossible there</li>
+<li>This is true of any neighbourhood operation</li>
+<li>A kernel with half-width m (m = 1 for 3 x 3, 2 for 5 x 5, 3 for 7 x 7) can only be centred on pixels at least m from every edge</li>
+<li>On an M x N image the processable region is <code>(M - 2m) x (N - 2m)</code>, starting at (m, m)</li>
+<li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>m</th>
+<th>Origin</th>
+<th>Processable region</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3 x 3</td>
+<td>1</td>
+<td>(1, 1)</td>
+<td>(M-2) x (N-2)</td>
+</tr>
+<tr>
+<td>5 x 5</td>
+<td>2</td>
+<td>(2, 2)</td>
+<td>(M-4) x (N-4)</td>
+</tr>
+<tr>
+<td>7 x 7</td>
+<td>3</td>
+<td>(3, 3)</td>
+<td>(M-6) x (N-6)</td>
+</tr>
+</tbody>
+</table></div></li></ul>
+</li><li>
+Ways to handle the border:
+<ul>
+<li><strong>Copy the input pixels</strong>: where convolution is impossible, copy the input value. The output has an unprocessed frame</li>
+<li><strong>Truncate the image</strong>: drop those pixels. The output is smaller than and offset from the input</li>
+<li><strong>Truncate the kernel</strong>: use a smaller, modified kernel at edges and corners. Correct, but adds a lot of complexity</li>
+<li><strong>Reflected indexing</strong>: if <code>x + i</code> falls outside the image, reflect it back inside, as if the image were mirrored at its edges. The lecture calls this the most useful option</li>
+<li><strong>Circular indexing</strong>: pretend the image repeats forever in every direction, so falling off the right edge wraps to the left. Rarely used in image processing</li>
+</ul>
+</li><li>
+Reflected indexing with numbers:
+
+<ul><li class="blk"><div class="callout eg"><p class="callout-h">Reflecting at both ends of a row</p><ul>
+<li>Row of width 5, indices 0 to 4, kernel half-width 1</li>
+<li>At x = 0 the kernel wants index -1. Reflect it to index 1</li>
+<li>At x = 4 it wants index 5. Reflect it to index 3</li>
+<li>So the row <code>10 20 30 40 50</code> is read as <code>20 | 10 20 30 40 50 | 40</code> at the edges</li>
+<li>Some libraries reflect to index 0 instead (repeating the edge pixel). Check which one your assignment asks for</li>
+</ul></div></li></ul></li><li>
+Connecting this to GPGPU (lecture 15):
+<ul>
+<li>Each output pixel depends only on input pixels, never on other output pixels</li>
+<li>That is exactly the kernel rule, so one thread per output pixel works</li>
+<li>Each thread finds its (x, y), loops over the k x k neighbourhood of the input, and writes one output value</li>
+<li>Writing into the input image instead would break the rule, because neighbouring threads would read half-updated values</li>
+<li>The border handling is a branch, so pixels near the edge can cause some divergence, but only along a thin frame</li>
+</ul>
+</li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=imaging&amp;all=1">Quiz this section (8 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="imaging"> Section done</label></p>
+</section>
+<!-- ================= 11 ================= -->
+<section id="filters" class="k3">
+<h2>11. Sharpening and smoothing</h2>
+<p class="source">Lecture 17 · about 10 minutes</p>
+<p class="lead">Smoothing filters average neighbours to remove noise but blur edges. Sharpening does the opposite and makes noise worse. The median filter removes isolated spikes and keeps edges.</p>
+<ul class="notes"><li>
+What lecture 17 is about:
+<ul>
+<li>The fundamental filters: sharpening (high-pass, unsharp masking) and smoothing (mean, Gaussian, median)</li>
+<li>All but the median are convolutions with the kernels from lecture 16</li>
+</ul>
+</li><li>
+Why images need fixing:
+<ul>
+<li><strong>blur</strong>: details are smoothed out. Causes: out-of-focus optics, lens aberrations, atmospheric turbulence, camera motion during long exposures</li>
+<li><strong>noise</strong>: artifacts added when the image is captured</li>
+<li>Noise comes from variation in photon counts and from the sensor itself (<strong>read noise</strong>)</li>
+<li>Sensor noise gets worse as temperature rises, and as sensitivity is raised in low light</li>
+</ul>
+</li><li>
+Low-pass and high-pass:
+<ul>
+<li>"Low" and "high" refer to spatial frequency: how quickly intensity changes across the image</li>
+<li><strong>low-pass filter (LPF)</strong>: lets slow changes through and removes quick ones. Smooths, removes noise. Also called a "high-cut" filter</li>
+<li><strong>high-pass filter (HPF)</strong>: the image minus its low-pass version. Keeps sudden changes like edges, suppresses gradual ones</li>
+<li><strong>high-boost filter</strong>: part of the high-pass result added back to the image</li>
+<li>Quick, closely spaced changes can be unwanted (noise) or wanted (fine detail). A filter cannot tell them apart</li>
+</ul>
+</li><li>
+Simple sharpening:
+<ul>
+<li>A high-pass kernel mixes positive and negative values</li>
+<li>
+<p>Omnidirectional version: positive at the centre, negative around it, coefficients summing to <strong>0</strong></p>
+<figure class="snippet"><pre><code>-1  -1  -1
+-1   8  -1
+-1  -1  -1</code></pre></figure>
+</li>
+</ul>
+</li><li>
+Why the sum is 0:
+<ul>
+<li>Over a flat region every pixel is equal, so 8v - 8v = 0</li>
+<li>Over a slow change the result is small</li>
+<li>Over a sharp change the result is large</li>
+<li>Example: three columns of 10, 10, 50 give -120. Columns 10, 50, 50 give +120. Flat 50 everywhere gives 0</li>
+<li>So the output is an edge map. It is not normalized like a smoothing kernel, because its sum is 0</li>
+</ul>
+</li><li>
+Caveats of sharpening:
+<ul>
+<li>Noise is high-frequency, so sharpening makes noise more visible</li>
+<li>In practice, remove noise first, then sharpen</li>
+</ul>
+</li><li>
+Unsharp masking:
+<ul>
+<li>Introduced by Schreiber in 1970 to improve newspaper wirephotos, based on a darkroom technique of sandwiching a blurred positive with the negative</li>
+<li>Idea: subtract a blurred copy from the image, which removes the low frequencies and leaves the edges</li>
+<li>Unlike the single-kernel filters, it is a multi-step method</li>
+<li>Step 1, edge image: <code>g(x, y) = f(x, y) - S(f(x, y))</code>, where <code>S(f)</code> is a blurred version of <code>f</code></li>
+<li>Step 2, add it back: <code>f_UM(x, y) = f(x, y) + k * g(x, y)</code></li>
+<li><code>k</code> is a scaling constant. Reasonable values are 0.2 to 0.7, larger means sharper</li>
+<li>With k &gt; 1 it is called a <strong>high-boost</strong> filter</li>
+</ul>
+</li><li>
+Unsharp masking with numbers:
+
+<ul><li class="blk"><div class="callout eg"><p class="callout-h">A 1D edge, blurred with a 3-wide mean, k = 0.5</p><ul>
+<li>Input row: <code>10 10 10 10 50 50 50 50</code></li>
+<li>Blur (edges repeated): <code>10 10 10 23.3 36.7 50 50 50</code></li>
+<li>Edge image g = input - blur: <code>0 0 0 -13.3 13.3 0 0 0</code></li>
+<li>Result f + 0.5 g: <code>10 10 10 3.3 56.7 50 50 50</code></li>
+<li>The dark side of the edge dips below 10 and the bright side rises above 50: that is <strong>overshoot</strong></li>
+</ul></div></li></ul></li><li>
+Limits of unsharp masking:
+<ul>
+<li><strong>noise sensitivity</strong>: it emphasizes high frequencies, and noise is high frequency</li>
+<li><strong>overshoot</strong>: wide, abrupt brightness changes get an exaggerated rim</li>
+<li>It makes an edge steeper by making it taller. Many sharpening methods share this trait</li>
+<li>In the lecture's example, the square elements look brighter than in the original</li>
+</ul>
+</li><li>
+Denoising in general:
+<ul>
+<li>Noise filters are smoothing (low-pass) filters</li>
+<li>Two families: <strong>mean-based</strong> (mean, Gaussian) and <strong>order-statistic</strong> (median and other rank filters)</li>
+</ul>
+</li><li>
+Mean filter (box filter):
+<ul>
+<li>Replace each pixel with the average of its neighbourhood. Also called sliding mean or box filter</li>
+<li>3 x 3: sum the 9 values and divide by 9. 5 x 5: sum 25 and divide by 25</li>
+<li>It reduces noise because noise is sharp transitions, but edges are sharp transitions too, so edges blur</li>
+<li>It is the opposite of sharpening</li>
+<li>Larger kernels, or applying a small kernel repeatedly, smooth more</li>
+<li>Effective against Gaussian noise</li>
+</ul>
+</li><li>
+Gaussian filter:
+<ul>
+<li>A smoothing filter with a nonuniform kernel built from a 2D Gaussian function</li>
+<li><code>w(i, j) = e^(-(i^2 + j^2) / (2 sigma^2))</code> for i, j from -[3 sigma] to [3 sigma]</li>
+<li>[3 sigma] means the integer part of 3 sigma. Beyond 3 sigma the weights are negligible</li>
+<li>Coefficients shrink with distance from the centre, so central pixels count more than the edges of the neighbourhood</li>
+<li>Larger sigma: a wider spread, more blur, and a bigger kernel</li>
+<li><strong>isotropic</strong> (rotationally symmetric): no direction is smoothed more than another</li>
+<li>With sigma^2 = 1 the kernel is 7 x 7. Normalized and multiplied by 1000 its centre row is <code>2 22 97 159 97 22 2</code>, and its centre is 159</li>
+<li>Other common values: sigma^2 = 2/3 and sigma^2 = 2</li>
+<li>Compared with a mean filter of similar size, edges blur less, because far-away pixels count less</li>
+<li class="blk"><div class="callout trap"><p class="callout-h">Exam trap</p><ul>
+<li>The median filter is not a convolution. No set of weights picks the middle value for every neighbourhood, so it has no kernel matrix</li>
+</ul></div></li></ul>
+</li><li>
+Rank (order-statistic) filters:
+<ul>
+<li>Non-linear filters: list the neighbourhood's values, sort them, and pick the value at a chosen position</li>
+<li>Positions include the median, lower quartile and upper quartile</li>
+<li>Because sorting is not a weighted sum, a rank filter is <strong>not</strong> a convolution and has no kernel matrix</li>
+</ul>
+</li><li>
+Median filter:
+<ul>
+<li>Replace the pixel with the middle value of its sorted neighbourhood</li>
+<li>Lecture example (5 x 5): the sorted 25 values are <code>9 11 21 23 23 23 27 34 45 46 87 90 98 100 103 104 104 104 105 105 106 108 109 110 112</code></li>
+<li>The 13th value is the median: <strong>98</strong></li>
+<li>Used to remove <strong>impulse noise</strong> (salt and pepper: isolated very bright or very dark pixels)</li>
+<li>It works when the noisy pixels are less than half the neighbourhood, because the median then comes from the clean majority</li>
+<li>Example: a 3 x 3 of eight 10s and one 255. The mean is 37.2 (the spike smears out), the median is 10 (the spike is gone)</li>
+</ul>
+</li><li>
+Median filter strengths and weaknesses:
+<ul>
+<li>It does not compress the brightness range inside the neighbourhood, so sharp and straight edges survive</li>
+<li>It is non-specific: any structure smaller than half the neighbourhood is removed, real or noise</li>
+<li>So thin lines and small objects disappear too</li>
+<li>Repeated application causes <strong>posterization</strong>: flat patches of colour with hard boundaries</li>
+</ul>
+</li><li>
+Choosing a filter:
+<ul><li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Filter</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gaussian noise</td>
+<td>mean or Gaussian</td>
+<td>averaging cancels random variation</td>
+</tr>
+<tr>
+<td>Impulse (salt and pepper) noise</td>
+<td>median</td>
+<td>the outlier never becomes the middle value</td>
+</tr>
+<tr>
+<td>Keep edges while denoising</td>
+<td>median</td>
+<td>no averaging across the edge</td>
+</tr>
+<tr>
+<td>Blurry image</td>
+<td>unsharp masking</td>
+<td>adds the edge image back</td>
+</tr>
+<tr>
+<td>Noisy and blurry</td>
+<td>denoise first, then sharpen</td>
+<td>sharpening amplifies noise</td>
+</tr>
+</tbody>
+</table></div></li></ul></li></ul>
+<p class="btn-row section-quiz"><a class="btn secondary" href="quiz.html?topic=filters&amp;all=1">Quiz this section (10 questions)</a><label class="ex-done read-done"><input type="checkbox" data-read="filters"> Section done</label></p>
+</section>
+<!-- ================= cheat sheet ================= -->
+<section id="cheat" class="k3">
+<h2>Cheat sheet</h2>
+<p class="lead">Every call and formula from the sections above on one page.</p>
+<ul class="notes"><li>
+Setup and shutdown:
+
+<ul><li class="blk"><figure class="snippet"><pre><code><span class="n mpi">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w">                          </span><span class="cm">/* before any other MPI call */</span>
+<span class="n mpi">MPI_Comm_size</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">comm_sz</span><span class="p">);</span><span class="w">       </span><span class="cm">/* how many processes */</span>
+<span class="n mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_rank</span><span class="p">);</span><span class="w">       </span><span class="cm">/* which one am I */</span>
+<span class="n mpi">MPI_Finalize</span><span class="p">();</span><span class="w">                                </span><span class="cm">/* no MPI calls after this */</span></code></pre></figure></li></ul></li><li>
+Point-to-point:
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w">   </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span><span class="w">   </span><span class="cm">/* or MPI_STATUS_IGNORE */</span>
+<span class="n mpi">MPI_Get_count</span><span class="p">(</span><span class="o">&amp;</span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">);</span>
+<span class="n mpi">MPI_Sendrecv</span><span class="p">(</span><span class="n">sendbuf</span><span class="p">,</span><span class="w"> </span><span class="n">scount</span><span class="p">,</span><span class="w"> </span><span class="n">stype</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">stag</span><span class="p">,</span>
+<span class="w">             </span><span class="n">recvbuf</span><span class="p">,</span><span class="w"> </span><span class="n">rcount</span><span class="p">,</span><span class="w"> </span><span class="n">rtype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">rtag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>Recv <code>count</code> is the buffer capacity, it must be at least the size of the message</li>
+<li>Wildcards <code>MPI_ANY_SOURCE</code> and <code>MPI_ANY_TAG</code> are receiver only</li>
+<li><code>status.MPI_SOURCE</code>, <code>status.MPI_TAG</code> tell you what a wildcard receive matched</li>
+</ul>
+</li><li>
+Collective:
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Bcast</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Allreduce</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Scatter</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Gather</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Gatherv</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_counts</span><span class="p">,</span><span class="w"> </span><span class="n">displs</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li><code>send_count</code> in Scatter and Gather is per process, not the total</li>
+<li>Every process in the communicator must make the call, in the same order</li>
+<li>Reduce output is only written on <code>dest</code>, and input and output must not be the same variable</li>
+</ul>
+</li><li>
+Datatypes used in the examples:
+<ul>
+<li><code>MPI_CHAR</code> for <code>char</code>, <code>MPI_INT</code> for <code>int</code>, <code>MPI_DOUBLE</code> for <code>double</code></li>
+<li>The MPI type must match the C type of the variable</li>
+</ul>
+</li><li>
+Reduction operators (textbook Table 3.2):
+<ul><li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MPI_SUM</code>, <code>MPI_PROD</code></td>
+<td>sum, product</td>
+</tr>
+<tr>
+<td><code>MPI_MAX</code>, <code>MPI_MIN</code></td>
+<td>maximum, minimum</td>
+</tr>
+<tr>
+<td><code>MPI_MAXLOC</code>, <code>MPI_MINLOC</code></td>
+<td>extreme value and where it is</td>
+</tr>
+<tr>
+<td><code>MPI_LAND</code>, <code>MPI_LOR</code>, <code>MPI_LXOR</code></td>
+<td>logical and, or, exclusive or</td>
+</tr>
+<tr>
+<td><code>MPI_BAND</code>, <code>MPI_BOR</code>, <code>MPI_BXOR</code></td>
+<td>bitwise and, or, exclusive or</td>
+</tr>
+</tbody>
+</table></div></li></ul></li><li>Point-to-point against collective:<ul><li class="blk"><div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Point-to-point</th>
+<th>Collective</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Who takes part</td>
+<td>one sender, one receiver</td>
+<td>all processes in the communicator</td>
+</tr>
+<tr>
+<td>Matched by</td>
+<td>communicator, tag, source and dest</td>
+<td>communicator and order of calls</td>
+</tr>
+<tr>
+<td>Tags</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Wildcards</td>
+<td>receiver only</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div></li></ul></li><li>
+Four ways code hangs or goes wrong:
+<ul>
+<li>Receive with no matching send</li>
+<li>Tag, rank or communicator mismatch</li>
+<li>Two blocking sends facing each other</li>
+<li>A collective that not every process calls, or that is called in a different order</li>
+</ul>
+</li><li>
+Trapezoid formulas:
+<ul>
+<li><code>h = (b - a) / n</code></li>
+<li><code>local_n = n / comm_sz</code> (assumes n divides evenly)</li>
+<li><code>local_a = a + my_rank * local_n * h</code></li>
+<li><code>local_b = local_a + local_n * h</code></li>
+<li>Estimate: <code>h * (f(a)/2 + f(x_1) + ... + f(x_n-1) + f(b)/2)</code></li>
+</ul>
+</li><li>
+Odd-even sort (lecture 12):
+<ul>
+<li>Partner: even phase, even rank + 1 and odd rank - 1. Odd phase, even rank - 1 and odd rank + 1</li>
+<li>Partner outside 0 to p - 1 means idle that phase</li>
+<li>Compare-split: merge the two sorted blocks, the lower rank keeps the low half</li>
+<li>At most p phases with p ranks</li>
+<li>Exchange with <code>MPI_Sendrecv</code>, never Send then Send</li>
+</ul>
+</li><li>
+Heat diffusion (lecture 13):
+<ul>
+<li><code>updatable_rows = N - 2</code>, <code>base = updatable_rows / p</code>, <code>rem = updatable_rows % p</code></li>
+<li><code>row_count[r] = base + (r &lt; rem ? 1 : 0)</code>, <code>row_start[0] = 1</code></li>
+<li>Local array is <code>(my_rows + 2) x N</code>, local rows 0 and <code>my_rows + 1</code> are ghosts</li>
+<li><code>global_row = row_start - 1 + local_row</code></li>
+<li><code>up = rank 0 ? MPI_PROC_NULL : rank - 1</code>, <code>down = last rank ? MPI_PROC_NULL : rank + 1</code></li>
+<li>Gatherv: <code>recv_counts[r] = row_count[r] * N</code>, <code>displs[r] = row_start[r] * N</code></li>
+<li>Convergence: <code>MPI_Allreduce(&amp;local_max, &amp;global_max, 1, MPI_DOUBLE, MPI_MAX, comm)</code></li>
+</ul>
+</li><li>
+Performance (lecture 14):
+<ul>
+<li>Speedup <code>S = T_serial / T_parallel</code>, linear speedup is <code>S = p</code></li>
+<li>Efficiency <code>E = S / p</code></li>
+<li>Overhead: <code>T_parallel = T_serial / p + T_overhead</code></li>
+<li>Amdahl: <code>S = 1 / (parallel / p + serial)</code>, maximum <code>1 / serial</code></li>
+<li>Flynn: SISD, SIMD, MISD, MIMD. UMA same access time, NUMA local is faster</li>
+</ul>
+</li><li>
+GPGPU and Warp (lecture 15):
+<ul>
+<li>One thread per element, <code>tid = wp.tid()</code>, kernels write to an output array and return nothing</li>
+<li>Host steps: NumPy data, <code>wp.array</code>, <code>wp.zeros</code>, <code>wp.launch(kernel, dim, inputs, outputs, device)</code>, <code>.numpy()</code></li>
+<li>Divergent branches cost the sum of both paths. Copying to the GPU can dominate small problems</li>
+</ul>
+</li><li>
+Image processing (lectures 16 and 17):
+<ul>
+<li>Convolution: <code>g(x, y) = sum of w(i, j) * f(x + i, y + j)</code> over the kernel</li>
+<li>Normalize smoothing kernels by their sum. High-pass kernels sum to 0</li>
+<li>Processable region for half-width m: <code>(M - 2m) x (N - 2m)</code> from (m, m)</li>
+<li>Unsharp mask: <code>g = f - blur(f)</code>, <code>f_UM = f + k g</code>, k from 0.2 to 0.7, k &gt; 1 is high-boost</li>
+<li>Gaussian: <code>w(i, j) = e^(-(i^2 + j^2) / (2 sigma^2))</code>, radius 3 sigma</li>
+<li>Median: sort the neighbourhood, take the middle. Best for impulse noise, keeps edges, removes features under half the window</li>
+</ul>
+</li><li>
+Commands:
+
+<ul><li class="blk"><figure class="snippet"><pre><code>mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
+mpiexec -n 4 ./mpi_hello
+echo &quot;0 3 1024&quot; | mpiexec -n 4 ./mpi_Bcast
+mpicc -O2 -Wall -o heatDiffusionMpi heatDiffusionMpi.c -lm
+mpirun -np 4 ./heatDiffusionMpi 16 6 1e-4 50000 1 frames txt
+mpiexec -n 4 ./mpi_odd_even g 16
+python3 arrAdd.py</code></pre></figure></li></ul></li></ul>
+</section>
+      </article>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
+</body>
+</html>

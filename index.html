@@ -1,95 +1,90 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Understand MPI code by following every rank | CIS*3090 midterm 2</title>
-<meta name="description" content="Midterm 2 study site for CIS*3090: MPI, the distributed-memory case studies, performance, GPGPU with Warp and image processing.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="Reading notes, code walkthroughs, quizzes, short answers, flashcards and a practice exam for CIS*3090 midterm 2.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-index home">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html" aria-current="true">Home</a><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
+<body data-page="home">
+  <header id="site-header"></header>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>CIS*3090 Parallel Programming: midterm 2 review</h1>
+        <p class="when">Lectures 09 to 17: MPI and collective communication, the odd-even sort and heat distribution rebuilt for distributed memory, parallel hardware and performance, GPGPU with Nvidia Warp, and image filtering.</p>
+        <div class="btn-row">
+          <a class="btn" href="read.html" id="continue">Start reading</a>
+          <a class="btn secondary" href="exam.html">Take the practice exam</a>
+        </div>
+      </div>
+      <figure class="hero-fig" aria-label="Every worker rank sends to rank 0"><svg viewBox="0 0 420 210" role="img" aria-label="Ranks 1, 2 and 3 each send a message to rank 0." font-family="var(--font)">
+<g stroke="var(--rule)" stroke-width="2" stroke-dasharray="3 5"><line x1="70" y1="52" x2="70" y2="200"/><line x1="165" y1="52" x2="165" y2="200"/><line x1="260" y1="52" x2="260" y2="200"/><line x1="355" y1="52" x2="355" y2="200"/></g>
+<rect x="50" y="14" width="40" height="32" rx="8" fill="var(--k-blue)"/><text x="70" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-blue)">0</text>
+<rect x="145" y="14" width="40" height="32" rx="8" fill="var(--k-orange)"/><text x="165" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-orange)">1</text>
+<rect x="240" y="14" width="40" height="32" rx="8" fill="var(--k-orange)"/><text x="260" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-orange)">2</text>
+<rect x="335" y="14" width="40" height="32" rx="8" fill="var(--k-orange)"/><text x="355" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="var(--k-on-orange)">3</text>
+<g stroke="var(--k-orange)" stroke-width="3"><line x1="165" y1="86" x2="84" y2="86"/><line x1="260" y1="132" x2="84" y2="132"/><line x1="355" y1="178" x2="84" y2="178"/></g>
+<g fill="var(--k-orange)"><path d="M70 86 l14 -7 v14z"/><path d="M70 132 l14 -7 v14z"/><path d="M70 178 l14 -7 v14z"/></g>
+</svg><figcaption class="lanes-caption">Blue is rank 0, orange is every other rank. The code pages draw every program this way, one message at a time.</figcaption></figure>
+    </section>
 
-<main id="main">
+    <div class="home-grid">
+      <section aria-labelledby="study-h">
+        <h2 id="study-h" style="margin-top:0">Study</h2>
+        <ul class="study-list">
+          <li><a href="read.html"><span class="name">Read</span><span class="desc">11 sections built from the lecture slides, each starting from the idea, with worked examples, two labs and a cheat sheet.</span><span class="stat" id="stat-read"></span></a></li>
+          <li><a href="code.html"><span class="name">Code</span><span class="desc">6 pages that walk through the course programs rank by rank, plus a trapezoid trace.</span><span class="stat"></span></a></li>
+          <li><a href="quiz.html"><span class="name">Topic quizzes</span><span class="desc"><span id="n-quiz"></span> multiple-choice questions, one quiz per section, with an explanation after every answer.</span><span class="stat" id="stat-quiz"></span></a></li>
+          <li><a href="short.html"><span class="name">Short answers</span><span class="desc"><span id="n-short"></span> code-reading and explain-why prompts, with model answers to open once you've tried them.</span><span class="stat" id="stat-short"></span></a></li>
+          <li><a href="flashcards.html"><span class="name">Flashcards</span><span class="desc">Every definition from the lectures, by section.</span><span class="stat" id="stat-cards"></span></a></li>
+          <li><a href="exam.html"><span class="name">Practice exam</span><span class="desc"><span id="n-exam"></span> questions, timed, scored by section and by question type. Exam A uses questions that appear nowhere else.</span><span class="stat" id="stat-exam"></span></a></li>
+          <li><a href="ref_index.html"><span class="name">MPI reference</span><span class="desc">Every MPI call used in the course, with its arguments and the mistakes to avoid.</span><span class="stat"></span></a></li>
+        </ul>
 
-<section class="hero"><div><h1>Understand MPI code by following every rank</h1><p class="lede">Midterm 2 study site for CIS*3090. Pick a rank, see the lines it runs, and step through the messages one at a time.</p><div class="hero-btns"><a class="primary" href="hello.html">Follow a program</a><a class="secondary" href="concepts.html">Start with the big ideas</a></div></div><div class="hero-art"><svg viewBox="0 0 420 230" role="img" aria-label="Ranks 1, 2 and 3 each send a message to rank 0.">
-<line class="lane" x1="70" y1="52" x2="70" y2="214"/><line class="lane" x1="165" y1="52" x2="165" y2="214"/>
-<line class="lane" x1="260" y1="52" x2="260" y2="214"/><line class="lane" x1="355" y1="52" x2="355" y2="214"/>
-<rect x="50" y="14" width="40" height="32" rx="8" fill="var(--blue)"/><text class="hl" x="70" y="35" text-anchor="middle">0</text>
-<rect x="145" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="165" y="35" text-anchor="middle">1</text>
-<rect x="240" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="260" y="35" text-anchor="middle">2</text>
-<rect x="335" y="14" width="40" height="32" rx="8" fill="var(--orange)"/><text class="ho" x="355" y="35" text-anchor="middle">3</text>
-<line class="a0" x1="165" y1="90" x2="82" y2="90"/><path class="ah" d="M70 90 l13 -6 v12z"/>
-<line class="a0" x1="260" y1="140" x2="82" y2="140"/><path class="ah" d="M70 140 l13 -6 v12z"/>
-<line class="a0" x1="355" y1="190" x2="82" y2="190"/><path class="ah" d="M70 190 l13 -6 v12z"/>
-</svg><p>Every worker sends to rank 0, and rank 0 receives in order.</p></div></section><div class="home-grid"><section><h2>Study</h2><ul class="studylist"><li><a href="concepts.html"><span class="name">Learn</span><span class="desc">MPI basics and collectives, the odd-even sort and heat diffusion case studies, performance, GPGPU with Warp, and image filters.<small>Big ideas, Reading MPI code, Send and receive, Collective communication, The trapezoidal rule, Odd-even sort with MPI, Heat distribution with MPI, Hardware and performance, GPGPU and Warp, Image processing basics, Sharpening and smoothing</small></span></a></li><li><a href="hello.html"><span class="name">Code</span><span class="desc">The MPI course programs with a rank picker and a message timeline.<small>mpi_hello.c, mpi_hello2.c, mpi_SendRec.c, mpi_Bcast.c, heatDiffusionMpi.c, Hangs and mix-ups</small></span></a></li><li><a href="practice.html"><span class="name">Practice</span><span class="desc">Predict outputs and find hangs, then check yourself.<small>Code-reading questions, Questions for lectures 12 to 17, Trapezoid trace</small></span></a></li><li><a href="ref_index.html"><span class="name">MPI reference</span><span class="desc">Look up any MPI call used in this course.<small>Find a function, Setup and shutdown, Send and receive functions, Collective functions, Datatypes and operators, Cheat sheet</small></span></a></li></ul></section></div>
-<ul>
-<li class="sec">
-<p>What this site is for:</p>
-<ul>
-<li>Each code page shows the program as plain code. Pick a rank to see which lines it runs</li>
-<li>Press Next step to follow the messages one send or receive at a time</li>
-<li>Press the i button on a line to read what it does</li>
-<li><strong>MPI</strong> (Message Passing Interface): a C library for running one program as several cooperating processes</li>
-<li>Every output shown here came from compiling and running the code (MPICH for lectures 09 to 11, Open MPI for the heat program, Warp 1.16 for the GPU example)</li>
-<li>Lectures 12 to 17 each have a Learn page, and there is a second question page for them</li>
-</ul>
-</li>
-<li class="sec">
-<p>What is covered so far:</p>
-<ul>
-<li><strong>Lecture 09</strong>: distributed memory systems, MPI basics, send and receive</li>
-<li><strong>Lecture 10</strong>: collective communication (Reduce, Allreduce, Bcast, Scatter, Gather)</li>
-<li><strong>Lecture 11</strong>: the trapezoidal rule, first with Send/Recv, then with Bcast and Reduce</li>
-<li><strong>Lecture 12</strong>: odd-even sort for distributed memory (<code>MPI_Sendrecv</code>, deadlock with <code>MPI_Ssend</code>)</li>
-<li><strong>Lecture 13</strong>: heat distribution for distributed memory (ghost rows, <code>MPI_PROC_NULL</code>, <code>MPI_Allreduce</code>, <code>MPI_Gatherv</code>)</li>
-<li><strong>Lecture 14</strong>: parallel hardware and performance (Flynn, UMA and NUMA, speedup, efficiency, Amdahl's law)</li>
-<li><strong>Lecture 15</strong>: GPGPU and Nvidia Warp</li>
-<li><strong>Lectures 16 and 17</strong>: image processing, convolution, sharpening, smoothing and the median filter</li>
-<li><strong>Textbook</strong>: Chapter 2, sections 2.3 and 2.6.1 to 2.6.2, and Chapter 3, sections 3.1 to 3.4</li>
-<li><strong>Code</strong>: <code>mpi_hello.c</code>, <code>mpi_hello2.c</code>, <code>mpi_SendRec.c</code>, <code>mpi_Bcast.c</code>, the makefile and <code>heatDiffusionMpi.c</code></li>
-<li><code>mpi_odd_even.c</code> and the Warp example <code>arrAdd.py</code> were not in the project files, so those pages use the slide code</li>
-<li>The pthreads lectures (01 to 08) are not on this site</li>
-</ul>
-</li>
-<li class="sec">
-<p>A good study order:</p>
-<ul>
-<li>Big ideas, then Reading MPI code, which is the routine to use on every exam question</li>
-<li>Send and receive, then Collective communication, and try the lab on each page</li>
-<li>Open each code page and predict the output before you read the notes</li>
-<li>Finish with Hangs and mix-ups and the code-reading questions</li>
-<li>For lectures 12 to 17: read the Learn page for each lecture, open <code>heatDiffusionMpi.c</code>, then try the second question page</li>
-</ul>
-</li>
-<li class="sec">
-<p>Two things in the zip that can trip you up:</p>
-<ul>
-<li><code>mpi_SendRec.c</code> is the textbook's <code>mpi_trap2.c</code>, and <code>mpi_Bcast.c</code> is <code>mpi_trap3.c</code></li>
-<li>The comments inside those files still use the old names</li>
-<li>The makefile builds <code>mpi_hello</code>, <code>mpi_SendRec</code> and <code>mpi_Bcast</code>, but not <code>mpi_hello2</code></li>
-<li>The trapezoid programs read input from the keyboard, so pipe it in: <code>echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast</code></li>
-</ul>
-</li>
-<li class="sec">
-<p>Compile and run:</p>
-<ul>
-<li><code>mpicc -std=c99 -Wall -o mpi_hello mpi_hello.c</code></li>
-<li><code>mpiexec -n 4 ./mpi_hello</code></li>
-<li><code>-n 4</code> starts four processes</li>
-</ul>
-</li>
-</ul>
-<nav class="pager" aria-label="Previous and next page"><a class="next" href="concepts.html"><span>Next</span>Big ideas</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+        <h2 id="plan-h">Suggested order</h2>
+        <div class="table-wrap"><table class="plan">
+          <thead><tr><th>Part</th><th>Read</th><th>Then</th></tr></thead>
+          <tbody>
+          <tr><td><strong>MPI (lectures 09 to 11)</strong><br><span class="muted">about 35 min of reading</span></td><td><a href="read.html#concepts" data-plan="concepts">1. Distributed memory and MPI</a><br><a href="read.html#method" data-plan="method">2. Reading MPI code</a><br><a href="read.html#sendrecv" data-plan="sendrecv">3. Send and receive</a><br><a href="read.html#collectives" data-plan="collectives">4. Collective communication</a><br><a href="read.html#trapezoid" data-plan="trapezoid">5. The trapezoidal rule</a></td><td>Open each program on the <a href="code.html">Code</a> pages and predict the output before reading the notes. Then take each section's quiz.</td></tr>
+<tr><td><strong>Distributed-memory case studies (12, 13)</strong><br><span class="muted">about 25 min of reading</span></td><td><a href="read.html#odd_even" data-plan="odd_even">6. Odd-even sort with MPI</a><br><a href="read.html#heat" data-plan="heat">7. Heat distribution with MPI</a></td><td>Step through <a href="heat_code.html">heatDiffusionMpi.c</a>. Redo the odd-even phase table by hand.</td></tr>
+<tr><td><strong>Performance (14)</strong><br><span class="muted">about 10 min of reading</span></td><td><a href="read.html#performance" data-plan="performance">8. Hardware and performance</a></td><td>Do the Amdahl and efficiency calculations without looking, then take the quiz.</td></tr>
+<tr><td><strong>GPUs and images (15 to 17)</strong><br><span class="muted">about 35 min of reading</span></td><td><a href="read.html#gpgpu" data-plan="gpgpu">9. GPGPU and Warp</a><br><a href="read.html#imaging" data-plan="imaging">10. Image processing basics</a><br><a href="read.html#filters" data-plan="filters">11. Sharpening and smoothing</a></td><td>Redo the convolution and unsharp-mask worked examples by hand, then take each quiz.</td></tr>
+<tr><td><strong>Last</strong><br><span class="muted">about 1 h 30</span></td><td><a href="exam.html">Practice exam A</a><br><a href="short.html">Short answers</a><br><a href="read.html#cheat">Cheat sheet</a></td><td>Reread the sections the exam marks as weak. Use flashcards for vocabulary that is still shaky.</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted">Short on time? Do these first: <a href="read.html#method">2 reading MPI code</a>, <a href="read.html#collectives">4 collectives</a>, <a href="read.html#heat">7 heat distribution</a>, <a href="read.html#performance">8 performance</a>, <a href="read.html#filters">11 sharpening and smoothing</a>.</p>
+      </section>
+
+      <aside aria-labelledby="facts-h">
+        <h2 id="facts-h" style="margin-top:0">About this site</h2>
+        <dl class="facts">
+          <dt>Coverage</dt>
+          <dd>Lectures 09 to 17 and textbook chapter 2 (2.3, 2.6.1 to 2.6.2) and chapter 3 (3.1 to 3.4).</dd>
+          <dt>Not covered here</dt>
+          <dd>The pthreads lectures (01 to 08). Lectures 12 and 13 recap the pthreads versions where they compare them.</dd>
+          <dt>Course code</dt>
+          <dd><code>mpi_hello.c</code>, <code>mpi_hello2.c</code>, <code>mpi_SendRec.c</code>, <code>mpi_Bcast.c</code> and <code>heatDiffusionMpi.c</code>, all compiled and run. <code>mpi_odd_even.c</code> and <code>arrAdd.py</code> were not in the project files, so those use the slide code.</dd>
+          <dt>How outputs were made</dt>
+          <dd>MPICH for lectures 09 to 11, Open MPI for the heat program, Warp 1.16 on the CPU for the GPU example.</dd>
+          <dt>Sources</dt>
+          <dd>The CIS*3090 slides and <em>An Introduction to Parallel Programming</em> (Pacheco and Malensek, 2nd ed.). Lecture 13 also uses Grama et al. for the neighbour computation.</dd>
+          <dt>Progress</dt>
+          <dd>Saved in this browser only. Nothing is sent anywhere.</dd>
+        </dl>
+      </aside>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="data/flashcards.js?v=20261118a"></script>
+  <script src="data/bank.js?v=20261118a"></script>
+  <script src="data/short.js?v=20261118a"></script>
+  <script src="data/exam.js?v=20261118a"></script>
+  <script src="assets/home.js?v=20261118a"></script>
 </body>
 </html>

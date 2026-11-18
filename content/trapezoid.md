@@ -1,4 +1,6 @@
 title: The trapezoidal rule
+source: Lecture 11 · textbook 3.2 to 3.4
+lead: The course's running example: estimate an integral by adding up thin trapezoids. Each rank adds up its own slice of the interval, and the partial sums are combined on rank 0.
 
 - The goal:
     - Estimate the area under a curve f(x) between x = a and x = b
@@ -34,7 +36,7 @@ title: The trapezoidal rule
     - `local_b = local_a + local_n*h` is where it ends
     - Each rank calls `Trap(local_a, local_b, local_n, h)` on its own slice
     - Example: a = 0, b = 3, n = 1024 on 4 ranks gives local_n = 256, so [[r2]] covers 1.5 to 2.25
-    - The Trapezoid trace page lets you try other numbers
+    - The [Trapezoid trace](trace.html) lets you try other numbers
 
 - The assumption that is easy to forget:
     - The code assumes `n` divides evenly by `comm_sz`

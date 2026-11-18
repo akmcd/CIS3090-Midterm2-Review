@@ -1,39 +1,48 @@
-# CIS*3090 midterm 2 study site
+# CIS*3090 Midterm 2 Review
 
-Built for reading and predicting MPI code, then the rest of the midterm 2 material. Each code page has a rank lens (pick a rank and only the lines it runs stay lit) and a message timeline you can step through. There are also two small labs (send/receive matching, collectives), a trapezoid trace and two sets of questions with got-it / missed-it marks.
-Covers lectures 09 to 17: MPI, the odd-even sort and heat distribution case studies for distributed memory, parallel hardware and performance, GPGPU with Warp, and image processing. Textbook Chapter 2 (2.3, 2.6.1 to 2.6.2) and Chapter 3 (3.1 to 3.4).
+**Live site: https://akmcd.github.io/CIS3090-Midterm2-Review/**
 
-**Study pages: https://akmcd.github.io/CIS3090-Midterm2-Review/**
+A static study site for CIS*3090 Parallel Programming midterm 2, covering lectures 09 to 17. Same layout as the [CIS*4020 midterm review site](https://akmcd.github.io/CIS4020-Midterm-Review/), plus code pages that walk through the course programs rank by rank.
 
-Direct links:
+- **Read** (`read.html`): 11 sections built from the lecture slides, each starting from the idea, with worked examples, exam traps, two labs (send/receive matching, collectives) and a cheat sheet.
+- **Code** (`code.html`): the course programs with a rank lens (pick a rank and only the lines it runs stay lit) and a message timeline you can step through: `mpi_hello.c`, `mpi_hello2.c`, `mpi_SendRec.c`, `mpi_Bcast.c`, `heatDiffusionMpi.c`, three small programs that hang, and a trapezoid trace.
+- **Quizzes** (`quiz.html`): 94 multiple-choice questions, one quiz per section, with an explanation after every answer.
+- **Short answers** (`short.html`): 41 code-reading and explain-why prompts with model answers hidden until you open them.
+- **Flashcards** (`flashcards.html`): 137 definitions, by section.
+- **Practice exam** (`exam.html`): 40 questions with a 50- or 75-minute timer, or none. Exam A is 40 questions not used anywhere else; Exam B draws 40 from the quiz bank.
+- **Reference** (`ref_index.html`): every MPI function used in the course, with its signature, arguments and the mistakes to avoid.
 
-- [Start here](https://akmcd.github.io/CIS3090-Midterm2-Review/)
-- Learn: [Big ideas](https://akmcd.github.io/CIS3090-Midterm2-Review/concepts.html), [Reading MPI code](https://akmcd.github.io/CIS3090-Midterm2-Review/method.html), [Send and receive](https://akmcd.github.io/CIS3090-Midterm2-Review/sendrecv.html), [Collective communication](https://akmcd.github.io/CIS3090-Midterm2-Review/collectives.html), [The trapezoidal rule](https://akmcd.github.io/CIS3090-Midterm2-Review/trapezoid.html), [Odd-even sort with MPI](https://akmcd.github.io/CIS3090-Midterm2-Review/odd_even.html), [Heat distribution with MPI](https://akmcd.github.io/CIS3090-Midterm2-Review/heat.html), [Hardware and performance](https://akmcd.github.io/CIS3090-Midterm2-Review/performance.html), [GPGPU and Warp](https://akmcd.github.io/CIS3090-Midterm2-Review/gpgpu.html), [Image processing basics](https://akmcd.github.io/CIS3090-Midterm2-Review/imaging.html), [Sharpening and smoothing](https://akmcd.github.io/CIS3090-Midterm2-Review/filters.html)
-- Code: [mpi_hello.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello.html), [mpi_hello2.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello2.html), [mpi_SendRec.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_sendrecv.html), [mpi_Bcast.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_bcast.html), [heatDiffusionMpi.c](https://akmcd.github.io/CIS3090-Midterm2-Review/heat_code.html), [Hangs and mix-ups](https://akmcd.github.io/CIS3090-Midterm2-Review/pitfalls.html)
-- Practice: [Code-reading questions](https://akmcd.github.io/CIS3090-Midterm2-Review/practice.html), [Questions for lectures 12 to 17](https://akmcd.github.io/CIS3090-Midterm2-Review/practice2.html), [Trapezoid trace](https://akmcd.github.io/CIS3090-Midterm2-Review/trace.html)
-- MPI reference: [Find a function](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_index.html), [Setup and shutdown](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_start.html), [Send and receive functions](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_p2p.html), [Collective functions](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_coll.html), [Datatypes and operators](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_types.html), [Cheat sheet](https://akmcd.github.io/CIS3090-Midterm2-Review/reference.html)
+Progress is saved in your browser's local storage. Nothing is sent anywhere.
 
 ## How the site is published (GitHub Pages)
 
 1. In the repository, open Settings, then Pages
 2. Under Build and deployment choose "Deploy from a branch", pick the `main` branch and the `/ (root)` folder, then save
-3. After a minute the site is live at the link above
-4. Keep the `.nojekyll` file in the repository root
+3. Keep the `.nojekyll` file in the repository root
 
 The pages are plain HTML files that are already built, so nothing else is needed.
 
-## Editing and adding pages
+## Editing
 
-The notes live in `content/*.md` as nested bullet lists. After editing, rebuild:
+Rebuild after any change:
 
     pip install -r requirements.txt
     python build.py
 
-To add a page (for example a new lecture):
+- Reading notes: `content/<section>.md` as nested bullet lists. The first lines are `title:`, `source:` and `lead:` (shown under the section heading). Section order and groups: `READ` in `build.py`.
+- Quiz questions: `content/data_src/bank.py`
+- Practice Exam A: `content/data_src/exam.py`
+- Flashcards: `content/data_src/cards.py`
+- Short answers: the `::: q` blocks in `content/practice.md` and `content/practice2.md` (`SHORT_SOURCES` in `build.py` gives each one its section)
+- Code pages: `CODE` in `build.py`, `content/<slug>.md`, and `content/walk/<name>.json` for each walkthrough
+- Reference pages: `REF` in `build.py` and `content/ref_*.md`
+- Section names for quizzes and flashcards: `TOPICS` in `assets/common.js` (keys must match the section slugs)
 
-1. Create `content/<slug>.md`, starting with a line like `title: Lecture 12`
-2. Add `("<slug>", "Label", "Group", "One-line description")` to `PAGES` in `build.py` (the group is one of Learn, Code, Practice, MPI reference; the description is shown under the page title)
-3. Run `python build.py` and commit the new `.html` files
+`build.py` runs `content/data_src/make_data.py` first, which checks every question (valid answer index, no duplicate options, known section) and writes `data/bank.js`, `data/exam.js` and `data/flashcards.js`. `quiz.html`, `short.html`, `flashcards.html` and `exam.html` are hand-written and read those files.
+
+In questions, `answer` is the index of the correct option, or a list of indices for "select all that apply". Options are shuffled when shown. Wrap code words in backticks and use `**bold**` for emphasis; put a code listing in `code=`.
+
+After editing `assets/`, bump `VER` in `build.py` and the `?v=...` tags in the four hand-written pages so browsers fetch the new files.
 
 To add a code walkthrough:
 
@@ -44,22 +53,24 @@ To add a code walkthrough:
 
 Handy syntax inside the Markdown files:
 
-- `{{walk NAME}}` rank lens plus message timeline, from `content/walk/NAME.json`
+- `::: eg Title` amber worked example, `::: warn Title` red exam trap, `::: note Title` blue note, each closed with `:::`
+- `::: run Caption` real program output (a first line starting with `$ ` is styled as the command)
+- `{{walk NAME}}` rank lens plus message timeline
 - `{{code mpi_hello.c 23-64 hl=35,48}}` a plain listing with real line numbers
-- `{{lab match}}`, `{{lab collective}}`, `{{diagram memory}}`, `{{progress}}`, `{{map}}`, `{{home}}`, `{{fnindex}}`
+- `{{lab match}}`, `{{lab collective}}`, `{{diagram memory}}`, `{{fnindex}}`
 - `[[r0]]`, `[[rx]]` small rank labels
-- `::: fn MPI_Name` a function entry for the MPI reference (first line is the one-line purpose, then a fenced signature, an arguments table and bullets); it also appears in the searchable function index
-- `::: q` question, a `---` line, the answer, then `:::`
-- `::: run Caption` real program output (a first line starting with `$ ` is styled as the command), `::: warn` and `::: note` callouts
-- Fenced code blocks and the blocks above can be indented to stay inside a bullet
+- `::: fn MPI_Name` a reference entry (first line is the one-line purpose, then a fenced signature, an arguments table and bullets)
+- Fenced code blocks and the blocks above can be indented to stay inside a bullet. A table or block placed between two bullets folds with the subsection above it
+
+Old page names from the first version of the site (`concepts.html`, `practice.html` and so on) are kept as redirects.
 
 ## Folders
 
-- `content/`: the notes as Markdown (`trace.html` is hand-written)
-- `content/walk/`: one JSON file per code walkthrough
-- `assets/`: `style.css` and `app.js` (lens, timeline, labs, practice marks, trace)
+- `content/`: the notes as Markdown (`trace.html` is hand-written), `walk/` for code walkthroughs, `data_src/` for the question and flashcard lists
+- `data/`: generated quiz, exam, flashcard and short-answer files
+- `assets/`: `style.css`, `common.js` (header, storage, question helpers), `site.js` (folding, contents), `home.js`, `app.js` (rank lens, timeline, labs, trace)
 - `examples/`: the course programs, unchanged (`heatDiffusionMpi.c` is from `heatDiffusion.zip`)
-- `examples/extras/`: small programs written for this site to test pitfalls (hangs, reduce order, scatter and gather), not course material. `arrAdd.py` is the lecture 15 Warp example put together from the slide code
+- `examples/extras/`: small programs written for this site to test pitfalls, not course material. `arrAdd.py` is the lecture 15 Warp example put together from the slide code
 
 ## Running the examples
 
@@ -71,3 +82,7 @@ Handy syntax inside the Markdown files:
     pip install warp-lang==1.16.0 && python3 examples/extras/arrAdd.py
 
 The outputs for lectures 09 to 11 were produced with MPICH. The heat diffusion runs were checked with Open MPI, and the Warp example with Warp 1.16.0 on the CPU.
+
+## Sources and caveats
+
+Written from the CIS*3090 slides and *An Introduction to Parallel Programming* (Pacheco and Malensek, 2nd ed.). `mpi_odd_even.c` and `arrAdd.py` were not in the posted files, so those sections use the code shown on the slides. The pthreads lectures (01 to 08) are not covered.

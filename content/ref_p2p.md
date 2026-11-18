@@ -5,7 +5,7 @@ title: Send and receive functions
     - The datatypes must agree too, and the receive count must be at least the send count
     - Only the receiver may use wildcards, and a sender must always name a destination and a tag
     - Messages from one sender to one receiver arrive in the order they were sent (**non-overtaking**)
-    - The Send and receive page explains this with a lab
+    - [Send and receive](read.html#sendrecv) on the Read page explains this with a lab
 
 ::: fn MPI_Send
 Sends a message to one other process.

@@ -1,4 +1,6 @@
 title: Collective communication
+source: Lecture 10 · textbook 3.4
+lead: A collective is a call that every process in the communicator makes together. MPI decides how the data moves, usually as a tree, which beats rank 0 doing all the work itself.
 
 - Two kinds of communication:
     - **point-to-point**: two processes, using `MPI_Send` and `MPI_Recv`

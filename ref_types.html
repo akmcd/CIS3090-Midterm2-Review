@@ -1,32 +1,26 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Datatypes, operators and constants | CIS*3090 midterm 2</title>
-<meta name="description" content="Datatypes, reduction operators, constants and common errors.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Datatypes, operators and constants — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="Datatypes, reduction operators, constants and common errors.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-ref_types">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
-<nav class="pagelist" aria-label="MPI reference pages"><p class="gl">MPI reference</p><a href="ref_index.html">1. Find a function</a><a href="ref_start.html">2. Setup and shutdown</a><a href="ref_p2p.html">3. Send and receive functions</a><a href="ref_coll.html">4. Collective functions</a><a href="ref_types.html" aria-current="page">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav><details class="mobilenav"><summary>MPI reference: Datatypes and operators</summary><nav aria-label="MPI reference pages"><a href="ref_index.html">1. Find a function</a><a href="ref_start.html">2. Setup and shutdown</a><a href="ref_p2p.html">3. Send and receive functions</a><a href="ref_coll.html">4. Collective functions</a><a href="ref_types.html" aria-current="page">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav></details>
-<main id="main">
-<h1>Datatypes, operators and constants</h1>
-<p class="lede">Datatypes, reduction operators, constants and common errors.</p>
-<ul>
-<li class="sec">Datatypes:<ul>
+<body data-page="ref">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head"><h1>Datatypes, operators and constants</h1><p>Datatypes, reduction operators, constants and common errors.</p></div>
+    <nav class="chip-row subnav" aria-label="Pages in this part"><a class="chip" href="ref_index.html">Find a function</a><a class="chip" href="ref_start.html">Setup and shutdown</a><a class="chip" href="ref_p2p.html">Send and receive</a><a class="chip" href="ref_coll.html">Collectives</a><a class="chip" href="ref_types.html" aria-current="page">Datatypes and operators</a></nav>
+    <div class="k3 page-body">
+<ul class="notes"><li>Datatypes:<ul>
 <li>MPI needs the type of the data as an <code>MPI_Datatype</code> value, and it must match the C type of the variable</li>
 <li><code>count</code> arguments are numbers of elements, never bytes</li>
-</ul>
-</li>
-</ul>
-<div class="tablewrap"><table>
+<li class="blk"><div class="table-wrap"><table>
 <thead>
 <tr>
 <th>C type</th>
@@ -83,14 +77,10 @@
 <td><code>MPI_BYTE</code></td>
 </tr>
 </tbody>
-</table></div>
-<ul>
-<li class="sec">Reduction operators (textbook Table 3.2):<ul>
+</table></div></li></ul>
+</li><li>Reduction operators (textbook Table 3.2):<ul>
 <li>Used as the <code>operator</code> argument of <code>MPI_Reduce</code> and <code>MPI_Allreduce</code></li>
-</ul>
-</li>
-</ul>
-<div class="tablewrap"><table>
+<li class="blk"><div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Operator</th>
@@ -119,11 +109,8 @@
 <td>bitwise and, or, exclusive or</td>
 </tr>
 </tbody>
-</table></div>
-<ul>
-<li>Constants:</li>
-</ul>
-<div class="tablewrap"><table>
+</table></div></li></ul>
+</li><li>Constants:<ul><li class="blk"><div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Constant</th>
@@ -156,11 +143,7 @@
 <td>"nobody": a send or receive with it finishes at once and does nothing</td>
 </tr>
 </tbody>
-</table></div>
-<ul>
-<li>Common errors and what they mean:</li>
-</ul>
-<div class="tablewrap"><table>
+</table></div></li></ul></li><li>Common errors and what they mean:<ul><li class="blk"><div class="table-wrap"><table>
 <thead>
 <tr>
 <th>What you see</th>
@@ -193,11 +176,11 @@
 <td><code>-lm</code> came before the source file, put it at the end</td>
 </tr>
 </tbody>
-</table></div>
-<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_coll.html"><span>Previous</span>Collective functions</a><a class="next" href="reference.html"><span>Next</span>Cheat sheet</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+</table></div></li></ul></li></ul>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
 </body>
 </html>

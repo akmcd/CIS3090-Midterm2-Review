@@ -728,7 +728,7 @@ function initTrace() {
     }
     return { h, localN, ranks, total };
   }
-  const chip = r => '<span class="chip ' + (r === 0 ? "r0" : "rx") + '">rank ' + r + "</span>";
+  const chip = r => '<span class="rchip ' + (r === 0 ? "r0" : "rx") + '">rank ' + r + "</span>";
 
   function render() {
     const a = parseFloat($id("in-a").value), b = parseFloat($id("in-b").value);
@@ -786,89 +786,20 @@ initPractice();
 initTrace();
 })();
 
-/* Page furniture: theme toggle, foldable sections, function search. */
+/* Function search on the reference index. */
 (() => {
   "use strict";
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const root = document.documentElement;
-
-  // dark mode toggle
-  const btn = $("#themebtn");
-  if (btn) {
-    const isDark = () => root.dataset.theme
-      ? root.dataset.theme === "dark"
-      : !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    const sync = () => {
-      btn.textContent = isDark() ? "Light mode" : "Dark mode";
-      btn.setAttribute("aria-pressed", String(isDark()));
-    };
-    btn.addEventListener("click", () => {
-      const next = isDark() ? "light" : "dark";
-      root.dataset.theme = next;
-      try { localStorage.setItem("theme", next); } catch (e) {}
-      sync();
-    });
-    sync();
-  }
-
-  const main = $("main");
-  if (!main) return;
-
-  // foldable sections: each top-level bullet that ends in a colon gets a fold button
-  const secs = $$(":scope > ul > li.sec", main);
-  secs.forEach(li => {
-    const first = li.firstElementChild;
-    const lead = li.firstChild && li.firstChild.nodeType === 3 ? li.firstChild.textContent.trim() : "";
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "fold";
-    b.setAttribute("aria-expanded", "true");
-    b.setAttribute("aria-label", "Fold or unfold this section");
-    if (!lead && first && first.tagName === "P") {
-      first.classList.add("seclabel");
-      first.prepend(b);
-    } else {
-      li.prepend(b);
-    }
-    b.addEventListener("click", () => {
-      const f = li.classList.toggle("folded");
-      b.setAttribute("aria-expanded", String(!f));
-    });
-  });
-  if (secs.length >= 3 && !document.body.classList.contains("home")) {
-    const bar = document.createElement("div");
-    bar.className = "foldbar";
-    bar.innerHTML = '<button type="button" id="collapse-all">Collapse all sections</button><button type="button" id="expand-all">Expand all</button>';
-    const lede = $(".lede", main);
-    (lede || main.firstElementChild).after(bar);
-    const setAll = fold => secs.forEach(li => {
-      li.classList.toggle("folded", fold);
-      const b = $(".fold", li);
-      if (b) b.setAttribute("aria-expanded", String(!fold));
-    });
-    $("#collapse-all", bar).addEventListener("click", () => setAll(true));
-    $("#expand-all", bar).addEventListener("click", () => setAll(false));
-  }
-
-  // search on the function index
   const f = $("#fnfilter");
-  if (f) {
-    const rows = $$(".fnrow");
-    const groups = $$(".fngroup");
-    const none = $(".fnempty");
-    f.addEventListener("input", () => {
-      const q = f.value.trim().toLowerCase();
-      rows.forEach(r => { r.hidden = q !== "" && !r.textContent.toLowerCase().includes(q); });
-      groups.forEach(g => { g.hidden = $$(".fnrow:not([hidden])", g).length === 0; });
-      if (none) none.hidden = groups.some(g => !g.hidden);
-    });
-  }
-
-  // open a folded section when a link points inside it
-  if (location.hash) {
-    const t = document.getElementById(location.hash.slice(1));
-    const li = t && t.closest("li.sec.folded");
-    if (li) li.classList.remove("folded");
-  }
+  if (!f) return;
+  const rows = $$(".fnrow");
+  const groups = $$(".fngroup");
+  const none = $(".fnempty");
+  f.addEventListener("input", () => {
+    const q = f.value.trim().toLowerCase();
+    rows.forEach(r => { r.hidden = q !== "" && !r.textContent.toLowerCase().includes(q); });
+    groups.forEach(g => { g.hidden = $$(".fnrow:not([hidden])", g).length === 0; });
+    if (none) none.hidden = groups.some(g => !g.hidden);
+  });
 })();

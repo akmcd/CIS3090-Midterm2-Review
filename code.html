@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="The CIS*3090 course programs with a rank picker and a message timeline.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
+</head>
+<body data-page="code">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head">
+      <h1>Code</h1>
+      <p>The course programs, line by line. Pick a rank to see only the lines it runs, then press Next step to follow the messages one send or receive at a time. Press the <b>i</b> button on a line to read its note. Every output shown was produced by compiling and running the code.</p>
+    </div>
+    <ul class="code-list"><li><a href="hello.html"><span class="name">mpi_hello.c</span><span class="desc">Every rank except 0 sends a greeting, and rank 0 receives and prints them in order.</span></a></li><li><a href="hello2.html"><span class="name">mpi_hello2.c</span><span class="desc">The same idea with wildcard receives and the status object.</span></a></li><li><a href="trap_sendrecv.html"><span class="name">mpi_SendRec.c</span><span class="desc">The trapezoidal rule using only MPI_Send and MPI_Recv.</span></a></li><li><a href="trap_bcast.html"><span class="name">mpi_Bcast.c</span><span class="desc">The same program using MPI_Bcast and MPI_Reduce.</span></a></li><li><a href="heat_code.html"><span class="name">heatDiffusionMpi.c</span><span class="desc">The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank.</span></a></li><li><a href="pitfalls.html"><span class="name">Hangs and mix-ups</span><span class="desc">Three small programs that go wrong, and how to see why.</span></a></li><li><a href="trace.html"><span class="name">Trapezoid trace</span><span class="desc">Change the inputs and see which slice of the interval each rank computes.</span></a></li></ul>
+    <h2>Trip-ups in the course zip</h2>
+    <ul class="notes plain">
+      <li><code>mpi_SendRec.c</code> is the textbook's <code>mpi_trap2.c</code>, and <code>mpi_Bcast.c</code> is <code>mpi_trap3.c</code>. The comments inside still use the old names.</li>
+      <li>The makefile builds <code>mpi_hello</code>, <code>mpi_SendRec</code> and <code>mpi_Bcast</code>, but not <code>mpi_hello2</code>.</li>
+      <li>The trapezoid programs read from the keyboard, so pipe the input in: <code>echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast</code></li>
+      <li><code>mpi_odd_even.c</code> and the Warp example <code>arrAdd.py</code> were not in the project files, so the Read page uses the code from the slides for those.</li>
+    </ul>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+
+</body>
+</html>

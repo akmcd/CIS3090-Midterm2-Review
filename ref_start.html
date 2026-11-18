@@ -1,34 +1,30 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Setup and shutdown | CIS*3090 midterm 2</title>
-<meta name="description" content="MPI_Init, MPI_Comm_size, MPI_Comm_rank and MPI_Finalize.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
-<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setup and shutdown — CIS*3090 Midterm 2 Review</title>
+  <meta name="description" content="MPI_Init, MPI_Comm_size, MPI_Comm_rank, MPI_Wtime, MPI_Abort and MPI_Finalize.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%23b4510d'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%23b4510d'/%3E%3C/svg%3E">
 </head>
-<body class="page-ref_start">
-<a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html" aria-current="true">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
-<div class="shell">
-<nav class="pagelist" aria-label="MPI reference pages"><p class="gl">MPI reference</p><a href="ref_index.html">1. Find a function</a><a href="ref_start.html" aria-current="page">2. Setup and shutdown</a><a href="ref_p2p.html">3. Send and receive functions</a><a href="ref_coll.html">4. Collective functions</a><a href="ref_types.html">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav><details class="mobilenav"><summary>MPI reference: Setup and shutdown</summary><nav aria-label="MPI reference pages"><a href="ref_index.html">1. Find a function</a><a href="ref_start.html" aria-current="page">2. Setup and shutdown</a><a href="ref_p2p.html">3. Send and receive functions</a><a href="ref_coll.html">4. Collective functions</a><a href="ref_types.html">5. Datatypes and operators</a><a href="reference.html">6. Cheat sheet</a></nav></details>
-<main id="main">
-<h1>Setup and shutdown</h1>
-<p class="lede">MPI_Init, MPI_Comm_size, MPI_Comm_rank and MPI_Finalize.</p>
-<ul>
-<li class="sec">Every MPI program has the same frame:<ul>
+<body data-page="ref">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head"><h1>Setup and shutdown</h1><p>MPI_Init, MPI_Comm_size, MPI_Comm_rank, MPI_Wtime, MPI_Abort and MPI_Finalize.</p></div>
+    <nav class="chip-row subnav" aria-label="Pages in this part"><a class="chip" href="ref_index.html">Find a function</a><a class="chip" href="ref_start.html" aria-current="page">Setup and shutdown</a><a class="chip" href="ref_p2p.html">Send and receive</a><a class="chip" href="ref_coll.html">Collectives</a><a class="chip" href="ref_types.html">Datatypes and operators</a></nav>
+    <div class="k3 page-body">
+<ul class="notes"><li>Every MPI program has the same frame:<ul>
 <li>Start MPI, find out how many processes there are and which one this is, do the work, shut MPI down</li>
 <li>All four functions below are called by every process</li>
 <li>The order is always Init, then Comm_size and Comm_rank, then your code, then Finalize</li>
 </ul>
-</li>
-</ul>
+</li></ul>
 <section class="fn" id="MPI_Init"><header class="fn-head"><h2>MPI_Init</h2><p>Starts MPI. It must come before any other MPI call.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Init</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">argc_p</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">***</span><span class="w"> </span><span class="n">argv_p</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -52,7 +48,7 @@
 <li>Used in the course: <code>mpi_hello.c</code> line 35, <code>mpi_SendRec.c</code> line 51</li>
 </ul></div></section>
 <section class="fn" id="MPI_Comm_size"><header class="fn-head"><h2>MPI_Comm_size</h2><p>Finds out how many processes are in a communicator.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Comm_size</span><span class="p">(</span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">comm_sz_p</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -76,7 +72,7 @@
 <li>Used in the course: <code>mpi_hello.c</code> line 38</li>
 </ul></div></section>
 <section class="fn" id="MPI_Comm_rank"><header class="fn-head"><h2>MPI_Comm_rank</h2><p>Finds out which process this is, as a number from 0 to <code>comm_sz - 1</code>.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Comm_rank</span><span class="p">(</span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">my_rank_p</span><span class="p">);</span></code></pre></figure>
-<div class="tablewrap"><table>
+<div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Argument</th>
@@ -118,9 +114,8 @@
 <li>No MPI function may be called after it</li>
 <li>Used in the course: <code>mpi_hello.c</code> line 61</li>
 </ul></div></section>
-<ul>
-<li class="sec">
-<p>Names and constants:</p>
+<ul class="notes"><li>
+Names and constants:
 <ul>
 <li><strong>communicator</strong>: a group of processes that can send messages to each other</li>
 <li><code>MPI_COMM_WORLD</code>: the communicator holding every process that <code>mpiexec</code> started</li>
@@ -129,28 +124,25 @@
 <li>Function names and types have a capital letter right after the underscore, like <code>MPI_Comm_rank</code></li>
 <li>Constants and macros are all capitals, like <code>MPI_COMM_WORLD</code></li>
 </ul>
-</li>
-<li class="sec">
-<p>Return values:</p>
+</li><li>
+Return values:
 <ul>
 <li>Most MPI functions return an <code>int</code>, and <code>MPI_SUCCESS</code> means the call worked</li>
 <li>The course examples ignore return values to keep the code short</li>
 </ul>
-</li>
-<li class="sec">
-<p>Compiling and running:</p>
+</li><li>
+Compiling and running:
 <ul>
 <li><code>mpicc -std=c99 -Wall -o prog prog.c</code> compiles with the MPI library</li>
 <li><code>mpiexec -n 4 ./prog</code> starts 4 processes of <code>prog</code></li>
 <li>Most systems let only rank 0 read from the keyboard, so pipe input in: <code>echo "0 3 1024" | mpiexec -n 4 ./prog</code></li>
 <li>Every process can print, but the order of lines from different ranks can change from run to run</li>
 </ul>
-</li>
-</ul>
-<nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_index.html"><span>Previous</span>Find a function</a><a class="next" href="ref_p2p.html"><span>Next</span>Send and receive functions</a></nav>
-</main>
-</div>
-<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
-<script src="assets/app.js" defer></script>
+</li></ul>
+    </div>
+  </main>
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="assets/app.js?v=20261118a"></script>
+  <script src="assets/site.js?v=20261118a"></script>
 </body>
 </html>

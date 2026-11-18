@@ -1,4 +1,6 @@
 title: Image processing basics
+source: Lecture 16
+lead: An image is a matrix of numbers. Most filters compute each new pixel as a weighted sum of its neighbours, which is called convolution, and the image borders need special handling.
 
 - What lecture 16 is about:
     - The image-processing ideas needed for A3: how images are stored, neighbourhoods, convolution and kernels, and what to do at the borders
@@ -43,9 +45,11 @@ title: Image processing basics
     - Step 4: Write the (normalized) sum into position P of the **output** image
     - Always read from the input and write to a separate output, so later pixels still see the original values
 
-- Worked example: 3 x 3 mean filter:
+- Worked example:
+
+    ::: eg 3 x 3 mean filter on the lecture's neighbourhood
     - Kernel: every coefficient is 1/9
-    - Neighbourhood from the lecture, centred on 249:
+    - Neighbourhood, centred on 249:
 
         ```
         131  134  193
@@ -53,10 +57,10 @@ title: Image processing basics
         220  206  230
         ```
 
-- Working it out:
     - Sum: 131 + 134 + 193 + 251 + 249 + 221 + 220 + 206 + 230 = 1835
     - 1835 / 9 = 203.9, which rounds to **204**
     - The centre pixel 249 becomes 204 in the output
+    :::
 
 - Kinds of kernel:
     - **omnidirectional**: responds the same whichever direction the intensity changes in
@@ -100,11 +104,14 @@ title: Image processing basics
     - **Circular indexing**: pretend the image repeats forever in every direction, so falling off the right edge wraps to the left. Rarely used in image processing
 
 - Reflected indexing with numbers:
+
+    ::: eg Reflecting at both ends of a row
     - Row of width 5, indices 0 to 4, kernel half-width 1
     - At x = 0 the kernel wants index -1. Reflect it to index 1
     - At x = 4 it wants index 5. Reflect it to index 3
     - So the row `10 20 30 40 50` is read as `20 | 10 20 30 40 50 | 40` at the edges
     - Some libraries reflect to index 0 instead (repeating the edge pixel). Check which one your assignment asks for
+    :::
 
 - Connecting this to GPGPU (lecture 15):
     - Each output pixel depends only on input pixels, never on other output pixels

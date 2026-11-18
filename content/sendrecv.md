@@ -1,4 +1,6 @@
 title: Send and receive
+source: Lecture 09 · textbook 3.1
+lead: A message only arrives when a send and a receive agree on the communicator, the tag, and who is talking to whom. When they do not, the receiver waits forever.
 
 - **Point-to-point communication**: one process sends, exactly one process receives
     - The two functions are `MPI_Send` and `MPI_Recv`

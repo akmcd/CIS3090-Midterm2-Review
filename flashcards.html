@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flashcards — CIS*3090 Midterm 2 Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20261118a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='0' y='1' width='16' height='3' rx='1' fill='%23a8378a'/%3E%3Crect x='2' y='5' width='14' height='3' rx='1' fill='%230e8570'/%3E%3Crect x='4' y='9' width='12' height='3' rx='1' fill='%232546c9'/%3E%3Crect x='7' y='13' width='9' height='3' rx='1' fill='%2318212b'/%3E%3C/svg%3E">
+</head>
+<body data-page="flashcards">
+  <header id="site-header"></header>
+  <main>
+    <div class="page-head">
+      <h1>Flashcards</h1>
+      <p><span id="n-cards"></span> terms from the lectures. Say the definition out loud, flip the card, then mark whether you knew it.</p>
+    </div>
+
+    <div class="fc-wrap">
+      <label class="inline" style="margin-bottom:14px">Section <select id="topics" aria-label="Section"></select></label>
+      <div class="btn-row" style="margin-bottom:18px">
+        <label class="inline"><input type="checkbox" id="learning-only"> Only cards I'm still learning</label>
+        <button class="btn quiet" type="button" id="shuffle">Shuffle</button>
+        <button class="btn quiet" type="button" id="reset">Reset progress</button>
+      </div>
+
+      <div class="fc-meta"><span id="position"></span><span id="known-count"></span></div>
+      <div class="fc-progress" aria-hidden="true"><span id="known-bar"></span></div>
+
+      <div id="stage">
+        <div class="card-stage">
+          <button class="flashcard" id="card" type="button" aria-live="polite">
+            <div class="face front"><span class="topic-tag" id="front-topic"></span><div class="text" id="front-text"></div><span class="hint">Click or press Space to flip</span></div>
+            <div class="face back"><span class="topic-tag" id="back-topic"></span><div class="text" id="back-text"></div></div>
+          </button>
+        </div>
+        <div class="btn-row">
+          <button class="btn quiet" type="button" id="prev">Previous</button>
+          <button class="btn secondary" type="button" id="again">Still learning</button>
+          <button class="btn" type="button" id="got">Got it</button>
+          <button class="btn quiet" type="button" id="next">Next</button>
+        </div>
+        <p class="muted" style="margin-top:14px;font-size:0.9rem">Keys: <span class="kbd">Space</span> flip, <span class="kbd">←</span> <span class="kbd">→</span> move, <span class="kbd">G</span> got it, <span class="kbd">L</span> still learning.</p>
+      </div>
+      <div id="empty" hidden>
+        <p class="lead"><strong>You know every card in this set.</strong></p>
+        <p>Turn off "Only cards I'm still learning" to review them all, or pick another topic.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/common.js?v=20261118a"></script>
+  <script src="data/flashcards.js?v=20261118a"></script>
+  <script>document.getElementById('n-cards').textContent = window.FLASHCARDS.length;</script>
+  <script>
+  (function () {
+    const S = window.Study;
+    const ALL = window.FLASHCARDS.map((c, i) => Object.assign({ key: c.topic + ':' + c.front }, c));
+    let known = new Set(S.store.get('cardsKnown', []));
+    let topic = 'all', learningOnly = false, deck = [], pos = 0;
+
+    const el = id => document.getElementById(id);
+    const card = el('card');
+
+    function saveKnown() { S.store.set('cardsKnown', Array.from(known)); }
+
+    function buildTopics() {
+      const host = el('topics');
+      const opts = [['all', 'All sections']].concat(S.TOPIC_ORDER.filter(t => ALL.some(c => c.topic === t)).map(t => [t, S.TOPICS[t]]));
+      host.innerHTML = opts.map(o => '<option value="' + o[0] + '">' + S.esc(o[1]) + '</option>').join('');
+      host.addEventListener('change', () => { topic = host.value; buildDeck(false); });
+    }
+
+    function buildDeck(shuffled) {
+      let cards = ALL.filter(c => topic === 'all' || c.topic === topic);
+      if (learningOnly) cards = cards.filter(c => !known.has(c.key));
+      deck = shuffled ? S.shuffle(cards) : cards;
+      pos = 0;
+      render();
+    }
+
+    function render() {
+      const inTopic = ALL.filter(c => topic === 'all' || c.topic === topic);
+      const k = inTopic.filter(c => known.has(c.key)).length;
+      el('known-count').textContent = k + ' of ' + inTopic.length + ' known';
+      el('known-bar').style.width = (inTopic.length ? (100 * k / inTopic.length) : 0) + '%';
+      if (!deck.length) {
+        el('stage').hidden = true; el('empty').hidden = false; el('position').textContent = '';
+        return;
+      }
+      el('stage').hidden = false; el('empty').hidden = true;
+      const c = deck[pos];
+      card.classList.remove('flipped');
+      el('front-text').innerHTML = S.md(c.front);
+      el('back-text').innerHTML = S.md(c.back);
+      const t = S.TOPICS[c.topic] + (known.has(c.key) ? ', marked known' : '');
+      el('front-topic').textContent = t; el('back-topic').textContent = t;
+      el('position').textContent = 'Card ' + (pos + 1) + ' of ' + deck.length;
+      el('prev').disabled = pos === 0;
+    }
+
+    function flip() { card.classList.toggle('flipped'); }
+    function move(d) {
+      if (!deck.length) return;
+      pos = Math.min(Math.max(pos + d, 0), deck.length - 1);
+      render();
+    }
+    function mark(isKnown) {
+      if (!deck.length) return;
+      const c = deck[pos];
+      if (isKnown) known.add(c.key); else known.delete(c.key);
+      saveKnown();
+      if (learningOnly && isKnown) {
+        deck.splice(pos, 1);
+        if (pos >= deck.length) pos = Math.max(0, deck.length - 1);
+        render();
+      } else if (pos < deck.length - 1) { move(1); } else { render(); }
+    }
+
+    card.addEventListener('click', flip);
+    el('prev').addEventListener('click', () => move(-1));
+    el('next').addEventListener('click', () => move(1));
+    el('got').addEventListener('click', () => mark(true));
+    el('again').addEventListener('click', () => mark(false));
+    el('shuffle').addEventListener('click', () => buildDeck(true));
+    el('learning-only').addEventListener('change', e => { learningOnly = e.target.checked; buildDeck(false); });
+    el('reset').addEventListener('click', () => {
+      known = new Set(); saveKnown(); buildDeck(false);
+    });
+    document.addEventListener('keydown', e => {
+      if (e.target.closest && e.target.closest('input, select, textarea')) return;
+      if (e.key === ' ' || e.key === 'Enter') { if (e.target === card || e.target === document.body) { e.preventDefault(); flip(); } }
+      else if (e.key === 'ArrowRight') move(1);
+      else if (e.key === 'ArrowLeft') move(-1);
+      else if (e.key === 'g' || e.key === 'G') mark(true);
+      else if (e.key === 'l' || e.key === 'L') mark(false);
+    });
+
+    buildTopics();
+    buildDeck(false);
+  })();
+  </script>
+</body>
+</html>

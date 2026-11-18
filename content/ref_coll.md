@@ -6,7 +6,7 @@ title: Collective functions
     - There are no tags, so calls match by communicator and by the order they are made
     - Output arguments must not be the same variable as input arguments (aliasing is illegal)
     - Matching a collective on one process with a `MPI_Recv` on another is an error
-    - The Collective communication page explains this with a lab
+    - [Collective communication](read.html#collectives) on the Read page explains this with a lab
 
 ::: fn MPI_Bcast
 Copies data from one process to every other process.
