@@ -103,12 +103,12 @@ Things to notice as you step through:
 </ul>
 </li><li>
 Output with <code>mpiexec -n 4 ./mpi_hello</code>:
-<figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ mpiexec -n 4 ./mpi_hello</span>
+
+<ul><li class="blk"><figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ mpiexec -n 4 ./mpi_hello</span>
 Greetings from process 0 of 4!
 Greetings from process 1 of 4!
 Greetings from process 2 of 4!
-Greetings from process 3 of 4!</code></pre></figure>
-<ul>
+Greetings from process 3 of 4!</code></pre></figure></li>
 <li>The order is always the same, because only rank 0 prints and it receives from rank 1, then 2, then 3</li>
 <li>If rank 3 sends first, its message waits until rank 0 asks for it</li>
 <li>Lecture 09 slide 18 shows a different print on rank 0 ("Process 0 of 4 is ready to receive"); the file here does not</li>

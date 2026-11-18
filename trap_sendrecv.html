@@ -156,11 +156,11 @@ How the input messages line up:
 </ul>
 </li><li>
 Running it (the program asks for keyboard input, so pipe it in):
-<figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ echo &quot;0 3 1024&quot; | mpiexec -n 4 ./mpi_SendRec</span>
+
+<ul><li class="blk"><figure class="run"><figcaption>Real run, 4 processes</figcaption><pre><code><span class="cmd">$ echo &quot;0 3 1024&quot; | mpiexec -n 4 ./mpi_SendRec</span>
 Enter a, b, and n
 With n = 1024 trapezoids, our estimate
-of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00</code></pre></figure>
-<ul>
+of the integral from 0.000000 to 3.000000 = 9.000004291534424e+00</code></pre></figure></li>
 <li>The true answer is 9</li>
 <li>The estimate is slightly high because x squared is convex</li>
 </ul>

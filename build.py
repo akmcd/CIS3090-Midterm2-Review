@@ -593,15 +593,18 @@ def notes_layout(fragment, stash):
     # a subsection label written as a loose-list paragraph: unwrap the <p> so the label becomes the toggle text
     for ul in [x for x in out if getattr(x, "name", None) == "ul"]:
         for li in ul.find_all("li", recursive=False):
-            # "- Label:" followed only by an indented block (a worked example, say): give the block its own sub-list
+            # "- Label:" followed by an indented block (a code listing, a worked example) before or instead of its
+            # bullets: move every block after the label into the sub-list, so the label alone becomes the toggle
             paras = li.find_all("p", recursive=False)
-            if li.find("ul", recursive=False) is None and len(paras) >= 2:
-                sub = soup.new_tag("ul")
-                for para in paras[1:]:
+            if len(paras) >= 2:
+                sub = li.find("ul", recursive=False)
+                if sub is None:
+                    sub = soup.new_tag("ul")
+                    li.append(sub)
+                for para in reversed(paras[1:]):
                     item = soup.new_tag("li", attrs={"class": "blk"})
                     item.append(para.extract())
-                    sub.append(item)
-                li.append(sub)
+                    sub.insert(0, item)
             first = next((c for c in li.contents if not (isinstance(c, NavigableString) and not c.strip())), None)
             if getattr(first, "name", None) == "p" and li.find("ul", recursive=False):
                 first.unwrap()
