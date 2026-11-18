@@ -104,6 +104,28 @@ int MPI_Gather(const void* send_buf_p, int send_count, MPI_Datatype send_type,
 - `recv_buf_p` is only used on `dest_proc`
 :::
 
+::: fn MPI_Gatherv
+Like `MPI_Gather`, but each process may send a different number of elements.
+
+```c
+int MPI_Gatherv(const void* send_buf_p, int send_count, MPI_Datatype send_type,
+                void* recv_buf_p, const int recv_counts[], const int displs[],
+                MPI_Datatype recv_type, int dest_proc, MPI_Comm comm);
+```
+
+| Argument | Meaning |
+|---|---|
+| `send_count` | how many elements this process sends |
+| `recv_counts[r]` | how many elements arrive from rank r (used on `dest_proc` only) |
+| `displs[r]` | where rank r's data starts in `recv_buf_p`, counted in elements (used on `dest_proc` only) |
+
+- The "v" stands for varying
+- Use it when the pieces are different sizes, for example row bands of 4, 4, 3 and 3 rows
+- Every process must call it, but only the destination needs real `recv_counts`, `displs` and receive buffer (others can pass `NULL`)
+- Parts of the receive buffer that no displacement covers are left untouched
+- Used in the course: `heatDiffusionMpi.c` line 208, with `recv_counts[r] = rowCount[r] * n` and `displs[r] = rowStart[r] * n`
+:::
+
 ::: fn MPI_Allgather
 Like `MPI_Gather`, but every process receives the whole array.
 
@@ -125,4 +147,5 @@ int MPI_Barrier(MPI_Comm comm);
 
 - No process returns from it until every process in the communicator has started it
 - It is mostly used for timing and for ordering output while debugging
+- `heatDiffusionMpi.c` line 155 uses it once, just before starting the clock, so all ranks start timing together
 :::

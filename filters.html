@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharpening, blurring and denoising | CIS*3090 midterm 2</title>
+<meta name="description" content="Lecture 17: high-pass sharpening, unsharp masking, mean, Gaussian and median filters.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-filters">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html" aria-current="true">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
+<div class="shell">
+<nav class="pagelist" aria-label="Learn pages"><p class="gl">Learn</p><a href="concepts.html">1. Big ideas</a><a href="method.html">2. Reading MPI code</a><a href="sendrecv.html">3. Send and receive</a><a href="collectives.html">4. Collective communication</a><a href="trapezoid.html">5. The trapezoidal rule</a><a href="odd_even.html">6. Odd-even sort with MPI</a><a href="heat.html">7. Heat distribution with MPI</a><a href="performance.html">8. Hardware and performance</a><a href="gpgpu.html">9. GPGPU and Warp</a><a href="imaging.html">10. Image processing basics</a><a href="filters.html" aria-current="page">11. Sharpening and smoothing</a></nav><details class="mobilenav"><summary>Learn: Sharpening and smoothing</summary><nav aria-label="Learn pages"><a href="concepts.html">1. Big ideas</a><a href="method.html">2. Reading MPI code</a><a href="sendrecv.html">3. Send and receive</a><a href="collectives.html">4. Collective communication</a><a href="trapezoid.html">5. The trapezoidal rule</a><a href="odd_even.html">6. Odd-even sort with MPI</a><a href="heat.html">7. Heat distribution with MPI</a><a href="performance.html">8. Hardware and performance</a><a href="gpgpu.html">9. GPGPU and Warp</a><a href="imaging.html">10. Image processing basics</a><a href="filters.html" aria-current="page">11. Sharpening and smoothing</a></nav></details>
+<main id="main">
+<h1>Sharpening, blurring and denoising</h1>
+<p class="lede">Lecture 17: high-pass sharpening, unsharp masking, mean, Gaussian and median filters.</p>
+<ul>
+<li class="sec">
+<p>What lecture 17 is about:</p>
+<ul>
+<li>The fundamental filters: sharpening (high-pass, unsharp masking) and smoothing (mean, Gaussian, median)</li>
+<li>All but the median are convolutions with the kernels from lecture 16</li>
+</ul>
+</li>
+<li class="sec">
+<p>Why images need fixing:</p>
+<ul>
+<li><strong>blur</strong>: details are smoothed out. Causes: out-of-focus optics, lens aberrations, atmospheric turbulence, camera motion during long exposures</li>
+<li><strong>noise</strong>: artifacts added when the image is captured</li>
+<li>Noise comes from variation in photon counts and from the sensor itself (<strong>read noise</strong>)</li>
+<li>Sensor noise gets worse as temperature rises, and as sensitivity is raised in low light</li>
+</ul>
+</li>
+<li class="sec">
+<p>Low-pass and high-pass:</p>
+<ul>
+<li>"Low" and "high" refer to spatial frequency: how quickly intensity changes across the image</li>
+<li><strong>low-pass filter (LPF)</strong>: lets slow changes through and removes quick ones. Smooths, removes noise. Also called a "high-cut" filter</li>
+<li><strong>high-pass filter (HPF)</strong>: the image minus its low-pass version. Keeps sudden changes like edges, suppresses gradual ones</li>
+<li><strong>high-boost filter</strong>: part of the high-pass result added back to the image</li>
+<li>Quick, closely spaced changes can be unwanted (noise) or wanted (fine detail). A filter cannot tell them apart</li>
+</ul>
+</li>
+<li class="sec">
+<p>Simple sharpening:</p>
+<ul>
+<li>A high-pass kernel mixes positive and negative values</li>
+<li>
+<p>Omnidirectional version: positive at the centre, negative around it, coefficients summing to <strong>0</strong></p>
+<figure class="snippet"><pre><code>-1  -1  -1
+-1   8  -1
+-1  -1  -1</code></pre></figure>
+</li>
+</ul>
+</li>
+<li class="sec">
+<p>Why the sum is 0:</p>
+<ul>
+<li>Over a flat region every pixel is equal, so 8v - 8v = 0</li>
+<li>Over a slow change the result is small</li>
+<li>Over a sharp change the result is large</li>
+<li>Example: three columns of 10, 10, 50 give -120. Columns 10, 50, 50 give +120. Flat 50 everywhere gives 0</li>
+<li>So the output is an edge map. It is not normalized like a smoothing kernel, because its sum is 0</li>
+</ul>
+</li>
+<li class="sec">
+<p>Caveats of sharpening:</p>
+<ul>
+<li>Noise is high-frequency, so sharpening makes noise more visible</li>
+<li>In practice, remove noise first, then sharpen</li>
+</ul>
+</li>
+<li class="sec">
+<p>Unsharp masking:</p>
+<ul>
+<li>Introduced by Schreiber in 1970 to improve newspaper wirephotos, based on a darkroom technique of sandwiching a blurred positive with the negative</li>
+<li>Idea: subtract a blurred copy from the image, which removes the low frequencies and leaves the edges</li>
+<li>Unlike the single-kernel filters, it is a multi-step method</li>
+<li>Step 1, edge image: <code>g(x, y) = f(x, y) - S(f(x, y))</code>, where <code>S(f)</code> is a blurred version of <code>f</code></li>
+<li>Step 2, add it back: <code>f_UM(x, y) = f(x, y) + k * g(x, y)</code></li>
+<li><code>k</code> is a scaling constant. Reasonable values are 0.2 to 0.7, larger means sharper</li>
+<li>With k &gt; 1 it is called a <strong>high-boost</strong> filter</li>
+</ul>
+</li>
+<li class="sec">
+<p>Unsharp masking with numbers (a 1D edge):</p>
+<ul>
+<li>Input row: <code>10 10 10 10 50 50 50 50</code></li>
+<li>Blur with a 3-wide mean (edges repeated): <code>10 10 10 23.3 36.7 50 50 50</code></li>
+<li>Edge image g = input - blur: <code>0 0 0 -13.3 13.3 0 0 0</code></li>
+<li>Result with k = 0.5: <code>10 10 10 3.3 56.7 50 50 50</code></li>
+<li>The dark side of the edge dips below 10 and the bright side rises above 50: that is <strong>overshoot</strong></li>
+</ul>
+</li>
+<li class="sec">
+<p>Limits of unsharp masking:</p>
+<ul>
+<li><strong>noise sensitivity</strong>: it emphasizes high frequencies, and noise is high frequency</li>
+<li><strong>overshoot</strong>: wide, abrupt brightness changes get an exaggerated rim</li>
+<li>It makes an edge steeper by making it taller. Many sharpening methods share this trait</li>
+<li>In the lecture's example, the square elements look brighter than in the original</li>
+</ul>
+</li>
+<li class="sec">
+<p>Denoising in general:</p>
+<ul>
+<li>Noise filters are smoothing (low-pass) filters</li>
+<li>Two families: <strong>mean-based</strong> (mean, Gaussian) and <strong>order-statistic</strong> (median and other rank filters)</li>
+</ul>
+</li>
+<li class="sec">
+<p>Mean filter (box filter):</p>
+<ul>
+<li>Replace each pixel with the average of its neighbourhood. Also called sliding mean or box filter</li>
+<li>3 x 3: sum the 9 values and divide by 9. 5 x 5: sum 25 and divide by 25</li>
+<li>It reduces noise because noise is sharp transitions, but edges are sharp transitions too, so edges blur</li>
+<li>It is the opposite of sharpening</li>
+<li>Larger kernels, or applying a small kernel repeatedly, smooth more</li>
+<li>Effective against Gaussian noise</li>
+</ul>
+</li>
+<li class="sec">
+<p>Gaussian filter:</p>
+<ul>
+<li>A smoothing filter with a nonuniform kernel built from a 2D Gaussian function</li>
+<li><code>w(i, j) = e^(-(i^2 + j^2) / (2 sigma^2))</code> for i, j from -[3 sigma] to [3 sigma]</li>
+<li>[3 sigma] means the integer part of 3 sigma. Beyond 3 sigma the weights are negligible</li>
+<li>Coefficients shrink with distance from the centre, so central pixels count more than the edges of the neighbourhood</li>
+<li>Larger sigma: a wider spread, more blur, and a bigger kernel</li>
+<li><strong>isotropic</strong> (rotationally symmetric): no direction is smoothed more than another</li>
+<li>With sigma^2 = 1 the kernel is 7 x 7. Normalized and multiplied by 1000 its centre row is <code>2 22 97 159 97 22 2</code>, and its centre is 159</li>
+<li>Other common values: sigma^2 = 2/3 and sigma^2 = 2</li>
+<li>Compared with a mean filter of similar size, edges blur less, because far-away pixels count less</li>
+</ul>
+</li>
+<li class="sec">
+<p>Rank (order-statistic) filters:</p>
+<ul>
+<li>Non-linear filters: list the neighbourhood's values, sort them, and pick the value at a chosen position</li>
+<li>Positions include the median, lower quartile and upper quartile</li>
+<li>Because sorting is not a weighted sum, a rank filter is <strong>not</strong> a convolution and has no kernel matrix</li>
+</ul>
+</li>
+<li class="sec">
+<p>Median filter:</p>
+<ul>
+<li>Replace the pixel with the middle value of its sorted neighbourhood</li>
+<li>Lecture example (5 x 5): the sorted 25 values are <code>9 11 21 23 23 23 27 34 45 46 87 90 98 100 103 104 104 104 105 105 106 108 109 110 112</code></li>
+<li>The 13th value is the median: <strong>98</strong></li>
+<li>Used to remove <strong>impulse noise</strong> (salt and pepper: isolated very bright or very dark pixels)</li>
+<li>It works when the noisy pixels are less than half the neighbourhood, because the median then comes from the clean majority</li>
+<li>Example: a 3 x 3 of eight 10s and one 255. The mean is 37.2 (the spike smears out), the median is 10 (the spike is gone)</li>
+</ul>
+</li>
+<li class="sec">
+<p>Median filter strengths and weaknesses:</p>
+<ul>
+<li>It does not compress the brightness range inside the neighbourhood, so sharp and straight edges survive</li>
+<li>It is non-specific: any structure smaller than half the neighbourhood is removed, real or noise</li>
+<li>So thin lines and small objects disappear too</li>
+<li>Repeated application causes <strong>posterization</strong>: flat patches of colour with hard boundaries</li>
+</ul>
+</li>
+<li>
+<p>Choosing a filter:</p>
+</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Filter</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gaussian noise</td>
+<td>mean or Gaussian</td>
+<td>averaging cancels random variation</td>
+</tr>
+<tr>
+<td>Impulse (salt and pepper) noise</td>
+<td>median</td>
+<td>the outlier never becomes the middle value</td>
+</tr>
+<tr>
+<td>Keep edges while denoising</td>
+<td>median</td>
+<td>no averaging across the edge</td>
+</tr>
+<tr>
+<td>Blurry image</td>
+<td>unsharp masking</td>
+<td>adds the edge image back</td>
+</tr>
+<tr>
+<td>Noisy and blurry</td>
+<td>denoise first, then sharpen</td>
+<td>sharpening amplifies noise</td>
+</tr>
+</tbody>
+</table></div>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="imaging.html"><span>Previous</span>Image processing basics</a><a class="next" href="hello.html"><span>Next</span>mpi_hello.c</a></nav>
+</main>
+</div>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

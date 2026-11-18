@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odd-even sort with MPI | CIS*3090 midterm 2</title>
+<meta name="description" content="Lecture 12: blocks on separate ranks, compare-split with MPI_Sendrecv, and why Send then Send can deadlock.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page-odd_even">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="topin"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>CIS*3090 midterm 2</a><nav class="groups" aria-label="Sections"><a href="index.html">Home</a><a href="concepts.html" aria-current="true">Learn</a><a href="hello.html">Code</a><a href="practice.html">Practice</a><a href="ref_index.html">MPI reference</a></nav><button type="button" class="themebtn" id="themebtn" aria-pressed="false">Dark mode</button></div></header>
+<div class="shell">
+<nav class="pagelist" aria-label="Learn pages"><p class="gl">Learn</p><a href="concepts.html">1. Big ideas</a><a href="method.html">2. Reading MPI code</a><a href="sendrecv.html">3. Send and receive</a><a href="collectives.html">4. Collective communication</a><a href="trapezoid.html">5. The trapezoidal rule</a><a href="odd_even.html" aria-current="page">6. Odd-even sort with MPI</a><a href="heat.html">7. Heat distribution with MPI</a><a href="performance.html">8. Hardware and performance</a><a href="gpgpu.html">9. GPGPU and Warp</a><a href="imaging.html">10. Image processing basics</a><a href="filters.html">11. Sharpening and smoothing</a></nav><details class="mobilenav"><summary>Learn: Odd-even sort with MPI</summary><nav aria-label="Learn pages"><a href="concepts.html">1. Big ideas</a><a href="method.html">2. Reading MPI code</a><a href="sendrecv.html">3. Send and receive</a><a href="collectives.html">4. Collective communication</a><a href="trapezoid.html">5. The trapezoidal rule</a><a href="odd_even.html" aria-current="page">6. Odd-even sort with MPI</a><a href="heat.html">7. Heat distribution with MPI</a><a href="performance.html">8. Hardware and performance</a><a href="gpgpu.html">9. GPGPU and Warp</a><a href="imaging.html">10. Image processing basics</a><a href="filters.html">11. Sharpening and smoothing</a></nav></details>
+<main id="main">
+<h1>Odd-even sort with MPI</h1>
+<p class="lede">Lecture 12: blocks on separate ranks, compare-split with MPI_Sendrecv, and why Send then Send can deadlock.</p>
+<ul>
+<li class="sec">
+<p>What lecture 12 is about:</p>
+<ul>
+<li>The same odd-even transposition sort from the pthreads unit, rewritten for distributed memory</li>
+<li>Same decomposition, same phases. The one new question: how does a rank get its partner's block when it cannot read that memory?</li>
+<li>Answer: it receives it in an MPI message, so communication is no longer free</li>
+<li>The course file <code>mpi_odd_even.c</code> is not in the project files yet, so this page uses the code shown on the slides</li>
+</ul>
+</li>
+<li class="sec">
+<p>The serial algorithm (review):</p>
+<ul>
+<li><strong>odd-even transposition sort</strong>: a bubble sort variant split into phases</li>
+<li><strong>even phase</strong>: compare-swap the pairs (a[0], a[1]), (a[2], a[3]), ...</li>
+<li><strong>odd phase</strong>: compare-swap the pairs (a[1], a[2]), (a[3], a[4]), ...</li>
+<li><strong>compare-swap</strong>: if the left value is bigger, swap the two</li>
+<li>A list of n elements is sorted after at most n phases</li>
+<li>Slide example: 5 9 4 3, then 5 9 3 4, then 5 3 9 4, then 3 5 4 9, then 3 4 5 9 (4 phases)</li>
+</ul>
+</li>
+<li class="sec">
+<p>Foster's methodology, one step at a time:</p>
+<ul>
+<li><strong>Partitioning</strong>: the smallest task is one compare-swap on a neighbouring pair</li>
+<li>Inside one phase the pairs do not overlap, so all compare-swaps can run at once</li>
+<li>Across phases it is serial: phase j must finish before phase j + 1 starts</li>
+<li><strong>Communication</strong>: each compare-swap needs both values of its pair</li>
+<li>In pthreads that was just a read of shared memory</li>
+<li>In MPI it is a real message: send your block, receive your partner's block</li>
+<li>This is the step that cannot be copied from the pthreads version</li>
+<li><strong>Agglomeration</strong>: group n/p contiguous elements into one block per rank</li>
+<li>Inside a block, sorting is a local <code>qsort()</code></li>
+<li>Between blocks, a compare-swap of two numbers becomes a <strong>compare-split</strong> of two sorted blocks</li>
+<li><strong>compare-split</strong>: merge the two sorted blocks, the lower rank keeps the low half and the higher rank keeps the high half</li>
+<li><strong>Mapping</strong>: block r goes to rank r, so neighbouring blocks stay on neighbouring ranks</li>
+<li>The example code requires <code>global_n</code> to divide evenly by p</li>
+</ul>
+</li>
+<li class="sec">
+<p>Who is your partner?:</p>
+<ul>
+<li>It depends on your rank's parity and the phase's parity</li>
+</ul>
+</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Even rank</th>
+<th>Odd rank</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Even phase</td>
+<td>rank + 1</td>
+<td>rank - 1</td>
+</tr>
+<tr>
+<td>Odd phase</td>
+<td>rank - 1</td>
+<td>rank + 1</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li class="sec">
+<p>Reading the partner table:</p>
+<ul>
+<li>Even phase with 4 ranks: pairs (0,1) and (2,3), everyone works</li>
+<li>Odd phase with 4 ranks: only pair (1,2), ranks 0 and 3 are idle</li>
+<li>If the computed partner is below 0 or at least p, that rank skips the phase: no message, no merge</li>
+<li>The code stores this as <code>even_partner</code> and <code>odd_partner</code>, using a negative value for "no partner"</li>
+</ul>
+</li>
+<li class="sec">
+<p>Worked example from the slides (16 numbers, 4 ranks):</p>
+<ul>
+<li>Start: <code>33 36 27 15 | 43 35 36 42 | 49 21 12 27 | 40 9 18 6</code></li>
+<li>Each rank sorts its own block first, with no communication</li>
+</ul>
+</li>
+</ul>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Rank 0</th>
+<th>Rank 1</th>
+<th>Rank 2</th>
+<th>Rank 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>After local qsort</td>
+<td>15 27 33 36</td>
+<td>35 36 42 43</td>
+<td>12 21 27 49</td>
+<td>6 9 18 40</td>
+</tr>
+<tr>
+<td>Phase 0 (even): (0,1), (2,3)</td>
+<td>15 27 33 35</td>
+<td>36 36 42 43</td>
+<td>6 9 12 18</td>
+<td>21 27 40 49</td>
+</tr>
+<tr>
+<td>Phase 1 (odd): (1,2)</td>
+<td>15 27 33 35 (idle)</td>
+<td>6 9 12 18</td>
+<td>36 36 42 43</td>
+<td>21 27 40 49 (idle)</td>
+</tr>
+<tr>
+<td>Phase 2 (even): (0,1), (2,3)</td>
+<td>6 9 12 15</td>
+<td>18 27 33 35</td>
+<td>21 27 36 36</td>
+<td>40 42 43 49</td>
+</tr>
+<tr>
+<td>Phase 3 (odd): (1,2)</td>
+<td>6 9 12 15 (idle)</td>
+<td>18 21 27 27</td>
+<td>33 35 36 36</td>
+<td>40 42 43 49 (idle)</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li class="sec">
+<p>What the table shows:</p>
+<ul>
+<li>With p ranks, at most p phases are needed, here 4</li>
+<li>Phase 0, pair (0,1): merge to <code>15 27 33 35 36 36 42 43</code>, rank 0 keeps <code>15 27 33 35</code>, rank 1 keeps <code>36 36 42 43</code></li>
+<li>Read the final row left to right and the whole list is sorted</li>
+</ul>
+</li>
+<li class="sec">
+<p>The exchange, from the slides:</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Sendrecv</span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">even_partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="n">temp_B</span><span class="p">,</span><span class="w">  </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">even_partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">             </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_rank</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">Merge_keep_high</span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">temp_B</span><span class="p">,</span><span class="w"> </span><span class="n">temp_C</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">);</span>
+<span class="k">else</span><span class="w">                  </span><span class="n">Merge_keep_low</span><span class="w"> </span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">temp_B</span><span class="p">,</span><span class="w"> </span><span class="n">temp_C</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li><code>local_A</code> is my block, <code>temp_B</code> receives the partner's block, <code>temp_C</code> is scratch space for the merge</li>
+<li>One call sends and receives at the same time, in both directions</li>
+<li>In an even phase, odd ranks are the higher member of their pair, so they keep the high half</li>
+<li>The lecture renamed the book's <code>Merge_low</code> and <code>Merge_high</code> to <code>Merge_keep_low</code> and <code>Merge_keep_high</code></li>
+</ul>
+</li>
+</ul>
+<aside class="callout note"><div class="ctitle">Why there are no barriers</div><ul>
+<li>In pthreads, a fast thread could overwrite its block while a slow partner was still reading it, so each phase needed two barriers that every thread had to hit</li>
+<li>In MPI each rank's memory is private, so there is nothing for a fast rank to overwrite</li>
+<li><code>MPI_Sendrecv</code> only synchronizes the two ranks in the pair. It is not a group-wide wait</li>
+<li>An idle rank makes no call at all and moves straight on</li>
+<li>Synchronization is a side effect of the communication call</li>
+</ul></aside>
+<ul>
+<li class="sec">
+<p>Phases can get out of step:</p>
+<ul>
+<li>Nothing forces all ranks to be in the same phase</li>
+<li>Example: rank 3 finishes phase 0, has no partner in phase 1, starts phase 2 and blocks sending to rank 2</li>
+<li>Meanwhile rank 2 may still be finishing its phase 0 merge</li>
+<li>That is correct: rank 3 simply waits inside <code>MPI_Sendrecv</code> until rank 2 arrives</li>
+</ul>
+</li>
+<li class="sec">
+<p>Why not plain MPI_Send then MPI_Recv?:</p>
+<ul>
+<li>If both ranks in a pair run <code>MPI_Send</code> then <code>MPI_Recv</code>, it often works</li>
+<li>Whether <code>MPI_Send</code> blocks is up to the implementation, and usually depends on message size</li>
+<li>Small messages are buffered, so the send returns before any receive is posted</li>
+<li>Large messages are not buffered, so each send waits for a receive that never starts: a <strong>deadlock</strong></li>
+<li>So small test data passes every time and large data hangs. The bug is latent, not absent</li>
+<li><strong>deadlock</strong>: two or more processes each waiting on the other, so none can continue</li>
+</ul>
+</li>
+<li class="sec">
+<p>Forcing the deadlock with MPI_Ssend:</p>
+<figure class="snippet"><pre><code><span class="n mpi">MPI_Ssend</span><span class="p">(</span><span class="n">local_A</span><span class="p">,</span><span class="w"> </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Recv</span><span class="w"> </span><span class="p">(</span><span class="n">temp_B</span><span class="p">,</span><span class="w">  </span><span class="n">local_n</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_INT</span><span class="p">,</span><span class="w"> </span><span class="n">partner</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li><code>MPI_Ssend</code> never returns until the matching receive has started</li>
+<li>Both ranks block in <code>MPI_Ssend</code>, so neither reaches its <code>MPI_Recv</code></li>
+<li>Changing only the even-phase branch is enough: every pair deadlocks in phase 0</li>
+<li><code>make run-lock</code> runs this version. Each rank prints "sending to ... and waiting", then it hangs</li>
+<li>See Hangs and mix-ups for the same pattern with two ranks (<code>head_to_head.c</code>)</li>
+</ul>
+</li>
+<li class="sec">
+<p>Running the course program:</p>
+<ul>
+<li>Build: <code>mpicc -g -Wall -o mpi_odd_even mpi_odd_even.c</code></li>
+<li>Run: <code>mpiexec -n &lt;p&gt; mpi_odd_even &lt;g|i&gt; &lt;global_n&gt;</code></li>
+<li><code>g</code> generates a random list on each rank, <code>i</code> makes rank 0 read the list from stdin and scatter it</li>
+<li>Rank 0 gathers and prints the sorted list. The lecture moved the hidden <code>MPI_Gather</code> out of <code>Print_global_list</code> into <code>main</code></li>
+<li><code>mpi_odd_even_trace.c</code> builds with <code>-DTRACE</code>, <code>-DSLOW_RANK=k</code> and <code>-DSTEP</code> to show each send, receive and keep</li>
+<li>The trace lines are printed out of order, so sort them: <code>... | grep '^\[' | sort -s -k2,2n</code></li>
+</ul>
+</li>
+<li class="sec">
+<p>Lecture 12 review questions:</p>
+<ul>
+<li>Should the local sort be timed? Yes if you are timing the whole sort: it is real work every rank must do. Leave out input generation and printing</li>
+<li>Where does the MPI version's running time differ from pthreads? In the exchange: every phase now moves n/p elements over the network, which pthreads got for free</li>
+<li>Where is the serial fraction now? Mostly in the input scatter and the final gather and print on rank 0, plus idle ranks in odd phases</li>
+<li>These three answers are this site's suggestions, the lecture leaves them open</li>
+</ul>
+</li>
+</ul>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="trapezoid.html"><span>Previous</span>The trapezoidal rule</a><a class="next" href="heat.html"><span>Next</span>Heat distribution with MPI</a></nav>
+</main>
+</div>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

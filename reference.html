@@ -31,7 +31,9 @@
 <p>Point-to-point:</p>
 <figure class="snippet"><pre><code><span class="n mpi">MPI_Send</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w">   </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
 <span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span><span class="w">   </span><span class="cm">/* or MPI_STATUS_IGNORE */</span>
-<span class="n mpi">MPI_Get_count</span><span class="p">(</span><span class="o">&amp;</span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">);</span></code></pre></figure>
+<span class="n mpi">MPI_Get_count</span><span class="p">(</span><span class="o">&amp;</span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">);</span>
+<span class="n mpi">MPI_Sendrecv</span><span class="p">(</span><span class="n">sendbuf</span><span class="p">,</span><span class="w"> </span><span class="n">scount</span><span class="p">,</span><span class="w"> </span><span class="n">stype</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">stag</span><span class="p">,</span>
+<span class="w">             </span><span class="n">recvbuf</span><span class="p">,</span><span class="w"> </span><span class="n">rcount</span><span class="p">,</span><span class="w"> </span><span class="n">rtype</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">rtag</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span></code></pre></figure>
 <ul>
 <li>Recv <code>count</code> is the buffer capacity, it must be at least the size of the message</li>
 <li>Wildcards <code>MPI_ANY_SOURCE</code> and <code>MPI_ANY_TAG</code> are receiver only</li>
@@ -44,7 +46,8 @@
 <span class="n mpi">MPI_Reduce</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
 <span class="n mpi">MPI_Allreduce</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">datatype</span><span class="p">,</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
 <span class="n mpi">MPI_Scatter</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
-<span class="n mpi">MPI_Gather</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<span class="n mpi">MPI_Gather</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span>
+<span class="n mpi">MPI_Gatherv</span><span class="p">(</span><span class="n">send</span><span class="p">,</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span><span class="w"> </span><span class="n">recv</span><span class="p">,</span><span class="w"> </span><span class="n">recv_counts</span><span class="p">,</span><span class="w"> </span><span class="n">displs</span><span class="p">,</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 <ul>
 <li><code>send_count</code> in Scatter and Gather is per process, not the total</li>
 <li>Every process in the communicator must make the call, in the same order</li>
@@ -146,17 +149,72 @@
 <li>Estimate: <code>h * (f(a)/2 + f(x_1) + ... + f(x_n-1) + f(b)/2)</code></li>
 </ul>
 </li>
+<li class="sec">
+<p>Odd-even sort (lecture 12):</p>
+<ul>
+<li>Partner: even phase, even rank + 1 and odd rank - 1. Odd phase, even rank - 1 and odd rank + 1</li>
+<li>Partner outside 0 to p - 1 means idle that phase</li>
+<li>Compare-split: merge the two sorted blocks, the lower rank keeps the low half</li>
+<li>At most p phases with p ranks</li>
+<li>Exchange with <code>MPI_Sendrecv</code>, never Send then Send</li>
+</ul>
+</li>
+<li class="sec">
+<p>Heat diffusion (lecture 13):</p>
+<ul>
+<li><code>updatable_rows = N - 2</code>, <code>base = updatable_rows / p</code>, <code>rem = updatable_rows % p</code></li>
+<li><code>row_count[r] = base + (r &lt; rem ? 1 : 0)</code>, <code>row_start[0] = 1</code></li>
+<li>Local array is <code>(my_rows + 2) x N</code>, local rows 0 and <code>my_rows + 1</code> are ghosts</li>
+<li><code>global_row = row_start - 1 + local_row</code></li>
+<li><code>up = rank 0 ? MPI_PROC_NULL : rank - 1</code>, <code>down = last rank ? MPI_PROC_NULL : rank + 1</code></li>
+<li>Gatherv: <code>recv_counts[r] = row_count[r] * N</code>, <code>displs[r] = row_start[r] * N</code></li>
+<li>Convergence: <code>MPI_Allreduce(&amp;local_max, &amp;global_max, 1, MPI_DOUBLE, MPI_MAX, comm)</code></li>
+</ul>
+</li>
+<li class="sec">
+<p>Performance (lecture 14):</p>
+<ul>
+<li>Speedup <code>S = T_serial / T_parallel</code>, linear speedup is <code>S = p</code></li>
+<li>Efficiency <code>E = S / p</code></li>
+<li>Overhead: <code>T_parallel = T_serial / p + T_overhead</code></li>
+<li>Amdahl: <code>S = 1 / (parallel / p + serial)</code>, maximum <code>1 / serial</code></li>
+<li>Flynn: SISD, SIMD, MISD, MIMD. UMA same access time, NUMA local is faster</li>
+</ul>
+</li>
+<li class="sec">
+<p>GPGPU and Warp (lecture 15):</p>
+<ul>
+<li>One thread per element, <code>tid = wp.tid()</code>, kernels write to an output array and return nothing</li>
+<li>Host steps: NumPy data, <code>wp.array</code>, <code>wp.zeros</code>, <code>wp.launch(kernel, dim, inputs, outputs, device)</code>, <code>.numpy()</code></li>
+<li>Divergent branches cost the sum of both paths. Copying to the GPU can dominate small problems</li>
+</ul>
+</li>
+<li class="sec">
+<p>Image processing (lectures 16 and 17):</p>
+<ul>
+<li>Convolution: <code>g(x, y) = sum of w(i, j) * f(x + i, y + j)</code> over the kernel</li>
+<li>Normalize smoothing kernels by their sum. High-pass kernels sum to 0</li>
+<li>Processable region for half-width m: <code>(M - 2m) x (N - 2m)</code> from (m, m)</li>
+<li>Unsharp mask: <code>g = f - blur(f)</code>, <code>f_UM = f + k g</code>, k from 0.2 to 0.7, k &gt; 1 is high-boost</li>
+<li>Gaussian: <code>w(i, j) = e^(-(i^2 + j^2) / (2 sigma^2))</code>, radius 3 sigma</li>
+<li>Median: sort the neighbourhood, take the middle. Best for impulse noise, keeps edges, removes features under half the window</li>
+</ul>
+</li>
 <li>
 <p>Commands:</p>
 <figure class="snippet"><pre><code>mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
 mpiexec -n 4 ./mpi_hello
-echo &quot;0 3 1024&quot; | mpiexec -n 4 ./mpi_Bcast</code></pre></figure>
+echo &quot;0 3 1024&quot; | mpiexec -n 4 ./mpi_Bcast
+mpicc -O2 -Wall -o heatDiffusionMpi heatDiffusionMpi.c -lm
+mpirun -np 4 ./heatDiffusionMpi 16 6 1e-4 50000 1 frames txt
+mpiexec -n 4 ./mpi_odd_even g 16
+python3 arrAdd.py</code></pre></figure>
 </li>
 </ul>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_types.html"><span>Previous</span>Datatypes and operators</a></nav>
 </main>
 </div>
-<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
 <script src="assets/app.js" defer></script>
 </body>
 </html>

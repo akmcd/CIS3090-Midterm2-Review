@@ -133,7 +133,9 @@
 <ul>
 <li>It is the fix for two processes that each want to send first and then receive</li>
 <li>The send buffer and the receive buffer must be different</li>
-<li>The course mentions it as a fix, and does not use it in the example programs</li>
+<li>Lecture 12 uses it for the odd-even sort exchange, and lecture 13 for the heat diffusion halo exchange</li>
+<li>Its receive is posted as part of the call, and it only returns once the incoming data has arrived</li>
+<li>With <code>MPI_PROC_NULL</code> as the partner it finishes at once and does nothing (used at the top and bottom ranks in <code>heatDiffusionMpi.c</code>)</li>
 </ul></div></section>
 <section class="fn" id="MPI_Status"><header class="fn-head"><h2>MPI_Status</h2><p>A struct that a receive fills in with details about the message it got.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="n mpi">MPI_Status</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="n mpi">MPI_Recv</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_CHAR</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_SOURCE</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_ANY_TAG</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
@@ -206,7 +208,7 @@
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_start.html"><span>Previous</span>Setup and shutdown</a><a class="next" href="ref_coll.html"><span>Next</span>Collective functions</a></nav>
 </main>
 </div>
-<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
 <script src="assets/app.js" defer></script>
 </body>
 </html>

@@ -57,6 +57,30 @@ int MPI_Comm_rank(MPI_Comm comm, int* my_rank_p);
 - Used in the course: `mpi_hello.c` line 41
 :::
 
+::: fn MPI_Wtime
+Returns the wall-clock time in seconds, as a `double`.
+
+```c
+double MPI_Wtime(void);
+```
+
+- Only differences matter: `t1 - t0` is the elapsed time between two calls
+- Each rank has its own clock, so combine per-rank times with `MPI_Reduce` and `MPI_MAX`
+- Used in the course: `heatDiffusionMpi.c` times compute, comm, reduce and output separately
+:::
+
+::: fn MPI_Abort
+Stops every process in the communicator, not just the one that calls it.
+
+```c
+int MPI_Abort(MPI_Comm comm, int errorcode);
+```
+
+- If one rank just returns from `main`, the others hang at their next collective or receive
+- So on a fatal error (bad arguments, failed `malloc`) a rank calls `MPI_Abort`
+- Used in the course: `heatDiffusionMpi.c`, for example when there are more ranks than updatable rows
+:::
+
 ::: fn MPI_Finalize
 Shuts MPI down and frees what it was using.
 

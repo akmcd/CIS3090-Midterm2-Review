@@ -81,7 +81,9 @@ int MPI_Sendrecv(const void* send_buf_p, int send_buf_size, MPI_Datatype send_bu
 
 - It is the fix for two processes that each want to send first and then receive
 - The send buffer and the receive buffer must be different
-- The course mentions it as a fix, and does not use it in the example programs
+- Lecture 12 uses it for the odd-even sort exchange, and lecture 13 for the heat diffusion halo exchange
+- Its receive is posted as part of the call, and it only returns once the incoming data has arrived
+- With `MPI_PROC_NULL` as the partner it finishes at once and does nothing (used at the top and bottom ranks in `heatDiffusionMpi.c`)
 :::
 
 ::: fn MPI_Status

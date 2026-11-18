@@ -142,6 +142,33 @@ const EVENTS = {
     };
   },
 
+  heat(p, c) {
+    const R = c.refs;
+    const s = [];
+    s.push(p > 1
+      ? S.local(0, "Up-exchange. Rank 0's up_neighbour is MPI_PROC_NULL, so this Sendrecv returns at once and its top ghost (the cold edge) is left alone.", R.up)
+      : S.local(0, "With one rank both neighbours are MPI_PROC_NULL. Both Sendrecv calls return at once and the ghost rows stay the cold edges.", R.up.concat(R.down)));
+    for (let r = 0; r + 1 < p; r++) {
+      s.push(S.msg(r + 1, r, "Rank " + (r + 1) + "'s up-exchange meets rank " + r + "'s down-exchange. Rank " + (r + 1) + " sends its first owned row into rank " + r + "'s bottom ghost...", R.up.concat(R.down)));
+      s.push(S.msg(r, r + 1, "...and in the same pair of calls rank " + r + " sends its last owned row into rank " + (r + 1) + "'s top ghost.", R.up.concat(R.down)));
+    }
+    if (p > 1) s.push(S.local(p - 1, "Down-exchange. Rank " + (p - 1) + " is the last rank, so its down_neighbour is MPI_PROC_NULL and the call returns at once.", R.down));
+    s.push(S.band("Compute. Each rank updates only its owned rows, reading the fresh ghost rows at the edges of its band, and tracks its own largest change.", R.compute));
+    s.push(S.band("MPI_Allreduce with MPI_MAX. Every rank gets the largest change on the whole plate. This also acts as the barrier.", R.allreduce));
+    s.push(S.band("Swap cur and next (pointers only).", R.swap));
+    for (let r = 1; r < p; r++) {
+      s.push(S.msg(r, 0, "Frame iteration: MPI_Gatherv. Rank " + r + " sends its owned rows to rank 0, which places them at displs[" + r + "].", R.gatherv));
+    }
+    s.push(S.local(0, "Rank 0 copies in its own rows too, then writes the frame file. The other ranks move on.", R.gatherv.concat(R.write)));
+    s.push(S.band("Every rank checks globalMax < epsilon on the same number, so they all stop on the same iteration.", R.done));
+    return {
+      steps: s,
+      note: p > 1
+        ? "One iteration. The halo exchange moves " + 2 * (p - 1) + " rows, two across each of the " + (p - 1) + " boundaries between ranks. Each rank only ever talks to its direct neighbours, and no barrier is needed: Sendrecv and Allreduce do the waiting."
+        : "With one rank there are no boundaries between ranks, so no row ever travels. The result is the same as the serial program.",
+    };
+  },
+
   tag_mismatch(p, c) {
     const R = c.refs;
     return {
@@ -670,7 +697,7 @@ function initPractice() {
     }
     const fb = e.target.closest(".qprogress [data-f]");
     if (fb) {
-      if (fb.dataset.f === "reset") { store = {}; save(); document.body.classList.remove("only-missed"); }
+      if (fb.dataset.f === "reset") { qs.forEach(q => { delete store[q.dataset.q]; }); save(); document.body.classList.remove("only-missed"); }
       else document.body.classList.toggle("only-missed");
       paint();
     }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Understand MPI code by following every rank | CIS*3090 midterm 2</title>
-<meta name="description" content="Midterm 2 study site for CIS*3090. Pick a rank, step through the messages, and practise predicting what MPI programs do.">
+<meta name="description" content="Midterm 2 study site for CIS*3090: MPI, the distributed-memory case studies, performance, GPGPU with Warp and image processing.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -28,7 +28,7 @@
 <line class="a0" x1="165" y1="90" x2="82" y2="90"/><path class="ah" d="M70 90 l13 -6 v12z"/>
 <line class="a0" x1="260" y1="140" x2="82" y2="140"/><path class="ah" d="M70 140 l13 -6 v12z"/>
 <line class="a0" x1="355" y1="190" x2="82" y2="190"/><path class="ah" d="M70 190 l13 -6 v12z"/>
-</svg><p>Every worker sends to rank 0, and rank 0 receives in order.</p></div></section><div class="home-grid"><section><h2>Study</h2><ul class="studylist"><li><a href="concepts.html"><span class="name">Learn</span><span class="desc">Separate memory, ranks, send and receive, collectives and the trapezoidal rule.<small>Big ideas, Reading MPI code, Send and receive, Collective communication, The trapezoidal rule</small></span></a></li><li><a href="hello.html"><span class="name">Code</span><span class="desc">Each course program with a rank picker and a message timeline.<small>mpi_hello.c, mpi_hello2.c, mpi_SendRec.c, mpi_Bcast.c, Hangs and mix-ups</small></span></a></li><li><a href="practice.html"><span class="name">Practice</span><span class="desc">Predict outputs and find hangs, then check yourself.<small>Code-reading questions, Trapezoid trace</small></span></a></li><li><a href="ref_index.html"><span class="name">MPI reference</span><span class="desc">Look up any MPI call used in this course.<small>Find a function, Setup and shutdown, Send and receive functions, Collective functions, Datatypes and operators, Cheat sheet</small></span></a></li></ul></section></div>
+</svg><p>Every worker sends to rank 0, and rank 0 receives in order.</p></div></section><div class="home-grid"><section><h2>Study</h2><ul class="studylist"><li><a href="concepts.html"><span class="name">Learn</span><span class="desc">MPI basics and collectives, the odd-even sort and heat diffusion case studies, performance, GPGPU with Warp, and image filters.<small>Big ideas, Reading MPI code, Send and receive, Collective communication, The trapezoidal rule, Odd-even sort with MPI, Heat distribution with MPI, Hardware and performance, GPGPU and Warp, Image processing basics, Sharpening and smoothing</small></span></a></li><li><a href="hello.html"><span class="name">Code</span><span class="desc">The MPI course programs with a rank picker and a message timeline.<small>mpi_hello.c, mpi_hello2.c, mpi_SendRec.c, mpi_Bcast.c, heatDiffusionMpi.c, Hangs and mix-ups</small></span></a></li><li><a href="practice.html"><span class="name">Practice</span><span class="desc">Predict outputs and find hangs, then check yourself.<small>Code-reading questions, Questions for lectures 12 to 17, Trapezoid trace</small></span></a></li><li><a href="ref_index.html"><span class="name">MPI reference</span><span class="desc">Look up any MPI call used in this course.<small>Find a function, Setup and shutdown, Send and receive functions, Collective functions, Datatypes and operators, Cheat sheet</small></span></a></li></ul></section></div>
 <ul>
 <li class="sec">
 <p>What this site is for:</p>
@@ -37,7 +37,8 @@
 <li>Press Next step to follow the messages one send or receive at a time</li>
 <li>Press the i button on a line to read what it does</li>
 <li><strong>MPI</strong> (Message Passing Interface): a C library for running one program as several cooperating processes</li>
-<li>Every output shown here came from compiling and running the code with MPICH</li>
+<li>Every output shown here came from compiling and running the code (MPICH for lectures 09 to 11, Open MPI for the heat program, Warp 1.16 for the GPU example)</li>
+<li>Lectures 12 to 17 each have a Learn page, and there is a second question page for them</li>
 </ul>
 </li>
 <li class="sec">
@@ -46,9 +47,15 @@
 <li><strong>Lecture 09</strong>: distributed memory systems, MPI basics, send and receive</li>
 <li><strong>Lecture 10</strong>: collective communication (Reduce, Allreduce, Bcast, Scatter, Gather)</li>
 <li><strong>Lecture 11</strong>: the trapezoidal rule, first with Send/Recv, then with Bcast and Reduce</li>
-<li><strong>Textbook</strong>: Chapter 3, sections 3.1 to 3.4</li>
-<li><strong>Code</strong>: <code>mpi_hello.c</code>, <code>mpi_hello2.c</code>, <code>mpi_SendRec.c</code>, <code>mpi_Bcast.c</code> and the makefile</li>
-<li>Earlier lectures (pthreads, performance, heat distribution) are not on this site yet</li>
+<li><strong>Lecture 12</strong>: odd-even sort for distributed memory (<code>MPI_Sendrecv</code>, deadlock with <code>MPI_Ssend</code>)</li>
+<li><strong>Lecture 13</strong>: heat distribution for distributed memory (ghost rows, <code>MPI_PROC_NULL</code>, <code>MPI_Allreduce</code>, <code>MPI_Gatherv</code>)</li>
+<li><strong>Lecture 14</strong>: parallel hardware and performance (Flynn, UMA and NUMA, speedup, efficiency, Amdahl's law)</li>
+<li><strong>Lecture 15</strong>: GPGPU and Nvidia Warp</li>
+<li><strong>Lectures 16 and 17</strong>: image processing, convolution, sharpening, smoothing and the median filter</li>
+<li><strong>Textbook</strong>: Chapter 2, sections 2.3 and 2.6.1 to 2.6.2, and Chapter 3, sections 3.1 to 3.4</li>
+<li><strong>Code</strong>: <code>mpi_hello.c</code>, <code>mpi_hello2.c</code>, <code>mpi_SendRec.c</code>, <code>mpi_Bcast.c</code>, the makefile and <code>heatDiffusionMpi.c</code></li>
+<li><code>mpi_odd_even.c</code> and the Warp example <code>arrAdd.py</code> were not in the project files, so those pages use the slide code</li>
+<li>The pthreads lectures (01 to 08) are not on this site</li>
 </ul>
 </li>
 <li class="sec">
@@ -58,6 +65,7 @@
 <li>Send and receive, then Collective communication, and try the lab on each page</li>
 <li>Open each code page and predict the output before you read the notes</li>
 <li>Finish with Hangs and mix-ups and the code-reading questions</li>
+<li>For lectures 12 to 17: read the Learn page for each lecture, open <code>heatDiffusionMpi.c</code>, then try the second question page</li>
 </ul>
 </li>
 <li class="sec">
@@ -81,7 +89,7 @@
 <nav class="pager" aria-label="Previous and next page"><a class="next" href="concepts.html"><span>Next</span>Big ideas</a></nav>
 </main>
 </div>
-<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
 <script src="assets/app.js" defer></script>
 </body>
 </html>

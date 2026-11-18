@@ -46,18 +46,26 @@ SITE_NAME = "CIS*3090 midterm 2"
 
 # (slug, label, group, one-line description). Order here is the order on the site.
 PAGES = [
-    ("index", "Start here", None, "Midterm 2 study site for CIS*3090. Pick a rank, step through the messages, and practise predicting what MPI programs do."),
+    ("index", "Start here", None, "Midterm 2 study site for CIS*3090: MPI, the distributed-memory case studies, performance, GPGPU with Warp and image processing."),
     ("concepts", "Big ideas", "Learn", "Each MPI process has its own memory. A rank identifies the process, and messages move data between processes."),
     ("method", "Reading MPI code", "Learn", "A routine for predicting the output and spotting hangs in any MPI code question."),
     ("sendrecv", "Send and receive", "Learn", "How a send finds its receive, what the wildcards do, and when a send waits."),
     ("collectives", "Collective communication", "Learn", "Calls that every process makes together: broadcast, reduce, scatter and gather."),
     ("trapezoid", "The trapezoidal rule", "Learn", "The problem the course programs solve, and how each rank gets its slice."),
+    ("odd_even", "Odd-even sort with MPI", "Learn", "Lecture 12: blocks on separate ranks, compare-split with MPI_Sendrecv, and why Send then Send can deadlock."),
+    ("heat", "Heat distribution with MPI", "Learn", "Lecture 13: row bands, ghost rows, the halo exchange, Allreduce for convergence and Gatherv for output."),
+    ("performance", "Hardware and performance", "Learn", "Lecture 14: Flynn's taxonomy, UMA and NUMA, buses and crossbars, speedup, efficiency and Amdahl's law."),
+    ("gpgpu", "GPGPU and Warp", "Learn", "Lecture 15: why GPUs exist, streams and kernels, SIMT, and a first Warp kernel."),
+    ("imaging", "Image processing basics", "Learn", "Lecture 16: pixels and neighbourhoods, convolution kernels, normalization and image borders."),
+    ("filters", "Sharpening and smoothing", "Learn", "Lecture 17: high-pass sharpening, unsharp masking, mean, Gaussian and median filters."),
     ("hello", "mpi_hello.c", "Code", "Every rank except 0 sends a greeting, and rank 0 receives and prints them in order."),
     ("hello2", "mpi_hello2.c", "Code", "The same idea with wildcard receives and the status object."),
     ("trap_sendrecv", "mpi_SendRec.c", "Code", "The trapezoidal rule using only MPI_Send and MPI_Recv."),
     ("trap_bcast", "mpi_Bcast.c", "Code", "The same program using MPI_Bcast and MPI_Reduce."),
+    ("heat_code", "heatDiffusionMpi.c", "Code", "The heat diffusion program: halo exchange, Allreduce and Gatherv, rank by rank."),
     ("pitfalls", "Hangs and mix-ups", "Code", "Three small programs that go wrong, and how to see why."),
     ("practice", "Code-reading questions", "Practice", "Write your answer first, then open the explanation and mark how you did."),
+    ("practice2", "Questions for lectures 12 to 17", "Practice", "Odd-even sort, heat diffusion, performance, Warp and image filters. Answer first, then check."),
     ("trace", "Trapezoid trace", "Practice", "Change the inputs and see which slice of the interval each rank computes."),
     ("ref_index", "Find a function", "MPI reference", "Look up any MPI function used in this course: what it does, its arguments, and the mistakes to avoid."),
     ("ref_start", "Setup and shutdown", "MPI reference", "MPI_Init, MPI_Comm_size, MPI_Comm_rank and MPI_Finalize."),
@@ -316,8 +324,8 @@ def render_home():
         first = items[0][0]
         names = ", ".join(l for _s, l in items)
         desc = {
-            "Learn": "Separate memory, ranks, send and receive, collectives and the trapezoidal rule.",
-            "Code": "Each course program with a rank picker and a message timeline.",
+            "Learn": "MPI basics and collectives, the odd-even sort and heat diffusion case studies, performance, GPGPU with Warp, and image filters.",
+            "Code": "The MPI course programs with a rank picker and a message timeline.",
             "Practice": "Predict outputs and find hangs, then check yourself.",
             "MPI reference": "Look up any MPI call used in this course.",
         }[g]
@@ -386,7 +394,7 @@ def dedent(body, indent):
     return "\n".join(l[len(indent):] if l.startswith(indent) else l for l in body.split("\n"))
 
 
-def preprocess(text, stash):
+def preprocess(text, stash, slug=""):
     qn = [0]
 
     def keep(markup):
@@ -433,9 +441,10 @@ def preprocess(text, stash):
         if kind == "q":
             qn[0] += 1
             n = qn[0]
+            key = str(n) if slug in ("", "practice") else f"{slug}-{n}"  # marks are stored per question key
             q, a = body.split("\n---\n", 1) if "\n---\n" in body else (body, "(no answer written yet)")
             markup = (
-                f'<section class="q" id="q{n}" data-q="{n}"><div class="qnum">Q{n}</div>'
+                f'<section class="q" id="q{n}" data-q="{key}"><div class="qnum">Q{n}</div>'
                 f'<div class="qbody">{md_engine().convert(q.strip())}</div>'
                 '<details><summary><span class="s-show">Show answer</span><span class="s-hide">Hide answer</span></summary>'
                 f'<div class="abody">{md_engine().convert(a.strip())}</div>'
@@ -521,7 +530,7 @@ PAGE = """<!doctype html>
 <nav class="pager" aria-label="Previous and next page">%%PREV%%%%NEXT%%</nav>
 </main>
 </div>
-<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
 <script src="assets/app.js" defer></script>
 </body>
 </html>
@@ -572,7 +581,7 @@ def main():
         if md_path.exists():
             stash = []
             title, text = split_title(md_path.read_text(encoding="utf-8"), label)
-            body = postprocess(md_engine().convert(preprocess(text, stash)), stash)
+            body = postprocess(md_engine().convert(preprocess(text, stash, slug)), stash)
         elif html_path.exists():
             title, body = split_title(html_path.read_text(encoding="utf-8"), label)
         else:

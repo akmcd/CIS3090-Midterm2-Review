@@ -1,16 +1,16 @@
-# CIS*3090 midterm 2 study site (MPI)
+# CIS*3090 midterm 2 study site
 
-Built for reading and predicting MPI code. Each code page has a rank lens (pick a rank and only the lines it runs stay lit) and a message timeline you can step through. There are also two small labs (send/receive matching, collectives), a trapezoid trace and code-reading questions with got-it / missed-it marks.
-Covers lectures 09 to 11 and textbook Chapter 3, sections 3.1 to 3.4.
+Built for reading and predicting MPI code, then the rest of the midterm 2 material. Each code page has a rank lens (pick a rank and only the lines it runs stay lit) and a message timeline you can step through. There are also two small labs (send/receive matching, collectives), a trapezoid trace and two sets of questions with got-it / missed-it marks.
+Covers lectures 09 to 17: MPI, the odd-even sort and heat distribution case studies for distributed memory, parallel hardware and performance, GPGPU with Warp, and image processing. Textbook Chapter 2 (2.3, 2.6.1 to 2.6.2) and Chapter 3 (3.1 to 3.4).
 
 **Study pages: https://akmcd.github.io/CIS3090-Midterm2-Review/**
 
 Direct links:
 
 - [Start here](https://akmcd.github.io/CIS3090-Midterm2-Review/)
-- Learn: [Big ideas](https://akmcd.github.io/CIS3090-Midterm2-Review/concepts.html), [Reading MPI code](https://akmcd.github.io/CIS3090-Midterm2-Review/method.html), [Send and receive](https://akmcd.github.io/CIS3090-Midterm2-Review/sendrecv.html), [Collective communication](https://akmcd.github.io/CIS3090-Midterm2-Review/collectives.html), [The trapezoidal rule](https://akmcd.github.io/CIS3090-Midterm2-Review/trapezoid.html)
-- Code: [mpi_hello.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello.html), [mpi_hello2.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello2.html), [mpi_SendRec.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_sendrecv.html), [mpi_Bcast.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_bcast.html), [Hangs and mix-ups](https://akmcd.github.io/CIS3090-Midterm2-Review/pitfalls.html)
-- Practice: [Code-reading questions](https://akmcd.github.io/CIS3090-Midterm2-Review/practice.html), [Trapezoid trace](https://akmcd.github.io/CIS3090-Midterm2-Review/trace.html)
+- Learn: [Big ideas](https://akmcd.github.io/CIS3090-Midterm2-Review/concepts.html), [Reading MPI code](https://akmcd.github.io/CIS3090-Midterm2-Review/method.html), [Send and receive](https://akmcd.github.io/CIS3090-Midterm2-Review/sendrecv.html), [Collective communication](https://akmcd.github.io/CIS3090-Midterm2-Review/collectives.html), [The trapezoidal rule](https://akmcd.github.io/CIS3090-Midterm2-Review/trapezoid.html), [Odd-even sort with MPI](https://akmcd.github.io/CIS3090-Midterm2-Review/odd_even.html), [Heat distribution with MPI](https://akmcd.github.io/CIS3090-Midterm2-Review/heat.html), [Hardware and performance](https://akmcd.github.io/CIS3090-Midterm2-Review/performance.html), [GPGPU and Warp](https://akmcd.github.io/CIS3090-Midterm2-Review/gpgpu.html), [Image processing basics](https://akmcd.github.io/CIS3090-Midterm2-Review/imaging.html), [Sharpening and smoothing](https://akmcd.github.io/CIS3090-Midterm2-Review/filters.html)
+- Code: [mpi_hello.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello.html), [mpi_hello2.c](https://akmcd.github.io/CIS3090-Midterm2-Review/hello2.html), [mpi_SendRec.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_sendrecv.html), [mpi_Bcast.c](https://akmcd.github.io/CIS3090-Midterm2-Review/trap_bcast.html), [heatDiffusionMpi.c](https://akmcd.github.io/CIS3090-Midterm2-Review/heat_code.html), [Hangs and mix-ups](https://akmcd.github.io/CIS3090-Midterm2-Review/pitfalls.html)
+- Practice: [Code-reading questions](https://akmcd.github.io/CIS3090-Midterm2-Review/practice.html), [Questions for lectures 12 to 17](https://akmcd.github.io/CIS3090-Midterm2-Review/practice2.html), [Trapezoid trace](https://akmcd.github.io/CIS3090-Midterm2-Review/trace.html)
 - MPI reference: [Find a function](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_index.html), [Setup and shutdown](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_start.html), [Send and receive functions](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_p2p.html), [Collective functions](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_coll.html), [Datatypes and operators](https://akmcd.github.io/CIS3090-Midterm2-Review/ref_types.html), [Cheat sheet](https://akmcd.github.io/CIS3090-Midterm2-Review/reference.html)
 
 ## How the site is published (GitHub Pages)
@@ -58,13 +58,16 @@ Handy syntax inside the Markdown files:
 - `content/`: the notes as Markdown (`trace.html` is hand-written)
 - `content/walk/`: one JSON file per code walkthrough
 - `assets/`: `style.css` and `app.js` (lens, timeline, labs, practice marks, trace)
-- `examples/`: the course programs, unchanged
-- `examples/extras/`: small programs written for this site to test pitfalls (hangs, reduce order, scatter and gather), not course material
+- `examples/`: the course programs, unchanged (`heatDiffusionMpi.c` is from `heatDiffusion.zip`)
+- `examples/extras/`: small programs written for this site to test pitfalls (hangs, reduce order, scatter and gather), not course material. `arrAdd.py` is the lecture 15 Warp example put together from the slide code
 
 ## Running the examples
 
     mpicc -std=c99 -Wall -o mpi_hello examples/mpi_hello.c
     mpiexec -n 4 ./mpi_hello
     echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
+    mpicc -O2 -Wall -o heatDiffusionMpi examples/heatDiffusionMpi.c -lm
+    mpirun -np 4 ./heatDiffusionMpi 16 6 1e-4 50000 1 frames txt
+    pip install warp-lang==1.16.0 && python3 examples/extras/arrAdd.py
 
-All outputs shown on the site were produced with MPICH.
+The outputs for lectures 09 to 11 were produced with MPICH. The heat diffusion runs were checked with Open MPI, and the Warp example with Warp 1.16.0 on the CPU.

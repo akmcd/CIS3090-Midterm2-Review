@@ -100,6 +100,18 @@
 <li>A rank belongs to a communicator, so the same process can have different ranks in different communicators</li>
 <li>Used in the course: <code>mpi_hello.c</code> line 41</li>
 </ul></div></section>
+<section class="fn" id="MPI_Wtime"><header class="fn-head"><h2>MPI_Wtime</h2><p>Returns the wall-clock time in seconds, as a <code>double</code>.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">double</span><span class="w"> </span><span class="nf mpi">MPI_Wtime</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>Only differences matter: <code>t1 - t0</code> is the elapsed time between two calls</li>
+<li>Each rank has its own clock, so combine per-rank times with <code>MPI_Reduce</code> and <code>MPI_MAX</code></li>
+<li>Used in the course: <code>heatDiffusionMpi.c</code> times compute, comm, reduce and output separately</li>
+</ul></div></section>
+<section class="fn" id="MPI_Abort"><header class="fn-head"><h2>MPI_Abort</h2><p>Stops every process in the communicator, not just the one that calls it.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Abort</span><span class="p">(</span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">errorcode</span><span class="p">);</span></code></pre></figure>
+<ul>
+<li>If one rank just returns from <code>main</code>, the others hang at their next collective or receive</li>
+<li>So on a fatal error (bad arguments, failed <code>malloc</code>) a rank calls <code>MPI_Abort</code></li>
+<li>Used in the course: <code>heatDiffusionMpi.c</code>, for example when there are more ranks than updatable rows</li>
+</ul></div></section>
 <section class="fn" id="MPI_Finalize"><header class="fn-head"><h2>MPI_Finalize</h2><p>Shuts MPI down and frees what it was using.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Finalize</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></code></pre></figure>
 <ul>
 <li>Every process calls it, after its last MPI call</li>
@@ -138,7 +150,7 @@
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_index.html"><span>Previous</span>Find a function</a><a class="next" href="ref_p2p.html"><span>Next</span>Send and receive functions</a></nav>
 </main>
 </div>
-<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
 <script src="assets/app.js" defer></script>
 </body>
 </html>

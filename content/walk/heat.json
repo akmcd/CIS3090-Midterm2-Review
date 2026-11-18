@@ -1,0 +1,44 @@
+{
+  "file": "heatDiffusionMpi.c",
+  "example": "heat",
+  "segments": [{"start": 101, "end": 140}, {"start": 155, "end": 225}],
+  "p": 4,
+  "who": [
+    [211, 214, "zero"]
+  ],
+  "refs": {
+    "up": [164, 165, 166],
+    "down": [167, 168, 169],
+    "compute": [175, 176, 178, 182, 183, 186],
+    "allreduce": [194],
+    "swap": [199, 200, 201],
+    "gatherv": [208, 209, 210],
+    "write": [212, 213],
+    "done": [219, 220, 224]
+  },
+  "notes": {
+    "108": "Every rank builds the whole table for all ranks: base + (r < rem ? 1 : 0) rows each, starting at global row 1.",
+    "110": "rowStart is a GLOBAL row number. Rank 0 starts at 1, because row 0 is the fixed cold edge that nobody owns.",
+    "114": "Rank 0 has nobody above it. MPI_PROC_NULL makes a Sendrecv with it finish at once and do nothing.",
+    "115": "The last rank has nobody below it.",
+    "128": "How many values rank r sends in the Gatherv: its rows times n columns.",
+    "129": "Where rank r's rows land in rank 0's full grid: start row times n.",
+    "132": "myRows + 2 rows: local row 0 and local row myRows + 1 are the ghost rows.",
+    "139": "Fills ghost rows too. On rank 0 and the last rank the outer ghost is the real cold edge, and it is never overwritten.",
+    "155": "The only barrier in the file. It exists so the stopwatch starts at the same moment on every rank.",
+    "164": "Up-exchange: send my first owned row (local 1) up, receive the row above into my top ghost (local 0).",
+    "167": "Down-exchange: send my last owned row (local myRows) down, receive the row below into my bottom ghost.",
+    "176": "Convert local row to global row. is_fixed asks about the plate, so it needs the global row.",
+    "182": "Average of the 4 neighbours from cur. For localI = 1 or myRows this reads a ghost row.",
+    "194": "Every rank's largest change, combined with MPI_MAX and handed to every rank. No rank leaves until all have entered.",
+    "199": "Swap pointers, not data. cur now holds this iteration's result.",
+    "208": "Every rank sends its owned rows (from local row 1). Called by every rank, because every rank computes the same if condition.",
+    "211": "Only rank 0 has the full grid, so only rank 0 writes the frame.",
+    "219": "Every rank tests the same globalMax, so every rank decides to stop on the same iteration."
+  },
+  "summaries": {
+    "all": "Every rank runs the same loop: refresh both ghost rows, compute its own rows, Allreduce the largest change, sometimes Gatherv a frame to rank 0, then decide to stop.",
+    "zero": "Rank 0 owns the top band. Its up-exchange is with MPI_PROC_NULL, so only the down-exchange moves data. It also receives the Gatherv and writes the frames.",
+    "worker": "Rank {r} swaps rows with rank {r} - 1 above it and with the rank below it (MPI_PROC_NULL if it is the last rank), computes its band, and joins the Allreduce and Gatherv."
+  }
+}

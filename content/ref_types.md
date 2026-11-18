@@ -39,6 +39,7 @@ title: Datatypes, operators and constants
 | `MPI_ANY_TAG` | wildcard for the tag of a receive |
 | `MPI_STATUS_IGNORE` | pass instead of a status when you do not need one |
 | `MPI_SUCCESS` | the return value of a call that worked |
+| `MPI_PROC_NULL` | "nobody": a send or receive with it finishes at once and does nothing |
 
 - Common errors and what they mean:
 
@@ -48,3 +49,5 @@ title: Datatypes, operators and constants
 | "Message truncated" | the receive count is smaller than the message |
 | Right answer on rank 0, garbage elsewhere | the output of `MPI_Reduce` is only valid on the destination |
 | Wrong total with no error | `n` is not divisible by `comm_sz`, so some trapezoids are skipped |
+| Works with small data, hangs with large | two `MPI_Send` calls facing each other: small messages were buffered, large ones are not |
+| "DSO missing from command line" when linking | `-lm` came before the source file, put it at the end |

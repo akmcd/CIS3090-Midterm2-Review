@@ -15,6 +15,8 @@ title: Cheat sheet
     MPI_Send(buf, count, datatype, dest,   tag, comm);
     MPI_Recv(buf, count, datatype, source, tag, comm, &status);   /* or MPI_STATUS_IGNORE */
     MPI_Get_count(&status, datatype, &count);
+    MPI_Sendrecv(sendbuf, scount, stype, dest, stag,
+                 recvbuf, rcount, rtype, source, rtag, comm, &status);
     ```
 
     - Recv `count` is the buffer capacity, it must be at least the size of the message
@@ -29,6 +31,7 @@ title: Cheat sheet
     MPI_Allreduce(in, out, count, datatype, op, comm);
     MPI_Scatter(send, send_count, send_type, recv, recv_count, recv_type, source, comm);
     MPI_Gather(send, send_count, send_type, recv, recv_count, recv_type, dest, comm);
+    MPI_Gatherv(send, send_count, send_type, recv, recv_counts, displs, recv_type, dest, comm);
     ```
 
     - `send_count` in Scatter and Gather is per process, not the total
@@ -71,10 +74,50 @@ title: Cheat sheet
     - `local_b = local_a + local_n * h`
     - Estimate: `h * (f(a)/2 + f(x_1) + ... + f(x_n-1) + f(b)/2)`
 
+- Odd-even sort (lecture 12):
+    - Partner: even phase, even rank + 1 and odd rank - 1. Odd phase, even rank - 1 and odd rank + 1
+    - Partner outside 0 to p - 1 means idle that phase
+    - Compare-split: merge the two sorted blocks, the lower rank keeps the low half
+    - At most p phases with p ranks
+    - Exchange with `MPI_Sendrecv`, never Send then Send
+
+- Heat diffusion (lecture 13):
+    - `updatable_rows = N - 2`, `base = updatable_rows / p`, `rem = updatable_rows % p`
+    - `row_count[r] = base + (r < rem ? 1 : 0)`, `row_start[0] = 1`
+    - Local array is `(my_rows + 2) x N`, local rows 0 and `my_rows + 1` are ghosts
+    - `global_row = row_start - 1 + local_row`
+    - `up = rank 0 ? MPI_PROC_NULL : rank - 1`, `down = last rank ? MPI_PROC_NULL : rank + 1`
+    - Gatherv: `recv_counts[r] = row_count[r] * N`, `displs[r] = row_start[r] * N`
+    - Convergence: `MPI_Allreduce(&local_max, &global_max, 1, MPI_DOUBLE, MPI_MAX, comm)`
+
+- Performance (lecture 14):
+    - Speedup `S = T_serial / T_parallel`, linear speedup is `S = p`
+    - Efficiency `E = S / p`
+    - Overhead: `T_parallel = T_serial / p + T_overhead`
+    - Amdahl: `S = 1 / (parallel / p + serial)`, maximum `1 / serial`
+    - Flynn: SISD, SIMD, MISD, MIMD. UMA same access time, NUMA local is faster
+
+- GPGPU and Warp (lecture 15):
+    - One thread per element, `tid = wp.tid()`, kernels write to an output array and return nothing
+    - Host steps: NumPy data, `wp.array`, `wp.zeros`, `wp.launch(kernel, dim, inputs, outputs, device)`, `.numpy()`
+    - Divergent branches cost the sum of both paths. Copying to the GPU can dominate small problems
+
+- Image processing (lectures 16 and 17):
+    - Convolution: `g(x, y) = sum of w(i, j) * f(x + i, y + j)` over the kernel
+    - Normalize smoothing kernels by their sum. High-pass kernels sum to 0
+    - Processable region for half-width m: `(M - 2m) x (N - 2m)` from (m, m)
+    - Unsharp mask: `g = f - blur(f)`, `f_UM = f + k g`, k from 0.2 to 0.7, k > 1 is high-boost
+    - Gaussian: `w(i, j) = e^(-(i^2 + j^2) / (2 sigma^2))`, radius 3 sigma
+    - Median: sort the neighbourhood, take the middle. Best for impulse noise, keeps edges, removes features under half the window
+
 - Commands:
 
     ```
     mpicc -g -Wall -std=c99 -o mpi_hello mpi_hello.c
     mpiexec -n 4 ./mpi_hello
     echo "0 3 1024" | mpiexec -n 4 ./mpi_Bcast
+    mpicc -O2 -Wall -o heatDiffusionMpi heatDiffusionMpi.c -lm
+    mpirun -np 4 ./heatDiffusionMpi 16 6 1e-4 50000 1 frames txt
+    mpiexec -n 4 ./mpi_odd_even g 16
+    python3 arrAdd.py
     ```

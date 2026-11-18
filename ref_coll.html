@@ -168,6 +168,38 @@
 <li><code>recv_count</code> is the number of elements from each process, not the total</li>
 <li><code>recv_buf_p</code> is only used on <code>dest_proc</code></li>
 </ul></div></section>
+<section class="fn" id="MPI_Gatherv"><header class="fn-head"><h2>MPI_Gatherv</h2><p>Like <code>MPI_Gather</code>, but each process may send a different number of elements.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Gatherv</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span>
+<span class="w">                </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_counts</span><span class="p">[],</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">displs</span><span class="p">[],</span>
+<span class="w">                </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">dest_proc</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>send_count</code></td>
+<td>how many elements this process sends</td>
+</tr>
+<tr>
+<td><code>recv_counts[r]</code></td>
+<td>how many elements arrive from rank r (used on <code>dest_proc</code> only)</td>
+</tr>
+<tr>
+<td><code>displs[r]</code></td>
+<td>where rank r's data starts in <code>recv_buf_p</code>, counted in elements (used on <code>dest_proc</code> only)</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>The "v" stands for varying</li>
+<li>Use it when the pieces are different sizes, for example row bands of 4, 4, 3 and 3 rows</li>
+<li>Every process must call it, but only the destination needs real <code>recv_counts</code>, <code>displs</code> and receive buffer (others can pass <code>NULL</code>)</li>
+<li>Parts of the receive buffer that no displacement covers are left untouched</li>
+<li>Used in the course: <code>heatDiffusionMpi.c</code> line 208, with <code>recv_counts[r] = rowCount[r] * n</code> and <code>displs[r] = rowStart[r] * n</code></li>
+</ul></div></section>
 <section class="fn" id="MPI_Allgather"><header class="fn-head"><h2>MPI_Allgather</h2><p>Like <code>MPI_Gather</code>, but every process receives the whole array.</p></header><div class="fn-body"><figure class="snippet"><pre><code><span class="kt">int</span><span class="w"> </span><span class="nf mpi">MPI_Allgather</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">send_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">send_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">send_type</span><span class="p">,</span>
 <span class="w">                  </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">recv_buf_p</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">recv_count</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Datatype</span><span class="w"> </span><span class="n">recv_type</span><span class="p">,</span><span class="w"> </span><span class="n mpi">MPI_Comm</span><span class="w"> </span><span class="n">comm</span><span class="p">);</span></code></pre></figure>
 <ul>
@@ -178,11 +210,12 @@
 <ul>
 <li>No process returns from it until every process in the communicator has started it</li>
 <li>It is mostly used for timing and for ordering output while debugging</li>
+<li><code>heatDiffusionMpi.c</code> line 155 uses it once, just before starting the clock, so all ranks start timing together</li>
 </ul></div></section>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_p2p.html"><span>Previous</span>Send and receive functions</a><a class="next" href="ref_types.html"><span>Next</span>Datatypes and operators</a></nav>
 </main>
 </div>
-<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
 <script src="assets/app.js" defer></script>
 </body>
 </html>

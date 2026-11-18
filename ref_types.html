@@ -151,6 +151,10 @@
 <td><code>MPI_SUCCESS</code></td>
 <td>the return value of a call that worked</td>
 </tr>
+<tr>
+<td><code>MPI_PROC_NULL</code></td>
+<td>"nobody": a send or receive with it finishes at once and does nothing</td>
+</tr>
 </tbody>
 </table></div>
 <ul>
@@ -180,12 +184,20 @@
 <td>Wrong total with no error</td>
 <td><code>n</code> is not divisible by <code>comm_sz</code>, so some trapezoids are skipped</td>
 </tr>
+<tr>
+<td>Works with small data, hangs with large</td>
+<td>two <code>MPI_Send</code> calls facing each other: small messages were buffered, large ones are not</td>
+</tr>
+<tr>
+<td>"DSO missing from command line" when linking</td>
+<td><code>-lm</code> came before the source file, put it at the end</td>
+</tr>
 </tbody>
 </table></div>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="ref_coll.html"><span>Previous</span>Collective functions</a><a class="next" href="reference.html"><span>Next</span>Cheat sheet</a></nav>
 </main>
 </div>
-<footer class="foot">Built from the CIS*3090 slides, textbook chapter 3 and real MPICH runs.</footer>
+<footer class="foot">Built from the CIS*3090 slides (lectures 09 to 17), textbook chapters 2 and 3, and real runs of the course code.</footer>
 <script src="assets/app.js" defer></script>
 </body>
 </html>
